@@ -45,6 +45,15 @@ class UseGenkernel:
         world_set.add("sys-devel/bc")           # kernel build script needs it
 
 
+class UseGentooKernelBin:
+
+    def update_target_settings(self, target_settings):
+        target_settings.kernel_manager = "gentoo-kernel-bin"
+
+    def update_world_set(self, world_set):
+        world_set.add("sys-kernel/gentoo-kernel-bin")
+
+
 class UseOpenrc:
 
     def update_target_settings(self, target_settings):

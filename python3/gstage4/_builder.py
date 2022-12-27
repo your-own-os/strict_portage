@@ -212,6 +212,8 @@ class Builder:
             pass
         elif self._ts.kernel_manager == "genkernel":
             __pkgNeeded("sys-kernel/genkernel")
+        elif self._ts.kernel_manager == "gentoo-kernel-bin":
+            __pkgNeeded("sys-kernel/gentoo-kernel-bin")
         elif self._ts.kernel_manager == "fake":
             pass
         else:
@@ -283,6 +285,10 @@ class Builder:
                     dotConfigFile = None
                 m.script_exec(ScriptGenkernel(self._s.verbose_level, tj, tl, self._ts.build_opts.ccache, dotConfigFile), quiet=self._getQuiet())
 
+            return
+
+        if self._ts.kernel_manager == "gentoo-kernel-bin":
+            assert len(preprocess_script_list) == 0
             return
 
         if self._ts.kernel_manager == "fake":
