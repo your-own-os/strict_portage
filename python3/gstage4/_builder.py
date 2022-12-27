@@ -212,7 +212,7 @@ class Builder:
             pass
         elif self._ts.kernel_manager == "genkernel":
             __pkgNeeded("sys-kernel/genkernel")
-        elif self._ts.kernel_manager == "gentoo-kernel-bin":
+        elif self._ts.kernel_manager == "binary-kernel":
             __pkgNeeded("sys-kernel/gentoo-kernel-bin")
         elif self._ts.kernel_manager == "fake":
             pass
@@ -287,7 +287,7 @@ class Builder:
 
             return
 
-        if self._ts.kernel_manager == "gentoo-kernel-bin":
+        if self._ts.kernel_manager == "binary-kernel":
             assert len(preprocess_script_list) == 0
             return
 

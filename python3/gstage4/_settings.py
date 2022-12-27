@@ -186,8 +186,8 @@ class TargetSettings:
             if obj.package_manager not in ["portage"]:
                 raise SettingsError("invalid value of \"package_manager\"")
 
-            # if obj.kernel_manager not in ["none", "genkernel", "gentoo-kernel-bin", "fake"]:
-            if obj.kernel_manager not in ["none", "genkernel", "gentoo-kernel-bin", "fake"]:
+            # if obj.kernel_manager not in ["none", "genkernel", "binary-kernel", "fake"]:
+            if obj.kernel_manager not in ["none", "genkernel", "binary-kernel", "fake"]:
                 raise SettingsError("invalid value of \"kernel_manager\"")
 
             if obj.service_manager not in ["none", "openrc", "systemd"]:
