@@ -368,7 +368,7 @@ class Builder:
         else:
             assert False
 
-        # create new method
+        # create new action
         @Action(pre_condition)
         def x(self):
             with _MyChrooter(self) as m:
@@ -376,7 +376,7 @@ class Builder:
                     m.script_exec(s, quiet=self._getQuiet())
         exec("self.action_%s = x" % (action_name))
 
-        # add new method to self._actionList
+        # add new action to self._actionList
         self._actionList.insert(before, x)
 
     def remove_action(self, action_name):
