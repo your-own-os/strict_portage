@@ -31,3 +31,7 @@ class SeedStageError(Exception):
 
 class WorkDirError(Exception):
     pass
+
+
+class BuilderCustomActionError(Exception):
+    pass

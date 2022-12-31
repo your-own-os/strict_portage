@@ -33,32 +33,27 @@ from ._prototype import MountRepository
 from ._prototype import EmergeSyncRepository
 from ._prototype import ScriptInChroot
 from ._errors import SettingsError
+from ._errors import BuilderCustomActionError
 from ._settings import Settings
 from ._settings import TargetSettings
 from ._runner import Runner
 from .scripts import ScriptFromBuffer
 
 
-def Action(*preConditionTuple):
+def Action(after=[], before=[]):
     def decorator(func):
+        func._after = after
+        func._before = before
+
         def wrapper(self, *kargs, **kwargs):
-            if self._lastAction is not None:
-                assert self._actionList.index(self._lastAction) < self._actionList.index(func)
+            assert self._actionList.index(self._lastAction) < self._actionList.index(func) if self._lastAction is not None else True
             assert not self._finished
-            if len(preConditionTuple) > 0:                                                              # check pre-conditions
-                bFound = False
-                for p in preConditionTuple:
-                    if p in self._actionList:
-                        assert self._actionList.index(p) < self._actionList.index(func)
-                        bFound = True
-                assert bFound
-            if True:                                                                                    # do work
-                self._curAction = func
-                self._workDirObj.open_chroot_dir(from_dir_name=self._getChrootDirName())
-                func(self, *kargs, **kwargs)
-                self._workDirObj.close_chroot_dir(to_dir_name=self._getChrootDirName())
-                del self._curAction
-                self._lastAction = func
+            self._curAction = func
+            self._workDirObj.open_chroot_dir(from_dir_name=self._getChrootDirName())
+            func(self, *kargs, **kwargs)
+            self._workDirObj.close_chroot_dir(to_dir_name=self._getChrootDirName())
+            del self._curAction
+            self._lastAction = func
         return wrapper
     return decorator
 
@@ -95,6 +90,9 @@ class Builder:
             self.action_enable_services,
             self.action_cleanup,
         ]
+        for p in self._actionList:
+            self._checkAction(p)
+
         self._lastAction = None
         self._finished = False
 
@@ -114,7 +112,7 @@ class Builder:
         with open(t.world_file_hostpath, "w") as f:
             f.write("")
 
-    @Action(action_unpack)
+    @Action(after=[action_unpack])
     def action_create_gentoo_repository(self, repo):
         assert repo.get_name() == "gentoo"
 
@@ -131,7 +129,7 @@ class Builder:
         else:
             assert False
 
-    @Action(action_create_gentoo_repository)
+    @Action(after=[action_create_gentoo_repository])
     def action_init_confdir(self):
         if self._ts.profile is not None:
             with _MyChrooter(self) as m:
@@ -146,7 +144,7 @@ class Builder:
         t.write_package_license()
         t.write_use_mask()
 
-    @Action(action_init_confdir)
+    @Action(after=[action_init_confdir])
     def action_create_overlays(self, overlay_list):
         assert len(overlay_list) > 0
         assert all([Util.isInstanceList(x, ManualSyncRepository, EmergeSyncRepository, MountRepository) for x in overlay_list])
@@ -187,7 +185,7 @@ class Builder:
 
         self._workDirObj.save_record("overlays", json.dumps(overlayRecord))
 
-    @Action(action_init_confdir, action_create_overlays)
+    @Action(after=[action_init_confdir, action_create_overlays])
     def action_install_packages(self, install_list=[], world_set=set()):
         assert len(install_list) > 0 or len(world_set) > 0
         assert len(world_set & set(install_list)) == 0
@@ -254,12 +252,12 @@ class Builder:
             installList = [x for x in installList if not Util.portageIsPkgInstalled(self._workDirObj.chroot_dir_path, x)]
             m.script_exec(ScriptInstallPackages(installList, self._s.verbose_level), quiet=self._getQuiet())
 
-    @Action(action_init_confdir, action_create_overlays, action_install_packages)
+    @Action(after=[action_init_confdir, action_create_overlays, action_install_packages])
     def action_update_world(self):
         with _MyChrooter(self) as m:
             m.script_exec(ScriptUpdateWorld(self._s.verbose_level), quiet=self._getQuiet())
 
-    @Action(action_init_confdir, action_install_packages, action_update_world)
+    @Action(after=[action_init_confdir, action_install_packages, action_update_world])
     def action_install_kernel(self):
         if self._ts.kernel_manager == "genkernel":
             t = TargetConfDirParser(self._workDirObj.chroot_dir_path)
@@ -290,7 +288,7 @@ class Builder:
 
         assert False
 
-    @Action(action_init_confdir, action_install_packages, action_update_world, action_install_kernel)
+    @Action(after=[action_init_confdir, action_install_packages, action_update_world, action_install_kernel])
     def action_enable_services(self, service_list):
         if self._ts.service_manager == "openrc":
             with _MyChrooter(self) as m:
@@ -303,7 +301,7 @@ class Builder:
         else:
             assert False
 
-    @Action(action_init_confdir, action_install_packages, action_update_world, action_install_kernel, action_enable_services)
+    @Action(after=[action_init_confdir, action_install_packages, action_update_world, action_install_kernel, action_enable_services])
     def action_cleanup(self):
         with _MyChrooter(self) as m:
             m.shell_call("", "eselect news read all")
@@ -334,32 +332,33 @@ class Builder:
         assert self._lastAction == self.action_cleanup
         self._finished = True
 
-    def add_custom_action(self, action_name, custom_scripts, pre_condition=None, before=None, after=None):
+    def add_custom_action(self, custom_action, insert_after=None, insert_before=None):
         assert self._lastAction is None
-        assert re.fullmatch("[a-z_]+", action_name) and action_name not in dir(self)
-        assert len(custom_scripts) > 0 and all([isinstance(s, ScriptInChroot) for s in custom_scripts])
+        assert BuilderCustomAction.check_object(custom_action, raise_exception=False)
+        assert "action_" + custom_action.action_name in dir(self)
 
-        if before is not None and after is None:
-            before = self._actionList.index(before)
-            assert before <= len(self._actionList) - 1      # action_cleanup must be the last action
-        elif before is None and after is not None:
-            before = self._actionList.index(after) + 1
-            assert before <= len(self._actionList) - 1      # action_cleanup must be the last action
-        elif before is None and after is None:
-            before = len(self._actionList) - 1              # action_cleanup must be the last action
+        if insert_before is not None and insert_after is None:
+            insert_before = self._actionList.index(insert_before)
+            assert insert_before <= len(self._actionList) - 1      # action_cleanup must be the last action
+        elif insert_before is None and insert_after is not None:
+            insert_before = self._actionList.index(insert_after) + 1
+            assert insert_before <= len(self._actionList) - 1      # action_cleanup must be the last action
+        elif insert_before is None and insert_after is None:
+            insert_before = len(self._actionList) - 1              # action_cleanup must be the last action
         else:
             assert False
 
         # create new action
-        @Action(pre_condition)
+        @Action(after=[getattr(self, "action_" + x) for x in custom_action.after], before=[getattr(self, "action_" + x) for x in custom_action.before])
         def x(self):
             with _MyChrooter(self) as m:
-                for s in custom_scripts:
+                for s in custom_action.custom_scripts:
                     m.script_exec(s, quiet=self._getQuiet())
-        exec("self.action_%s = x" % (action_name))
+        exec("self.action_%s = x" % (custom_action.action_name))
 
         # add new action to self._actionList
-        self._actionList.insert(before, x)
+        self._actionList.insert(insert_before, x)
+        self._checkAction(x)
 
     def remove_action(self, action_name):
         assert self._lastAction is None
@@ -373,11 +372,67 @@ class Builder:
         else:
             return (self._actionList.index(self._lastAction) + 1) * 100 // len(self._actionList)
 
+    def _checkAction(self, action):
+        if len(action._after) > 0:
+            bFound = False
+            for p in action._after:
+                if p in self._actionList:
+                    assert self._actionList.index(p) < self._actionList.index(action)
+                    bFound = True
+            assert bFound
+
+        for p in action._before:
+            if p in self._actionList:
+                assert self._actionList.index(action) < self._actionList.index(p)
+
     def _getChrootDirName(self):
         return "%02d-%s" % (self._actionList.index(self._curAction), self._curAction.name)
 
     def _getQuiet(self):
         return (self._s.verbose_level == 0)
+
+
+class BuilderCustomAction:
+
+    def __init__(self, action_name, custom_scripts, after=[], before=[]):
+        self.action_name = action_name
+        self.custom_scripts = custom_scripts
+        self.after = after
+        self.before = before
+
+    @classmethod
+    def check_object(cls, obj, raise_exception=None):
+        assert raise_exception is not None
+
+        if not isinstance(obj, cls):
+            if raise_exception:
+                raise BuilderCustomActionError("invalid object type")
+            else:
+                return False
+
+        if not re.fullmatch("[0-9a-z_]+", obj.action_name):
+            if raise_exception:
+                raise BuilderCustomActionError("invalid value for key \"action_name\"")
+            else:
+                return False
+
+        if len(obj.custom_scripts) == 0 or any([not isinstance(s, ScriptInChroot) for s in obj.custom_scripts]):
+            if raise_exception:
+                raise BuilderCustomActionError("invalid value for key \"custom_scripts\"")
+            else:
+                return False
+
+        if any([not re.fullmatch("[0-9a-z_]+", x) for x in obj.after]):
+            if raise_exception:
+                raise BuilderCustomActionError("invalid value for key \"after\"")
+            else:
+                return False
+
+        if any([not re.fullmatch("[0-9a-z_]+", x) for x in obj.before]):
+            if raise_exception:
+                raise BuilderCustomActionError("invalid value for key \"before\"")
+            else:
+                return False
 
 
 class _MyRepoUtil:
