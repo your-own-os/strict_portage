@@ -41,6 +41,7 @@ from .scripts import ScriptFromBuffer
 
 
 def Action(after=[], before=[]):
+
     def decorator(func):
         func._after = after
         func._before = before
@@ -54,7 +55,9 @@ def Action(after=[], before=[]):
             self._workDirObj.close_chroot_dir(to_dir_name=self._getChrootDirName())
             del self._curAction
             self._lastAction = func
+
         return wrapper
+
     return decorator
 
 
