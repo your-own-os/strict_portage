@@ -22,8 +22,9 @@
 
 
 import crypt
-from gstage4.scripts import ScriptFromBuffer
-from gstage4.scripts import PlacingFilesScript
+from .. import BuilderCustomAction
+from ..scripts import ScriptFromBuffer
+from ..scripts import PlacingFilesScript
 
 
 class UsePortage:
@@ -131,12 +132,11 @@ class UsrMerge:
         if "split-usr" not in target_settings.use_mask:
             target_settings.use_mask.append("split-usr")
 
-    def update_preprocess_script_list_for_update_world(self, preprocess_script_list):
-        # we use python script to do this work
-        # it is because new process can not be created when moving /lib*
-        s = ScriptFromBuffer("Merge /bin, /sbin, /lib, /lib64 and their /usr counterparts", self._scriptFileContent)
-        assert s not in preprocess_script_list
-        preprocess_script_list.append(s)
+    def get_custom_action(self):
+        return BuilderCustomAction("usr-merge",
+                                   [ScriptFromBuffer("Merge /bin, /sbin, /lib, /lib64 and their /usr counterparts", self._scriptFileContent)],
+                                   after=["init_confdir", "create_overlays"],
+                                   before=["install_packages"])
 
         # UNINSTALL_IGNORE="/bin /lib /lib64 /sbin /usr/sbin"
 
