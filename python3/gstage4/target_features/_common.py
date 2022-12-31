@@ -208,7 +208,7 @@ class SshServer:
         if "sshd" not in service_list:
             service_list.append("sshd")
 
-    def update_custom_script_list(self, custom_script_list):
+    def get_custom_action(self):
         # FIXME
         pass
 
@@ -235,7 +235,7 @@ class NetworkManager:
 
 class GettyAutoLogin:
 
-    def update_custom_script_list(self, custom_script_list):
+    def get_custom_action(self):
         s = PlacingFilesScript("Place auto login file")
         s.append_dir("/etc")
         s.append_dir("/etc/systemd")
@@ -243,9 +243,7 @@ class GettyAutoLogin:
         s.append_dir("/etc/systemd/system/getty@.service.d")
         s.append_file("/etc/systemd/system/getty@.service.d/getty-autologin.conf",
                       self._fileContent.strip("\n") + "\n")  # remove all redundant carrage returns)
-
-        assert s not in custom_script_list
-        custom_script_list.append(s)
+        return CustomAction(s, after=["init_confdir", "create_overlays", "install_packages", "update_world", "install_kernel", "enable_services"])
 
     _fileContent = """
 [Service]
@@ -259,14 +257,13 @@ class SetPasswordForUserRoot:
     def __init__(self, password):
         self._hash = crypt.crypt(password)
 
-    def update_custom_script_list(self, custom_script_list):
+    def get_custom_action(self):
         buf = ""
         buf += "#!/bin/sh\n"
         buf += "sed -i 's#^root:[^:]*:#root:%s:#' /etc/shadow\n" % (self._hash)      # modify /etc/shadow directly so that password complexity check won't be in our way
 
-        s = ScriptFromBuffer("Set root's password", buf)
-        assert s not in custom_script_list
-        custom_script_list.append(s)
+        return CustomAction(ScriptFromBuffer("Set root's password", buf),
+                            after=["init_confdir", "create_overlays", "install_packages", "update_world", "install_kernel", "enable_services"])
 
 
 class AddUser:
@@ -276,5 +273,5 @@ class AddUser:
         self._pwd = password
         self._comment = comment
 
-    def update_custom_script_list(self, custom_script_list):
+    def get_custom_action(self):
         assert False
