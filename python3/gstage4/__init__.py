@@ -46,9 +46,9 @@ from ._workdir import WorkDir
 from ._runner import Runner
 
 from ._builder import Builder
-from ._builder import BuilderCustomAction
+from ._builder import CustomAction
 
 from ._errors import SettingsError
 from ._errors import SeedStageError
 from ._errors import WorkDirError
-from ._errors import BuilderCustomActionError
+from ._errors import CustomActionError

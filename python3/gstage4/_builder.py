@@ -33,7 +33,7 @@ from ._prototype import MountRepository
 from ._prototype import EmergeSyncRepository
 from ._prototype import ScriptInChroot
 from ._errors import SettingsError
-from ._errors import BuilderCustomActionError
+from ._errors import CustomActionError
 from ._settings import Settings
 from ._settings import TargetSettings
 from ._runner import Runner
@@ -337,7 +337,7 @@ class Builder:
 
     def add_custom_action(self, action_name, action, insert_after=None, insert_before=None):
         assert re.fullmatch("[0-9a-z_]+", action_name)
-        assert BuilderCustomAction.check_object(action, raise_exception=False)
+        assert CustomAction.check_object(action, raise_exception=False)
         assert "action_" + action.action_name in dir(self)
 
         if insert_before is not None and insert_after is None:
@@ -364,6 +364,11 @@ class Builder:
         # add new action to self._actionList
         self._actionList.insert(insert_before, x)
         self._checkAction(x, insert_before)
+
+    def add_and_run_custom_action(self, action_name, action):
+        assert self._lastAction is not None
+        self.add_custom_action(action_name, action, insert_after=self._lastAction)
+        exec("self.action_%s()" % (action_name))
 
     def remove_action(self, action_name):
         o = eval("self.action_%s" % (action_name))
@@ -402,7 +407,7 @@ class Builder:
         return (self._s.verbose_level == 0)
 
 
-class BuilderCustomAction:
+class CustomAction:
 
     def __init__(self, *custom_scripts, after=[], before=[]):
         self.custom_scripts = custom_scripts
@@ -415,25 +420,25 @@ class BuilderCustomAction:
 
         if not isinstance(obj, cls):
             if raise_exception:
-                raise BuilderCustomActionError("invalid object type")
+                raise CustomActionError("invalid object type")
             else:
                 return False
 
         if len(obj.custom_scripts) == 0 or any([not isinstance(s, ScriptInChroot) for s in obj.custom_scripts]):
             if raise_exception:
-                raise BuilderCustomActionError("invalid value for key \"custom_scripts\"")
+                raise CustomActionError("invalid value for key \"custom_scripts\"")
             else:
                 return False
 
         if any([not re.fullmatch("[0-9a-z_]+", x) for x in obj.after]):
             if raise_exception:
-                raise BuilderCustomActionError("invalid value for key \"after\"")
+                raise CustomActionError("invalid value for key \"after\"")
             else:
                 return False
 
         if any([not re.fullmatch("[0-9a-z_]+", x) for x in obj.before]):
             if raise_exception:
-                raise BuilderCustomActionError("invalid value for key \"before\"")
+                raise CustomActionError("invalid value for key \"before\"")
             else:
                 return False
 

@@ -33,5 +33,5 @@ class WorkDirError(Exception):
     pass
 
 
-class BuilderCustomActionError(Exception):
+class CustomActionError(Exception):
     pass

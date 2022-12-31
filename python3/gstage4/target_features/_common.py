@@ -22,7 +22,7 @@
 
 
 import crypt
-from .. import BuilderCustomAction
+from .. import CustomAction
 from ..scripts import ScriptFromBuffer
 from ..scripts import PlacingFilesScript
 
@@ -133,9 +133,9 @@ class UsrMerge:
             target_settings.use_mask.append("split-usr")
 
     def get_custom_action(self):
-        return BuilderCustomAction(ScriptFromBuffer("Merge /bin, /sbin, /lib, /lib64 and their /usr counterparts", self._scriptFileContent),
-                                   after=["init_confdir", "create_overlays"],
-                                   before=["install_packages"])
+        return CustomAction(ScriptFromBuffer("Merge /bin, /sbin, /lib, /lib64 and their /usr counterparts", self._scriptFileContent),
+                            after=["init_confdir", "create_overlays"],
+                            before=["install_packages"])
 
         # UNINSTALL_IGNORE="/bin /lib /lib64 /sbin /usr/sbin"
 
