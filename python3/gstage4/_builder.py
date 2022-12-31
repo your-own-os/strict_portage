@@ -41,7 +41,6 @@ from .scripts import ScriptFromBuffer
 
 
 def Action(after=[], before=[]):
-
     def decorator(func):
         def wrapper(self, *kargs, **kwargs):
             assert self._actionList.index(self._lastAction) < self._actionList.index(func) if self._lastAction is not None else True
@@ -52,9 +51,9 @@ def Action(after=[], before=[]):
             self._workDirObj.close_chroot_dir(to_dir_name=self._getChrootDirName())
             del self._curAction
             self._lastAction = func
-        wrapper._after = after
-        wrapper._before = before
         return wrapper
+    decorator._after = after
+    decorator._before = before
     return decorator
 
 
@@ -398,7 +397,7 @@ class Builder:
                 assert actionIndex < self._actionList.index(p)
 
     def _getChrootDirName(self):
-        return "%02d-%s" % (self._actionList.index(self._curAction), self._curAction.name)
+        return "%02d-%s" % (self._actionList.index(self._curAction), self._curAction.__name__)
 
     def _getQuiet(self):
         return (self._s.verbose_level == 0)
