@@ -52,8 +52,8 @@ def Action(after=[], before=[]):
             del self._curAction
             self._lastAction = func
         return wrapper
-    decorator._after = after
-    decorator._before = before
+    decorator._myAfter = after
+    decorator._myBefore = before
     return decorator
 
 
@@ -384,15 +384,15 @@ class Builder:
             return (self._actionList.index(self._lastAction) + 1) * 100 // len(self._actionList)
 
     def _checkAction(self, action, actionIndex):
-        if len(action._after) > 0:
+        if len(action._myAfter) > 0:
             bFound = False
-            for p in action._after:
+            for p in action._myAfter:
                 if p in self._actionList:
                     assert self._actionList.index(p) < actionIndex
                     bFound = True
             assert bFound
 
-        for p in action._before:
+        for p in action._myBefore:
             if p in self._actionList:
                 assert actionIndex < self._actionList.index(p)
 
