@@ -46,13 +46,10 @@ def Action(after=[], before=[]):
                 print(self._lastAction._func, func, func._wrapper)
                 print(self._lastAction in self._actionList, any([self._lastAction == x for x in self._actionList]))
                 print(func._wrapper in self._actionList, any([func._wrapper == x for x in self._actionList]))
-            assert self._actionList.index(self._lastAction) < self._actionList.index(func._wrapper) if self._lastAction is not None else True
+            assert self._actionList.index(self._lastAction) < self._actionList.index(__func__) if self._lastAction is not None else True
             assert not self._finished
-            self._curAction = func._wrapper
             func(self, *kargs, **kwargs)
-            del self._curAction
-            self._lastAction = func._wrapper
-        func._wrapper = wrapper
+            self._lastAction = __func__
         wrapper._func = func
         wrapper._after = after
         wrapper._before = before
