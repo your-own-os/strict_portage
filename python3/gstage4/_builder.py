@@ -385,7 +385,7 @@ class Builder:
 
     def _checkAction(self, action, actionIndex):
         print(action._myAfter.__name__)
-        print(action._myBefore.__name__)
+        print(action._myBefore)
 
         if len(action._myAfter) > 0:
             bFound = False
