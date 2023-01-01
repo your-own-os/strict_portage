@@ -387,18 +387,18 @@ class Builder:
             return (self._actionList.index(self._lastAction) + 1) * 100 // len(self._actionList)
 
     def _checkAction(self, action, actionIndex):
-        print(action._realFunc._myAfter.__name__)
-        print(action._realFunc._myBefore)
+        print(action._myAfter.__name__)
+        print(action._myBefore)
 
-        if len(action._realFunc._myAfter) > 0:
+        if len(action._myAfter) > 0:
             bFound = False
-            for p in action._realFunc._myAfter:
+            for p in action._myAfter:
                 if p in self._actionList:
                     assert self._actionList.index(p) < actionIndex
                     bFound = True
             assert bFound
 
-        for p in action._realFunc._myBefore:
+        for p in action._myBefore:
             if p in self._actionList:
                 assert actionIndex < self._actionList.index(p)
 
