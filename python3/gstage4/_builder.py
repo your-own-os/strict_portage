@@ -79,6 +79,8 @@ class Builder:
 
         self._workDirObj = work_dir
 
+        print(dir(self))
+
         self._actionList = [
             self.action_unpack,
             self.action_create_gentoo_repository,
@@ -360,7 +362,7 @@ class Builder:
 
         # add new action to self._actionList
         self._actionList.insert(insert_before, x)
-        self._checkAction(x, insert_before)93
+        self._checkAction(x, insert_before)
 
     def add_and_run_custom_action(self, action_name, action):
         assert self._lastAction is not None
