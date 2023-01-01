@@ -366,13 +366,11 @@ class Builder:
             self._checkAction(self._actionList[i], i)
 
     def add_and_run_custom_action(self, action_name, action):
-        assert self._lastAction is not None
         self.add_custom_action(action_name, action, insert_after=self._lastAction)
         exec("self.action_%s()" % (action_name))
 
     def remove_action(self, action_name):
-        o = eval("self.action_%s" % (action_name))
-        idx = self._actionList.index(o)
+        idx = self._actionList.index(eval("self.action_%s" % (action_name)))
 
         if self._lastAction is not None:
             assert self._actionList.index(self._lastAction) < idx
