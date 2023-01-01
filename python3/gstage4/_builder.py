@@ -23,7 +23,6 @@
 
 import os
 import re
-import json
 import pathlib
 import robust_layer.simple_fops
 from ._util import Util
@@ -46,9 +45,7 @@ def Action(after=[], before=[]):
             assert self._actionList.index(self._lastAction) < self._actionList.index(func) if self._lastAction is not None else True
             assert not self._finished
             self._curAction = func._wrapper
-            self._workDirObj.open_chroot_dir(from_dir_name=self._getChrootDirName())
             func(self, *kargs, **kwargs)
-            self._workDirObj.close_chroot_dir(to_dir_name=self._getChrootDirName())
             del self._curAction
             self._lastAction = func._wrapper
         func._wrapper = wrapper
@@ -64,10 +61,12 @@ class Builder:
     It is the driver class for pretty much everything that gstage4 does.
     """
 
-    def __init__(self, settings, target_settings, work_dir):
+    def __init__(self, work_dir, settings, target_settings):
         assert Settings.check_object(settings, raise_exception=False)
         assert TargetSettings.check_object(target_settings, raise_exception=False)
-        assert work_dir.verify_existing(raise_exception=False)
+
+        self._workDirObj = work_dir
+        self._workDirObj.initialize()
 
         self._s = settings
         if self._s.log_dir is not None:
@@ -76,10 +75,6 @@ class Builder:
         self._ts = target_settings
         if self._ts.build_opts.ccache and self._s.host_ccache_dir is None:
             raise SettingsError("ccache is enabled but host ccache directory is not specified")
-
-        self._workDirObj = work_dir
-
-        print(dir(self))
 
         self._actionList = [
             self.action_unpack,
@@ -95,6 +90,8 @@ class Builder:
         for i in range(0, len(self._actionList)):
             self._checkAction(self._actionList[i], i)
 
+        self._actionStorage = dict()
+
         self._lastAction = None
         self._finished = False
 
@@ -103,9 +100,9 @@ class Builder:
         assert isinstance(seed_stage, SeedStage)
         assert seed_stage.get_arch() == self._ts.arch
 
-        seed_stage.unpack(self._workDirObj.chroot_dir_path)
+        seed_stage.unpack(self._workDirObj.path)
 
-        t = TargetFilesAndDirs(self._workDirObj.chroot_dir_path)
+        t = TargetFilesAndDirs(self._workDirObj.path)
         os.makedirs(t.logdir_hostpath, exist_ok=True)
         os.makedirs(t.distdir_hostpath, exist_ok=True)
         os.makedirs(t.binpkgdir_hostpath, exist_ok=True)
@@ -119,15 +116,15 @@ class Builder:
         assert repo.get_name() == "gentoo"
 
         if isinstance(repo, ManualSyncRepository):
-            _MyRepoUtil.createFromManuSyncRepo(repo, True, self._workDirObj.chroot_dir_path)
-            repo.sync(os.path.join(self._workDirObj.chroot_dir_path, repo.get_datadir_path()[1:]))
+            _MyRepoUtil.createFromManuSyncRepo(repo, True, self._workDirObj.path)
+            repo.sync(os.path.join(self._workDirObj.path, repo.get_datadir_path()[1:]))
         elif isinstance(repo, EmergeSyncRepository):
-            myRepo = _MyRepoUtil.createFromEmergeSyncRepo(repo, True, self._workDirObj.chroot_dir_path)
+            myRepo = _MyRepoUtil.createFromEmergeSyncRepo(repo, True, self._workDirObj.path)
             assert myRepo.get_sync_type() == "rsync"
             with _MyChrooter(self) as m:
                 m.script_exec(ScriptSync(), quiet=self._getQuiet())
         elif isinstance(repo, MountRepository):
-            _MyRepoUtil.createFromMountRepo(repo, True, self._workDirObj.chroot_dir_path)
+            _MyRepoUtil.createFromMountRepo(repo, True, self._workDirObj.path)
         else:
             assert False
 
@@ -137,7 +134,7 @@ class Builder:
             with _MyChrooter(self) as m:
                 m.shell_call("", "eselect profile set %s" % (self._ts.profile))
 
-        t = TargetConfDirWriter(self._s, self._ts, self._workDirObj.chroot_dir_path)
+        t = TargetConfDirWriter(self._s, self._ts, self._workDirObj.path)
         t.write_make_conf()
         t.write_package_use()
         t.write_package_mask()
@@ -157,9 +154,9 @@ class Builder:
         pkgSet = set()
         for overlay in overlay_list:
             if isinstance(overlay, ManualSyncRepository):
-                _MyRepoUtil.createFromManuSyncRepo(overlay, False, self._workDirObj.chroot_dir_path)
+                _MyRepoUtil.createFromManuSyncRepo(overlay, False, self._workDirObj.path)
             elif isinstance(overlay, EmergeSyncRepository):
-                myRepo = _MyRepoUtil.createFromEmergeSyncRepo(overlay, False, self._workDirObj.chroot_dir_path)
+                myRepo = _MyRepoUtil.createFromEmergeSyncRepo(overlay, False, self._workDirObj.path)
                 syncType = myRepo.get_sync_type()
                 if syncType == "rsync":
                     pass
@@ -169,13 +166,13 @@ class Builder:
                     assert False
                 overlayRecord[overlay.get_name()] = syncType
             elif isinstance(overlay, MountRepository):
-                _MyRepoUtil.createFromMountRepo(overlay, False, self._workDirObj.chroot_dir_path)
+                _MyRepoUtil.createFromMountRepo(overlay, False, self._workDirObj.path)
             else:
                 assert False
 
         if any([isinstance(repo, EmergeSyncRepository) for repo in overlay_list]):
             with _MyChrooter(self) as m:
-                installList = [x for x in pkgSet if not Util.portageIsPkgInstalled(self._workDirObj.chroot_dir_path, x)]
+                installList = [x for x in pkgSet if not Util.portageIsPkgInstalled(self._workDirObj.path, x)]
                 m.script_exec(ScriptInstallPackages(installList, self._s.verbose_level), quiet=self._getQuiet())
 
                 if any([isinstance(repo, EmergeSyncRepository) for repo in overlay_list]):
@@ -183,9 +180,9 @@ class Builder:
 
         for overlay in overlay_list:
             if isinstance(overlay, ManualSyncRepository):
-                overlay.sync(os.path.join(self._workDirObj.chroot_dir_path, overlay.get_datadir_path()[1:]))
+                overlay.sync(os.path.join(self._workDirObj.path, overlay.get_datadir_path()[1:]))
 
-        self._workDirObj.save_record("overlays", json.dumps(overlayRecord))
+        self._actionStorage["overlays"] = overlayRecord
 
     @Action(after=[action_init_confdir, action_create_overlays])
     def action_install_packages(self, install_list=[], world_set=set()):
@@ -229,7 +226,7 @@ class Builder:
         if self._ts.build_opts.ccache:
             __pkgNeeded("dev-util/ccache")
 
-        overlayRecord = json.loads(self._workDirObj.load_record("overlays", default_value=json.dumps({})))
+        overlayRecord = self._actionStorage.get("overlays", {})
         if "git" in overlayRecord.values():
             __worldNeeded("dev-vcs/git")
 
@@ -244,14 +241,14 @@ class Builder:
                 installList.insert(0, pkg)
 
         # write world file
-        t = TargetFilesAndDirs(self._workDirObj.chroot_dir_path)
+        t = TargetFilesAndDirs(self._workDirObj.path)
         with open(t.world_file_hostpath, "w") as f:
             for pkg in world_set:
                 f.write("%s\n" % (pkg))
 
         # install packages, update @world
         with _MyChrooter(self) as m:
-            installList = [x for x in installList if not Util.portageIsPkgInstalled(self._workDirObj.chroot_dir_path, x)]
+            installList = [x for x in installList if not Util.portageIsPkgInstalled(self._workDirObj.path, x)]
             m.script_exec(ScriptInstallPackages(installList, self._s.verbose_level), quiet=self._getQuiet())
 
     @Action(after=[action_init_confdir, action_create_overlays, action_install_packages])
@@ -262,7 +259,7 @@ class Builder:
     @Action(after=[action_init_confdir, action_install_packages, action_update_world])
     def action_install_kernel(self):
         if self._ts.kernel_manager == "genkernel":
-            t = TargetConfDirParser(self._workDirObj.chroot_dir_path)
+            t = TargetConfDirParser(self._workDirObj.path)
             tj = t.get_make_conf_make_opts_jobs()
             tl = t.get_make_conf_load_average()
 
@@ -270,7 +267,7 @@ class Builder:
                 m.shell_call("", "eselect kernel set 1")
 
                 dotConfigFile = "/usr/src/dot-config"
-                if not os.path.exists(os.path.join(self._workDirObj.chroot_dir_path, dotConfigFile[1:])):
+                if not os.path.exists(os.path.join(self._workDirObj.path, dotConfigFile[1:])):
                     dotConfigFile = None
                 m.script_exec(ScriptGenkernel(self._s.verbose_level, tj, tl, self._ts.build_opts.ccache, dotConfigFile), quiet=self._getQuiet())
 
@@ -280,7 +277,7 @@ class Builder:
             return
 
         if self._ts.kernel_manager == "fake":
-            bootDir = os.path.join(self._workDirObj.chroot_dir_path, "boot")
+            bootDir = os.path.join(self._workDirObj.path, "boot")
             os.makedirs(bootDir, exist_ok=True)
             with open(os.path.join(bootDir, "vmlinuz"), "w") as f:
                 f.write("fake kernel")
@@ -315,7 +312,7 @@ class Builder:
                 # m.shell_exec("", "%s/run-merge.sh -C sys-apps/portage" % (scriptDirPath))
                 pass
 
-        t = TargetConfDirCleaner(self._workDirObj.chroot_dir_path)
+        t = TargetConfDirCleaner(self._workDirObj.path)
         t.cleanup_repos_conf_dir()
         t.cleanup_make_conf()
 
@@ -552,7 +549,7 @@ class _MyRepo:
 class _MyChrooter(Runner):
 
     def __init__(self, parent):
-        super().__init__(parent._workDirObj.chroot_dir_path)
+        super().__init__(parent._workDirObj.path)
         self._p = parent
         self._w = parent._workDirObj
         self._bindMountList = []
@@ -560,7 +557,7 @@ class _MyChrooter(Runner):
     def bind(self):
         super().bind()
         try:
-            t = TargetFilesAndDirs(self._w.chroot_dir_path)
+            t = TargetFilesAndDirs(self._w.path)
 
             # log directory mount point
             if self._p._s.log_dir is not None:
@@ -587,7 +584,7 @@ class _MyChrooter(Runner):
                 self._bindMountList.append(t.ccachedir_hostpath)
 
             # mount points for MountRepository
-            for myRepo in _MyRepoUtil.scanReposConfDir(self._w.chroot_dir_path):
+            for myRepo in _MyRepoUtil.scanReposConfDir(self._w.path):
                 mp = myRepo.get_mount_params()
                 if mp is not None:
                     assert os.path.exists(myRepo.datadir_hostpath) and not Util.isMount(myRepo.datadir_hostpath)
