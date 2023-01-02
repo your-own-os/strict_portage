@@ -39,7 +39,7 @@ from ._runner import Runner
 from .scripts import ScriptFromBuffer
 
 
-def Action(after=[], before=[]):
+def Action(description, after=[], before=[]):
     def decorator(func):
         def wrapper(self, *kargs, **kwargs):
             curMethod = None
@@ -51,7 +51,7 @@ def Action(after=[], before=[]):
             assert not self._finished
             func(self, *kargs, **kwargs)
             self._lastAction = curMethod
-        wrapper._func = func
+        wrapper._description = description
         wrapper._after = after
         wrapper._before = before
         return wrapper
@@ -97,7 +97,7 @@ class Builder:
         self._lastAction = None
         self._finished = False
 
-    @Action()
+    @Action("Unpack seed stage file")
     def action_unpack(self, seed_stage):
         assert isinstance(seed_stage, SeedStage)
         assert seed_stage.get_arch() == self._ts.arch
@@ -113,7 +113,7 @@ class Builder:
         with open(t.world_file_hostpath, "w") as f:
             f.write("")
 
-    @Action(after=["unpack"])
+    @Action("Create Gentoo repository", after=["unpack"])
     def action_create_gentoo_repository(self, repo):
         assert repo.get_name() == "gentoo"
 
@@ -130,7 +130,7 @@ class Builder:
         else:
             assert False
 
-    @Action(after=["create_gentoo_repository"])
+    @Action("Initialize config directory", after=["create_gentoo_repository"])
     def action_init_confdir(self):
         if self._ts.profile is not None:
             with _MyChrooter(self) as m:
@@ -145,7 +145,7 @@ class Builder:
         t.write_package_license()
         t.write_use_mask()
 
-    @Action(after=["init_confdir"])
+    @Action("Create overlays", after=["init_confdir"])
     def action_create_overlays(self, overlay_list):
         assert all([Util.isInstanceList(x, ManualSyncRepository, EmergeSyncRepository, MountRepository) for x in overlay_list])
         assert not any([x.get_name() == "gentoo" for x in overlay_list])
@@ -185,7 +185,7 @@ class Builder:
 
         self._actionStorage["overlays"] = overlayRecord
 
-    @Action(after=["init_confdir", "create_overlays"])
+    @Action("Install packages", after=["init_confdir", "create_overlays"])
     def action_install_packages(self, install_list, world_set):
         assert len(world_set & set(install_list)) == 0
 
@@ -252,12 +252,12 @@ class Builder:
             with _MyChrooter(self) as m:
                 m.script_exec(ScriptInstallPackages(installList, self._s.verbose_level), quiet=self._getQuiet())
 
-    @Action(after=["init_confdir", "create_overlays", "install_packages"])
+    @Action("Update @World", after=["init_confdir", "create_overlays", "install_packages"])
     def action_update_world(self):
         with _MyChrooter(self) as m:
             m.script_exec(ScriptUpdateWorld(self._s.verbose_level), quiet=self._getQuiet())
 
-    @Action(after=["init_confdir", "install_packages", "update_world"])
+    @Action("Install kernel", after=["init_confdir", "install_packages", "update_world"])
     def action_install_kernel(self):
         if self._ts.kernel_manager == "genkernel":
             t = TargetConfDirParser(self._workDirObj.path)
@@ -288,7 +288,7 @@ class Builder:
 
         assert False
 
-    @Action(after=["init_confdir", "install_packages", "update_world", "install_kernel"])
+    @Action("Enable services", after=["init_confdir", "install_packages", "update_world", "install_kernel"])
     def action_enable_services(self, service_list):
         if len(service_list) == 0:
             return
@@ -304,7 +304,7 @@ class Builder:
         else:
             assert False
 
-    @Action(after=["init_confdir", "install_packages", "update_world", "install_kernel", "enable_services"])
+    @Action("Clean up", after=["init_confdir", "install_packages", "update_world", "install_kernel", "enable_services"])
     def action_cleanup(self):
         with _MyChrooter(self) as m:
             m.shell_call("", "eselect news read all")
@@ -353,7 +353,7 @@ class Builder:
             assert self._actionList.index(self._lastAction) < insert_before
 
         # create new action
-        @Action(after=action.after, before=action.before)
+        @Action(action.description, after=action.after, before=action.before)
         def x(self):
             with _MyChrooter(self) as m:
                 for s in action.custom_scripts:
@@ -958,7 +958,7 @@ class TargetConfDirCleaner:
 class ScriptSync(ScriptFromBuffer):
 
     def __init__(self):
-        super().__init__("Sync repositories", self._scriptContent)
+        super().__init__(self._scriptContent)
 
     _scriptContent = """
 #!/bin/bash
@@ -986,12 +986,7 @@ class ScriptInstallPackages(ScriptFromBuffer):
             assert False
         buf = buf.replace("@@PKG_NAME@@", " ".join(pkgList))
 
-        if len(pkgList) > 1:
-            desc = "Install %d packages" % (len(pkgList))
-        else:
-            desc = "Install package %s" % (pkgList[0])
-
-        super().__init__(desc, buf)
+        super().__init__(buf)
 
     _scriptContentFirstHalf = """
 #!/bin/bash
@@ -1036,7 +1031,7 @@ class ScriptUpdateWorld(ScriptFromBuffer):
             assert False
         buf += self._scriptContentThirdHalf
 
-        super().__init__("Update @world", buf)
+        super().__init__(buf)
 
     _scriptContentFirstHalf = """
 #!/bin/bash
@@ -1106,7 +1101,7 @@ class ScriptGenkernel(ScriptFromBuffer):
         else:
             assert False
 
-        super().__init__("Install kernel", buf)
+        super().__init__(buf)
 
 
 class ScriptDepClean(ScriptFromBuffer):
@@ -1120,7 +1115,7 @@ class ScriptDepClean(ScriptFromBuffer):
         else:
             assert False
 
-        super().__init__("Clean system", buf)
+        super().__init__(buf)
 
     _scriptContent = """
 #!/bin/bash
