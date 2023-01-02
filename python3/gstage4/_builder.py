@@ -356,7 +356,7 @@ class Builder:
             with _MyChrooter(self) as m:
                 for s in action.custom_scripts:
                     m.script_exec(s, quiet=self._getQuiet())
-        exec("self.action_%s = x" % (action_name))
+        exec("self.action_%s = x.__get__(self)" % (action_name))
 
         # add new action to self._actionList
         self._actionList.insert(insert_before, x)
