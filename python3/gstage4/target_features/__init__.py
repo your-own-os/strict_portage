@@ -33,6 +33,7 @@ from ._common import UsrMerge
 from ._common import PreferGnuAndGpl
 from ._common import PreferBinaryPackage
 
+from ._common import MemTest
 from ._common import SshServer
 from ._common import ChronyDaemon
 from ._common import NetworkManager
