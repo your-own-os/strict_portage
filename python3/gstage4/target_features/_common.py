@@ -133,7 +133,8 @@ class UsrMerge:
             target_settings.use_mask.append("split-usr")
 
     def get_custom_action(self):
-        return CustomAction(ScriptFromBuffer("Merge /bin, /sbin, /lib, /lib64 and their /usr counterparts", self._scriptFileContent),
+        return CustomAction("Merge /bin, /sbin, /lib, /lib64 and their /usr counterparts",
+                            ScriptFromBuffer(self._scriptFileContent),
                             after=["init_confdir", "create_overlays"],
                             before=["install_packages"])
 
@@ -236,14 +237,16 @@ class NetworkManager:
 class GettyAutoLogin:
 
     def get_custom_action(self):
-        s = PlacingFilesScript("Place auto login file")
+        s = PlacingFilesScript()
         s.append_dir("/etc")
         s.append_dir("/etc/systemd")
         s.append_dir("/etc/systemd/system")
         s.append_dir("/etc/systemd/system/getty@.service.d")
         s.append_file("/etc/systemd/system/getty@.service.d/getty-autologin.conf",
                       self._fileContent.strip("\n") + "\n")  # remove all redundant carrage returns)
-        return CustomAction(s, after=["init_confdir", "create_overlays", "install_packages", "update_world", "install_kernel", "enable_services"])
+        return CustomAction("Place auto login file",
+                            s,
+                            after=["init_confdir", "create_overlays", "install_packages", "update_world", "install_kernel", "enable_services"])
 
     _fileContent = """
 [Service]
@@ -262,7 +265,8 @@ class SetPasswordForUserRoot:
         buf += "#!/bin/sh\n"
         buf += "sed -i 's#^root:[^:]*:#root:%s:#' /etc/shadow\n" % (self._hash)      # modify /etc/shadow directly so that password complexity check won't be in our way
 
-        return CustomAction(ScriptFromBuffer("Set root's password", buf),
+        return CustomAction("Set root's password",
+                            ScriptFromBuffer(buf),
                             after=["init_confdir", "create_overlays", "install_packages", "update_world", "install_kernel", "enable_services"])
 
 
