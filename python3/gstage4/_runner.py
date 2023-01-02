@@ -23,6 +23,7 @@
 
 import os
 import platform
+import subprocess
 import robust_layer.simple_fops
 from ._util import Util
 
@@ -51,26 +52,26 @@ class Runner:
         try:
             # copy resolv.conf
             # FIMXE: can not adapt the network cfg of host system change
-            Util.shellCall("cp -L /etc/resolv.conf \"%s\"" % (os.path.join(self._dir, "etc")))
+            subprocess.check_call(["cp", "-L", "/etc/resolv.conf", os.path.join(self._dir, "etc")])
 
             # mount /proc
             fullfn = os.path.join(self._dir, "proc")
             assert os.path.exists(fullfn) and not Util.isMount(fullfn)
-            Util.shellCall("mount -t proc proc \"%s\"" % (fullfn))
+            subprocess.check_call(["mount", "-t", "proc", "proc", fullfn])
             self._mountList.append(fullfn)
 
             # mount /sys
             fullfn = os.path.join(self._dir, "sys")
             assert os.path.exists(fullfn) and not Util.isMount(fullfn)
-            Util.shellCall("mount --rbind /sys \"%s\"" % (fullfn))
-            Util.shellCall("mount --make-rslave \"%s\"" % (fullfn))
+            subprocess.check_call(["mount", "--rbind", "/sys", fullfn])
+            subprocess.check_call(["mount", "--make-rslave", fullfn])
             self._mountList.append(fullfn)
 
             # mount /dev
             fullfn = os.path.join(self._dir, "dev")
             assert os.path.exists(fullfn) and not Util.isMount(fullfn)
-            Util.shellCall("mount --rbind /dev \"%s\"" % (fullfn))
-            Util.shellCall("mount --make-rslave \"%s\"" % (fullfn))
+            subprocess.check_call(["mount", "--rbind", "/dev", fullfn])
+            subprocess.check_call(["mount", "--make-rslave", fullfn])
             self._mountList.append(fullfn)
 
             # FIXME: mount /run
@@ -79,7 +80,7 @@ class Runner:
             # mount /tmp
             fullfn = os.path.join(self._dir, "tmp")
             assert os.path.exists(fullfn) and not Util.isMount(fullfn)
-            Util.shellCall("mount -t tmpfs tmpfs \"%s\"" % (fullfn))
+            subprocess.check_call(["mount", "-t", "tmpfs", "tmpfs", fullfn])
             self._mountList.append(fullfn)
         except BaseException:
             self._unbind(False)
@@ -91,9 +92,7 @@ class Runner:
 
     def interactive_shell(self):
         assert len(self._mountList) > 0
-
-        cmd = "bash"       # FIXME: change to read shell
-        return Util.shellExec("chroot \"%s\" %s" % (self._dir, cmd))
+        subprocess.check_call(["chroot", self._dir])
 
     def shell_call(self, env, cmd):
         # "CLEAN_DELAY=0 emerge -C sys-fs/eudev" -> "CLEAN_DELAY=0 chroot emerge -C sys-fs/eudev"
@@ -103,16 +102,7 @@ class Runner:
         env = "LANG=C.utf8 PATH=/bin:/usr/bin:/sbin:/usr/sbin " + env
         assert self._detectArch() == platform.machine()
 
-        return Util.shellCall("%s chroot \"%s\" %s" % (env, self._dir, cmd))
-
-    def shell_test(self, env, cmd):
-        assert len(self._mountList) > 0
-
-        # FIXME
-        env = "LANG=C.utf8 PATH=/bin:/usr/bin:/sbin:/usr/sbin " + env
-        assert self._detectArch() == platform.machine()
-
-        return Util.shellCallTestSuccess("%s chroot \"%s\" %s" % (env, self._dir, cmd))
+        subprocess.check_output("%s chroot \"%s\" %s" % (env, self._dir, cmd), shell=True, stderr=subprocess.STDOUT)
 
     def shell_exec(self, env, cmd, quiet=False):
         assert len(self._mountList) > 0
@@ -122,9 +112,9 @@ class Runner:
         assert self._detectArch() == platform.machine()
 
         if not quiet:
-            Util.shellExec("%s chroot \"%s\" %s" % (env, self._dir, cmd))
+            subprocess.check_call("%s chroot \"%s\" %s" % (env, self._dir, cmd), shell=True)
         else:
-            Util.shellCall("%s chroot \"%s\" %s" % (env, self._dir, cmd))
+            subprocess.check_output("%s chroot \"%s\" %s" % (env, self._dir, cmd), shell=True, stderr=subprocess.STDOUT)
 
     def script_exec(self, scriptObj, quiet=False):
         assert len(self._mountList) > 0
@@ -144,7 +134,7 @@ class Runner:
 
         for fullfn in reversed(self._mountList):
             if os.path.exists(fullfn) and Util.isMount(fullfn):
-                Util.cmdCall("umount", "-l", fullfn)
+                subprocess.check_call(["umount", "-l", fullfn])
         self._mountList = []
 
         robust_layer.simple_fops.rm(os.path.join(self._dir, "etc", "resolv.conf"))
