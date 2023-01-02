@@ -26,15 +26,10 @@ from .. import CustomAction
 
 class SimpleCustomAction(CustomAction):
 
-    def __init__(self, description, *custom_scripts, after=[], before=[]):
-        self._description = description
+    def __init__(self, *custom_scripts, after=[], before=[]):
         self._custom_scripts = custom_scripts
         self._after = after
         self._before = before
-
-    @property
-    def description(self):
-        return self._description
 
     @property
     def custom_scripts(self):
