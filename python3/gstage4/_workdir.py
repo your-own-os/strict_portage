@@ -22,9 +22,7 @@
 
 
 import os
-import stat
 import robust_layer.simple_fops
-from ._errors import WorkDirError
 
 
 class WorkDir:
@@ -35,15 +33,9 @@ class WorkDir:
     def __init__(self, path, chroot_uid_map=None, chroot_gid_map=None):
         assert path is not None
 
-        self._MODE = 0o40700
-        self._CURRENT = "cur"
-
         self._path = path
-        if not os.path.exists(self._path):
-            os.mkdir(self._path, mode=self._MODE)
-        else:
-            self._verifyDir(True)
-            robust_layer.simple_fops.truncate_dir(self._path)
+        robust_layer.simple_fops.rm(self._path)
+        os.mkdir(self._path, mode=0o40700)
 
         if chroot_uid_map is None:
             self._uidMap = None
@@ -96,30 +88,3 @@ class WorkDir:
 
     # def chroot_conv_uid_gid(self, uid, gid):
     #     return (self.chroot_conv_uid(uid), self.chroot_conv_gid(gid))
-
-    def _verifyDir(self, raiseException):
-        # work directory can be a directory or directory symlink
-        # so here we use os.stat() instead of os.lstat()
-        s = os.stat(self._path)
-        if not stat.S_ISDIR(s.st_mode):
-            if raiseException:
-                raise WorkDirError("\"%s\" is not a directory" % (self._path))
-            else:
-                return False
-        if s.st_mode != self._MODE:
-            print("%o" % (s.st_mode))
-            if raiseException:
-                raise WorkDirError("invalid mode for \"%s\"" % (self._path))
-            else:
-                return False
-        if s.st_uid != os.getuid():
-            if raiseException:
-                raise WorkDirError("invalid uid for \"%s\"" % (self._path))
-            else:
-                return False
-        if s.st_gid != os.getgid():
-            if raiseException:
-                raise WorkDirError("invalid gid for \"%s\"" % (self._path))
-            else:
-                return False
-        return True
