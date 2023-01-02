@@ -198,37 +198,37 @@ class Builder:
                 raise SettingsError("package %s is needed" % (pkg))
 
         # check
-        if self._ts.package_manager == "portage":
-            __worldNeeded("sys-apps/portage")
-        else:
-            assert False
-
-        if self._ts.kernel_manager == "none":
-            pass
-        elif self._ts.kernel_manager == "genkernel":
-            __pkgNeeded("sys-kernel/genkernel")
-        elif self._ts.kernel_manager == "binary-kernel":
-            __pkgNeeded("sys-kernel/gentoo-kernel-bin")
-        elif self._ts.kernel_manager == "fake":
-            pass
-        else:
-            assert False
-
-        if self._ts.service_manager == "none":
-            pass
-        elif self._ts.service_manager == "openrc":
-            __worldNeeded("sys-apps/openrc")
-        elif self._ts.service_manager == "systemd":
-            __worldNeeded("sys-apps/systemd")
-        else:
-            assert False
-
-        if self._ts.build_opts.ccache:
-            __pkgNeeded("dev-util/ccache")
-
-        overlayRecord = self._actionStorage.get("overlays", {})
-        if "git" in overlayRecord.values():
-            __worldNeeded("dev-vcs/git")
+        if True:
+            if self._ts.package_manager == "portage":
+                __worldNeeded("sys-apps/portage")
+            else:
+                assert False
+        if True:
+            if self._ts.kernel_manager == "none":
+                pass
+            elif self._ts.kernel_manager == "genkernel":
+                __pkgNeeded("sys-kernel/genkernel")
+            elif self._ts.kernel_manager == "binary-kernel":
+                __pkgNeeded("sys-kernel/gentoo-kernel-bin")
+            elif self._ts.kernel_manager == "fake":
+                pass
+            else:
+                assert False
+        if True:
+            if self._ts.service_manager == "none":
+                pass
+            elif self._ts.service_manager == "openrc":
+                __worldNeeded("sys-apps/openrc")
+            elif self._ts.service_manager == "systemd":
+                __worldNeeded("sys-apps/systemd")
+            else:
+                assert False
+        if True:
+            if self._ts.build_opts.ccache:
+                __pkgNeeded("dev-util/ccache")
+        if True:
+            if "git" in self._actionStorage.get("overlays", {}).values():
+                __worldNeeded("dev-vcs/git")
 
         # create installList
         ORDER = [
