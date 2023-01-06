@@ -21,6 +21,10 @@
 # THE SOFTWARE.
 
 
+class HostInfoError(Exception):
+    pass
+
+
 class SettingsError(Exception):
     pass
 

@@ -24,7 +24,7 @@
 import os
 import re
 import multiprocessing
-from _errors import SettingsError
+from ._errors import HostInfoError
 
 
 class HostInfo:
@@ -65,43 +65,43 @@ class HostInfo:
 
         if not isinstance(obj, cls):
             if raise_exception:
-                raise SettingsError("invalid object type")
+                raise HostInfoError("invalid object type")
             else:
                 return False
 
         if obj.cpu_core_count <= 0:
             if raise_exception:
-                raise SettingsError("invalid value of \"cpu_core_count\"")
+                raise HostInfoError("invalid value of \"cpu_core_count\"")
             else:
                 return False
 
         if obj.memory_size <= 0:
             if raise_exception:
-                raise SettingsError("invalid value of \"memory_size\"")
+                raise HostInfoError("invalid value of \"memory_size\"")
             else:
                 return False
 
         if not (1 <= obj.cooling_level <= 10):
             if raise_exception:
-                raise SettingsError("invalid value of \"cooling_level\"")
+                raise HostInfoError("invalid value of \"cooling_level\"")
             else:
                 return False
 
         if obj.distfiles_dir is not None and not os.path.isdir(obj.distfiles_dir):
             if raise_exception:
-                raise SettingsError("invalid value for key \"distfiles_dir\"")
+                raise HostInfoError("invalid value for key \"distfiles_dir\"")
             else:
                 return False
 
         if obj.packages_dir is not None and not os.path.isdir(obj.packages_dir):
             if raise_exception:
-                raise SettingsError("invalid value for key \"packages_dir\"")
+                raise HostInfoError("invalid value for key \"packages_dir\"")
             else:
                 return False
 
         if obj.ccache_dir is not None and not os.path.isdir(obj.ccache_dir):
             if raise_exception:
-                raise SettingsError("invalid value for key \"ccache_dir\"")
+                raise HostInfoError("invalid value for key \"ccache_dir\"")
             else:
                 return False
 
