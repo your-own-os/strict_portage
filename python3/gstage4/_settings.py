@@ -23,7 +23,6 @@
 
 import os
 import re
-import multiprocessing
 from ._errors import SettingsError
 
 
@@ -104,16 +103,15 @@ class Settings:
 
 class TargetSettings:
 
-    def __init__(self, arch, profile):
+    def __init__(self, arch):
         assert arch in ["alpha", "amd64", "arm64", "hppa", "ia64", "m68k", "mips", "ppc", "riscv", "s390", "sh", "sparc", "x86"]
         self._arch = arch
 
-        assert profile is not None and isinstance(profile, str)
-        self._profile = profile
+        self._profile = None
 
-        self.package_manager = "portage"         # "portage"
-        self.kernel_manager = "none"             # "none", "genkernel", "fake". kernel source and kernel config is select by emerge/pre-command
-        self.service_manager = "none"            # "none", "systemd"
+        self._managerPackage = "portage"         # "portage"
+        self._managerKernel = "none"             # "none", "genkernel", "fake". kernel source and kernel config is select by emerge/pre-command
+        self._managerService = "none"            # "none", "systemd"
 
         self.pkg_use = dict()                    # dict<package-wildcard, use-flag-list>
         self.pkg_mask = []                       # list<package-wildcard>
@@ -140,6 +138,13 @@ class TargetSettings:
 
         self.degentoo = False
 
+        # internal state
+        self.__gentooRepoDir = None
+        self.__frozeProfile = False
+        self.__frozeManagerPackage = False
+        self.__frozeManagerKernel = False
+        self.__frozeManagerService = False
+
     @property
     def arch(self):
         return self._arch
@@ -147,6 +152,42 @@ class TargetSettings:
     @property
     def profile(self):
         return self._profile
+
+    @profile.setter
+    def profile(self, value):
+        assert not self.__frozeProfile
+        assert os.path.isdir(os.path.normpath(os.path.join(self.__gentooRepoDir, "profiles", value)))
+        self._profile = value
+
+    @property
+    def package_manager(self):
+        return self._managerPackage
+
+    @package_manager.setter
+    def package_manager(self, value):
+        assert not self.__frozeManagerPackage
+        assert value in ["portage"]                         # ["portage", "pkgcore", "pkgwh"]
+        self._managerPackage = value
+
+    @property
+    def kernel_manager(self):
+        return self._managerKernel
+
+    @kernel_manager.setter
+    def kernel_manager(self, value):
+        assert not self.__frozeManagerKernel
+        assert value in ["none", "genkernel", "binary-kernel", "fake"]
+        self._managerKernel = value
+
+    @property
+    def service_manager(self):
+        return self._managerService
+
+    @service_manager.setter
+    def service_manager(self, value):
+        assert not self.__frozeManagerService
+        assert value in ["none", "openrc", "systemd"]
+        self._managerService = value
 
     @classmethod
     def check_object(cls, obj, raise_exception=None):
@@ -160,48 +201,6 @@ class TargetSettings:
         try:
             if not isinstance(obj, cls):
                 raise SettingsError("invalid object type")
-
-            if obj._arch == "alpha":
-                pass
-            elif obj._arch == "amd64":
-                pass
-            elif obj._arch == "arm":
-                pass
-            elif obj._arch == "arm64":
-                pass
-            elif obj._arch == "hppa":
-                pass
-            elif obj._arch == "ia64":
-                pass
-            elif obj._arch == "m68k":
-                pass
-            elif obj._arch == "mips":
-                pass
-            elif obj._arch == "ppc":
-                pass
-            elif obj._arch == "riscv":
-                pass
-            elif obj._arch == "s390":
-                pass
-            elif obj._arch == "sh":
-                pass
-            elif obj._arch == "sparc":
-                pass
-            elif obj._arch == "x86":
-                pass
-            else:
-                raise SettingsError("invalid value of arch")
-
-            # if obj.package_manager not in ["portage", "pkgcore", "pkgwh"]:
-            if obj.package_manager not in ["portage"]:
-                raise SettingsError("invalid value of \"package_manager\"")
-
-            # if obj.kernel_manager not in ["none", "genkernel", "binary-kernel", "fake"]:
-            if obj.kernel_manager not in ["none", "genkernel", "binary-kernel", "fake"]:
-                raise SettingsError("invalid value of \"kernel_manager\"")
-
-            if obj.service_manager not in ["none", "openrc", "systemd"]:
-                raise SettingsError("invalid value of \"service_manager\"")
 
             if obj.pkg_use is None or not isinstance(obj.pkg_use, dict):
                 raise SettingsError("invalid value for \"pkg_use\"")
@@ -348,69 +347,7 @@ class TargetSettingsBuildOpts:
 
 class ComputingPower:
 
-    def __init__(self):
-        self.cpu_core_count = None
-        self.memory_size = None             # in byte
-        self.cooling_level = None           # 1-10, less is weaker
-
-    @staticmethod
-    def new(cpu_core_count, memory_size, cooling_level):
-        assert cpu_core_count > 0
-        assert memory_size > 0
-        assert 1 <= cooling_level <= 10
-
-        ret = ComputingPower()
-        ret.cpu_core_count = cpu_core_count
-        ret.memory_size = memory_size
-        ret.cooling_level = cooling_level
-        return ret
-
-    @staticmethod
-    def auto_detect():
-        ret = ComputingPower()
-
-        # cpu_core_count
-        ret.cpu_core_count = multiprocessing.cpu_count()
-
-        # memory_size
-        with open("/proc/meminfo", "r") as f:
-            # Since the memory size shown in /proc/meminfo is always a
-            # little less than the real size because various sort of
-            # reservation, so we do a "+1GB"
-            m = re.search("^MemTotal:\\s+(\\d+)", f.read())
-            ret.memory_size = (int(m.group(1)) // 1024 // 1024 + 1) * 1024 * 1024
-
-        # cooling_level
-        ret.cooling_level = 5
-
-        return ret
-
-    @classmethod
-    def check_object(cls, obj, raise_exception=None):
-        assert raise_exception is not None
-
-        if not isinstance(obj, cls):
-            if raise_exception:
-                raise SettingsError("invalid object type")
-            else:
-                return False
-
-        if obj.cpu_core_count <= 0:
-            if raise_exception:
-                raise SettingsError("invalid value of \"cpu_core_count\"")
-            else:
-                return False
-
-        if obj.memory_size <= 0:
-            if raise_exception:
-                raise SettingsError("invalid value of \"memory_size\"")
-            else:
-                return False
-
-        if not (1 <= obj.cooling_level <= 10):
-            if raise_exception:
-                raise SettingsError("invalid value of \"cooling_level\"")
-            else:
-                return False
-
-        return True
+    def __init__(self, cpu_core_count, memory_size, cooling_level):
+        self.cpu_core_count = cpu_core_count
+        self.memory_size = memory_size               # in byte
+        self.cooling_level = cooling_level           # 1-10, less is weaker

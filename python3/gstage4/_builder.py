@@ -34,8 +34,10 @@ from ._prototype import EmergeSyncRepository
 from ._prototype import ScriptInChroot
 from ._errors import SettingsError
 from ._errors import CustomActionError
+from ._host import HostInfo
 from ._settings import Settings
 from ._settings import TargetSettings
+from ._settings import ComputingPower
 from ._runner import Runner
 from .scripts import ScriptFromBuffer
 
@@ -64,17 +66,21 @@ class Builder:
     It is the driver class for pretty much everything that gstage4 does.
     """
 
-    def __init__(self, settings, target_settings, work_dir):
-        assert Settings.check_object(settings, raise_exception=False)
-        assert TargetSettings.check_object(target_settings, raise_exception=False)
+    def __init__(self, program_name, host_info, target_arch, work_dir, log_dir=None, verbose_level=1):
+        assert HostInfo.check_object(host_info, raise_exception=False)
 
-        self._s = settings
+        self._s = Settings()
+        self._s.program_name = program_name
+        self._s.log_dir = log_dir
+        self._s.verbose_level = verbose_level
+        self._s.host_computing_power = ComputingPower(host_info.cpu_core_count, host_info.memory_size, host_info.cooling_level)
+        self._s.host_distfiles_dir = host_info.distfiles_dir
+        self._s.host_packages_dir = host_info.packages_dir
+        self._s.host_ccache_dir = host_info.ccache_dir
         if self._s.log_dir is not None:
             os.makedirs(self._s.log_dir, mode=0o750, exist_ok=True)
 
-        self._ts = target_settings
-        if self._ts.build_opts.ccache and self._s.host_ccache_dir is None:
-            raise SettingsError("ccache is enabled but host ccache directory is not specified")
+        self._ts = TargetSettings(target_arch)
 
         self._workDirObj = work_dir
 
@@ -97,6 +103,10 @@ class Builder:
         self._lastAction = None
         self._finished = False
 
+    @property
+    def target_settings(self):
+        return self._ts
+
     @Action()
     def action_unpack(self, seed_stage):
         assert isinstance(seed_stage, SeedStage)
@@ -117,6 +127,7 @@ class Builder:
     def action_create_gentoo_repository(self, repo):
         assert repo.get_name() == "gentoo"
 
+        # do work
         if isinstance(repo, ManualSyncRepository):
             _MyRepoUtil.createFromManuSyncRepo(repo, True, self._workDirObj.path)
             repo.sync(os.path.join(self._workDirObj.path, repo.get_datadir_path()[1:]))
@@ -130,12 +141,18 @@ class Builder:
         else:
             assert False
 
+        # update internal state of self._ts
+        self._ts.__gentooRepoDir = repo
+
     @Action(after=["create_gentoo_repository"])
     def action_init_confdir(self):
+        # set profile
         if self._ts.profile is not None:
-            with _MyChrooter(self) as m:
-                m.shell_call("", "eselect profile set %s" % (self._ts.profile))
+            raise SettingsError('invalid value of "profile"')
+        with _MyChrooter(self) as m:
+            m.shell_call("", "eselect profile set %s" % (self._ts.profile))
 
+        # write /etc/portage
         t = TargetConfDirWriter(self._s, self._ts, self._workDirObj.path)
         t.write_make_conf()
         t.write_package_use()
@@ -144,6 +161,12 @@ class Builder:
         t.write_package_accept_keywords()
         t.write_package_license()
         t.write_use_mask()
+
+        # update internal state of self._ts
+        self._ts.__frozeProfile = True
+        self._ts.__frozeManagerPackage = True
+        self._ts.__frozeManagerKernel = True
+        self._ts.__frozeManagerService = True
 
     @Action(after=["init_confdir"])
     def action_create_overlays(self, overlay_list):
@@ -198,28 +221,32 @@ class Builder:
                 raise SettingsError("package %s is needed" % (pkg))
 
         # check
+        if self._ts.build_opts.ccache and self._s.host_ccache_dir is None:
+            raise SettingsError("ccache is enabled but host ccache directory is not specified")
+
+        # check
         if True:
-            if self._ts.package_manager == "portage":
+            if self._ts._managerPackage == "portage":
                 __worldNeeded("sys-apps/portage")
             else:
                 assert False
         if True:
-            if self._ts.kernel_manager == "none":
+            if self._ts._managerKernel == "none":
                 pass
-            elif self._ts.kernel_manager == "genkernel":
+            elif self._ts._managerKernel == "genkernel":
                 __pkgNeeded("sys-kernel/genkernel")
-            elif self._ts.kernel_manager == "binary-kernel":
+            elif self._ts._managerKernel == "binary-kernel":
                 __pkgNeeded("sys-kernel/gentoo-kernel-bin")
-            elif self._ts.kernel_manager == "fake":
+            elif self._ts._managerKernel == "fake":
                 pass
             else:
                 assert False
         if True:
-            if self._ts.service_manager == "none":
+            if self._ts._managerService == "none":
                 pass
-            elif self._ts.service_manager == "openrc":
+            elif self._ts._managerService == "openrc":
                 __worldNeeded("sys-apps/openrc")
-            elif self._ts.service_manager == "systemd":
+            elif self._ts._managerService == "systemd":
                 __worldNeeded("sys-apps/systemd")
             else:
                 assert False
@@ -259,7 +286,7 @@ class Builder:
 
     @Action(after=["init_confdir", "install_packages", "update_world"])
     def action_install_kernel(self):
-        if self._ts.kernel_manager == "genkernel":
+        if self._ts._managerKernel == "genkernel":
             t = TargetConfDirParser(self._workDirObj.path)
             tj = t.get_make_conf_make_opts_jobs()
             tl = t.get_make_conf_load_average()
@@ -274,10 +301,10 @@ class Builder:
 
             return
 
-        if self._ts.kernel_manager == "binary-kernel":
+        if self._ts._managerKernel == "binary-kernel":
             return
 
-        if self._ts.kernel_manager == "fake":
+        if self._ts._managerKernel == "fake":
             bootDir = os.path.join(self._workDirObj.path, "boot")
             os.makedirs(bootDir, exist_ok=True)
             with open(os.path.join(bootDir, "vmlinuz"), "w") as f:
@@ -293,11 +320,11 @@ class Builder:
         if len(service_list) == 0:
             return
 
-        if self._ts.service_manager == "openrc":
+        if self._ts._managerService == "openrc":
             with _MyChrooter(self) as m:
                 for s in service_list:
                     m.shell_exec("", "rc-update add %s default > /dev/null" % (s))
-        elif self._ts.service_manager == "systemd":
+        elif self._ts._managerService == "systemd":
             with _MyChrooter(self) as m:
                 for s in service_list:
                     m.shell_exec("", "systemctl enable %s -q" % (s))
