@@ -23,6 +23,8 @@
 
 import os
 import re
+import typing
+from ._util import Util
 from ._errors import SettingsError
 
 
@@ -107,11 +109,13 @@ class TargetSettings:
         assert arch in ["alpha", "amd64", "arm64", "hppa", "ia64", "m68k", "mips", "ppc", "riscv", "s390", "sh", "sparc", "x86"]
         self._arch = arch
 
+        self._repo = None
         self._profile = None
+        self._overlayList = TargetSettingsOverlayList()
 
         self._managerPackage = "portage"         # "portage"
-        self._managerKernel = "none"             # "none", "genkernel", "fake". kernel source and kernel config is select by emerge/pre-command
-        self._managerService = "none"            # "none", "systemd"
+        self._managerKernel = "none"             # "none", "genkernel", "fake"
+        self._managerService = "none"            # "none", "openrc", "systemd"
 
         self.pkg_use = dict()                    # dict<package-wildcard, use-flag-list>
         self.pkg_mask = []                       # list<package-wildcard>
@@ -139,8 +143,9 @@ class TargetSettings:
         self.degentoo = False
 
         # internal state
-        self.__gentooRepoDir = None
+        self.__frozeRepo = False
         self.__frozeProfile = False
+        self.__frozeOverlayList = False
         self.__frozeManagerPackage = False
         self.__frozeManagerKernel = False
         self.__frozeManagerService = False
@@ -150,14 +155,31 @@ class TargetSettings:
         return self._arch
 
     @property
+    def repo(self):
+        return self._repo
+
+    @repo.setter
+    def repo(self, value):
+        assert not self.__frozeRepo
+        assert isinstance(value, Repository) and value.get_name() == "gentoo"
+        self._repo = value
+
+    @property
     def profile(self):
-        return self._profile
+        return self._repo
 
     @profile.setter
     def profile(self, value):
         assert not self.__frozeProfile
-        assert os.path.isdir(os.path.normpath(os.path.join(self.__gentooRepoDir, "profiles", value)))
+        assert isinstance(value, str)
         self._profile = value
+
+    @property
+    def overlays(self):
+        if not self.__frozeOverlayList
+            return self._overlayList                        # returns a typed list
+        else:
+            return tuple(self._overlayList)                 # returns a read-only list
 
     @property
     def package_manager(self):
@@ -267,6 +289,30 @@ class TargetSettings:
                 raise
             else:
                 return False
+
+
+class TargetSettingsOverlayList(list):
+
+    def __setitem__(self, index, item):
+        self._assertCheckItem(item)
+        super().__setitem__(index, item)
+
+    def insert(self, index, item):
+        self._assertCheckItem(item)
+        super().insert(index, item)
+
+    def append(self, item):
+        self._assertCheckItem(item)
+        super().append(item)
+
+    def extend(self, other):
+        for item in other:
+            self.append(item)
+
+    def _assertCheckItem(item):
+        assert Util.isInstanceList(item, ManualSyncRepository, EmergeSyncRepository, MountRepository)
+        assert item.get_name() != "gentoo"
+        assert all([x.get_name() for x in self]) != item.get_name()])
 
 
 class TargetSettingsBuildOpts:

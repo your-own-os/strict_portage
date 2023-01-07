@@ -124,10 +124,9 @@ class Builder:
             f.write("")
 
     @Action(after=["unpack"])
-    def action_create_gentoo_repository(self, repo):
-        assert repo.get_name() == "gentoo"
-
+    def action_create_gentoo_repository(self):
         # do work
+        repo = self._ts.repo
         if isinstance(repo, ManualSyncRepository):
             _MyRepoUtil.createFromManuSyncRepo(repo, True, self._workDirObj.path)
             repo.sync(os.path.join(self._workDirObj.path, repo.get_datadir_path()[1:]))
@@ -142,7 +141,7 @@ class Builder:
             assert False
 
         # update internal state of self._ts
-        self._ts.__gentooRepoDir = repo
+        self._ts.__frozeRepo = True
 
     @Action(after=["create_gentoo_repository"])
     def action_init_confdir(self):
@@ -169,14 +168,10 @@ class Builder:
         self._ts.__frozeManagerService = True
 
     @Action(after=["init_confdir"])
-    def action_create_overlays(self, overlay_list):
-        assert all([Util.isInstanceList(x, ManualSyncRepository, EmergeSyncRepository, MountRepository) for x in overlay_list])
-        assert not any([x.get_name() == "gentoo" for x in overlay_list])
-        assert len([x.get_name() for x in overlay_list]) == len(set([x.get_name() for x in overlay_list]))        # no duplication
-
+    def action_create_overlays(self):
         overlayRecord = dict()
         pkgSet = set()
-        for overlay in overlay_list:
+        for overlay in self._ts.overlays:
             if isinstance(overlay, ManualSyncRepository):
                 _MyRepoUtil.createFromManuSyncRepo(overlay, False, self._workDirObj.path)
             elif isinstance(overlay, EmergeSyncRepository):
@@ -194,15 +189,15 @@ class Builder:
             else:
                 assert False
 
-        if any([isinstance(repo, EmergeSyncRepository) for repo in overlay_list]):
+        if any([isinstance(repo, EmergeSyncRepository) for repo in self._ts.overlays]):
             with _MyChrooter(self) as m:
                 installList = [x for x in pkgSet if not Util.portageIsPkgInstalled(self._workDirObj.path, x)]
                 m.script_exec(ScriptInstallPackages(installList, self._s.verbose_level), quiet=self._getQuiet())
 
-                if any([isinstance(repo, EmergeSyncRepository) for repo in overlay_list]):
+                if any([isinstance(repo, EmergeSyncRepository) for repo in self._ts.overlays]):
                     m.script_exec(ScriptSync(), quiet=self._getQuiet())
 
-        for overlay in overlay_list:
+        for overlay in self._ts.overlays:
             if isinstance(overlay, ManualSyncRepository):
                 overlay.sync(os.path.join(self._workDirObj.path, overlay.get_datadir_path()[1:]))
 
