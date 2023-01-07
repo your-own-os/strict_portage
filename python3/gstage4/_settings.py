@@ -181,6 +181,12 @@ class TargetSettings:
         else:
             return tuple(self._overlayList)                 # returns a read-only list
 
+    @overlays.setter
+    def overlays(self, value):
+        assert not self.__frozeOverlayList
+        assert isinstance(value, TargetSettingsOverlayList)
+        self._overlayList = value
+
     @property
     def package_manager(self):
         return self._managerPackage
