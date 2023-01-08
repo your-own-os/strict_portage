@@ -130,7 +130,7 @@ class TargetSettings:
             if obj.kern_build_opts is None or not TargetSettingsBuildOpts.check_object(obj.kern_build_opts, raise_exception=raise_exception):
                 raise SettingsError("invalid value for \"kern_build_opts\"")
             if obj.kern_build_opts.ccache is not None:
-                raise SettingsError("invalid value for key \"ccache\" in \"kern_build_opts\"")  # ccache is only allowed in global build options
+                raise SettingsError("invalid value for key \"ccache\" in \"kern_build_opts\"")  # FIXME: currrently ccache is only allowed in global build options
 
             if obj.pkg_build_opts is None or not isinstance(obj.pkg_build_opts, dict):
                 raise SettingsError("invalid value for \"pkg_build_opts\"")
@@ -138,7 +138,7 @@ class TargetSettings:
                 if v is None or not TargetSettingsBuildOpts.check_object(v, raise_exception=raise_exception):
                     raise SettingsError("invalid value for \"build_opts\" of package %s" % (k))
                 if v.ccache is not None:
-                    raise SettingsError("invalid value for key \"ccache\" in build_opts of package %s" % (k))  # ccache is only allowed in global build options
+                    raise SettingsError("invalid value for key \"ccache\" in build_opts of package %s" % (k))  # FIXME: currrently ccache is only allowed in global build options
 
             return True
         except SettingsError:

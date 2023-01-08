@@ -78,8 +78,6 @@ class Builder:
         if self._s.log_dir is not None:
             os.makedirs(self._s.log_dir, mode=0o750, exist_ok=True)
 
-        self._ts = TargetSettings()
-
         self._workDirObj = work_dir
 
         self._actionList = [
@@ -106,10 +104,6 @@ class Builder:
         self._lastAction = None
         self._finished = False
 
-    @property
-    def target_settings(self):
-        return self._ts
-
     @Action()
     def action_unpack(self, seed_stage):
         assert isinstance(seed_stage, SeedStage)
@@ -120,8 +114,6 @@ class Builder:
         os.makedirs(t.logdir_hostpath, exist_ok=True)
         os.makedirs(t.distdir_hostpath, exist_ok=True)
         os.makedirs(t.binpkgdir_hostpath, exist_ok=True)
-        if self._ts.build_opts.ccache:
-            os.makedirs(t.ccachedir_hostpath, exist_ok=True)
         with open(t.world_file_hostpath, "w") as f:
             f.write("")
 
@@ -150,6 +142,9 @@ class Builder:
     @Action(after=["create_gentoo_repository"])
     def action_init_confdir(self, settings):
         assert TargetSettings.check_object(settings, raise_exception=False)
+        assert (settings.build_opts.ccache and self._s.host_ccache_dir is not None) or (not settings.build_opts.ccache and self._s.host_ccache_dir is None)
+
+        t = TargetConfDirWriter(self._s, settings, self._workDirObj.path)
 
         # set profile
         profile = settings.profile is not None if settings.profile else "1"     # generally the default profile is the first in list
@@ -157,7 +152,6 @@ class Builder:
             m.shell_call("", "eselect profile set %s" % (profile))
 
         # write /etc/portage
-        t = TargetConfDirWriter(self._s, settings, self._workDirObj.path)
         t.write_make_conf()
         t.write_package_use()
         t.write_package_mask()
@@ -165,6 +159,10 @@ class Builder:
         t.write_package_accept_keywords()
         t.write_package_license()
         t.write_use_mask()
+
+        # create ccache directory
+        if settings.build_opts.ccache:
+            os.makedirs(t.ccachedir_hostpath, exist_ok=True)
 
         self._actionStorage["settings"] = settings                              # FIXME: we should save a copy of settings and fill .profile property
 
@@ -215,10 +213,6 @@ class Builder:
         def __worldNeeded(pkg):
             if pkg not in package_list:
                 raise SettingsError("package %s is needed" % (pkg))
-
-        # check
-        if ts.build_opts.ccache and self._s.host_ccache_dir is None:
-            raise SettingsError("ccache is enabled but host ccache directory is not specified")
 
         # check
         if True:
@@ -652,7 +646,7 @@ class _MyChrooter(Runner):
 
             # ccachedir mount point
             if self._p._s.host_ccache_dir is not None and os.path.exists(t.ccachedir_hostpath):
-                assert os.path.exists(t.ccachedir_hostpath) and not Util.isMount(t.ccachedir_hostpath)
+                assert not Util.isMount(t.ccachedir_hostpath)
                 Util.shellCall("mount --bind \"%s\" \"%s\"" % (self._p._s.host_ccache_dir, t.ccachedir_hostpath))
                 self._bindMountList.append(t.ccachedir_hostpath)
 
