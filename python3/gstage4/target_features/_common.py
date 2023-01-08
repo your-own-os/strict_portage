@@ -121,6 +121,11 @@ net-misc/spice-gtk              gtk3
 media-video/smplayer            qt5
 net-analyzer/wireshark          qt5
 net-p2p/bitcoin-qt              qt5
+
+# replaced by net-vpn/i2pd
+acct-user/i2p
+acct-group/i2p
+net-vpn/i2p
 """
 
     _maskFileContent = """
