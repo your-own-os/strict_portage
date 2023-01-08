@@ -31,6 +31,7 @@ from ._common import UseSystemd
 from ._common import AcceptAllLicenses
 from ._common import NotUseDeprecatedPackagesAndFunctions
 from ._common import UsrMerge
+from ._common import DesktopEnvironmentNeutral
 from ._common import PreferGnuAndGpl
 from ._common import PreferBinaryPackage
 from ._common import PreferSourcePackage
