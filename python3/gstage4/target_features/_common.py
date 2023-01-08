@@ -84,11 +84,19 @@ class UseSystemd:
 
 class NotUseDeprecatedPackagesAndFunctions:
 
+    def __init__(self, with_systemd=False):
+        self._systemd = with_systemd
+
     def update_target_settings(self, target_settings):
         assert "10-no-deprecated" not in target_settings.pkg_use_files
         assert "10-no-deprecated" not in target_settings.pkg_mask_files
 
-        target_settings.pkg_use_files["10-no-deprecated"] = self._useFileContent.strip("\n") + "\n"
+        buf = self._useFileContent.strip("\n") + "\n"
+        if self._systemd:
+            buf += "\n"
+            buf += self._systemdUseContent.strip("\n") + "\n"
+        target_settings.pkg_use_files["10-no-deprecated"] = buf
+
         target_settings.pkg_mask_files["10-no-deprecated"] = self._maskFileContent.strip("\n") + "\n"
 
     _useFileContent = """
@@ -126,6 +134,15 @@ net-p2p/bitcoin-qt              qt5
 acct-user/i2p
 acct-group/i2p
 net-vpn/i2p
+"""
+
+    _systemdUseContent = """
+# inetd is deprecated by systemd socket activation
+virtual/inetd
+
+# they are deprecated by systemd-udevd
+sys-fs/udev
+sys-fs/eudev
 """
 
     _maskFileContent = """
