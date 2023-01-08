@@ -371,18 +371,25 @@ echo "blacklist pcspkr" > /etc/modprobe.d/disable-pc-speaker.conf
 class PreferWayland:
 
     def __init__(self, xwayland=True):
-        assert xwayland                     # FIXME
-
         self._xwayland = xwayland
 
     def update_target_settings(self, target_settings):
         assert "10-prefer-wayland" not in target_settings.pkg_use_files
 
-        target_settings.pkg_use_files["10-prefer-wayland"] = self._useFileContent.strip("\n") + "\n"
+        buf = self._useFileContent.strip("\n") + "\n"
+        if self._xwayland:
+            buf += self._xwaylandContent.strip("\n") + "\n"
+        target_settings.pkg_use_files["10-prefer-wayland"] = buf
 
     _useFileContent = """
-# we use wayland, only use X when we have to
+# we use wayland
 */*                                           -X
+*/*                                           INPUT_DEVICES: -* libinput
+"""
+
+    _xwaylandContent = """
+
+# of course, we also use X when we have to
 app-emulation/wine-vanilla                    X                               # wine has no wayland support, it has to use Xwayland
 app-emulation/wine-staging                    X
 dev-util/electron                             X -wayland                      # electron wayland support needs ozone which is broken now
