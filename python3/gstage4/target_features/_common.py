@@ -350,6 +350,11 @@ echo "blacklist pcspkr" > /etc/modprobe.d/disable-pc-speaker.conf
 
 class PreferWayland:
 
+    def __init__(self, xwayland):
+        assert xwayland                     # FIXME
+
+        self._xwayland = xwayland
+
     def update_target_settings(self, target_settings):
         assert "10-prefer-wayland" not in target_settings.pkg_use_files
 
@@ -369,8 +374,20 @@ x11-base/xorg-server                          -elogind                        # 
 x11-base/xorg-server						  -suid -systemd -udev -xorg
 """
 
+    _maskFileContent = """
+"""
+
 
 class PreferPipewire:
+
+    def __init__(self, with_pulseaudio, with_jack, with_direct_alsa):
+        assert with_pulseaudio                     # FIXME
+        assert with_jack                           # FIXME
+        assert with_direct_alsa                    # FIXME
+
+        self._pulseaudio = with_pulseaudio
+        self._jack = with_jack
+        self._alsa = with_direct_alsa
 
     def update_target_settings(self, target_settings):
         assert "10-prefer-pipewire" not in target_settings.pkg_use_files
