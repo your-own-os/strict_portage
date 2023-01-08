@@ -365,6 +365,7 @@ x11-base/xorg-server                          -elogind                        # 
 x11-base/xorg-server						  -suid -systemd -udev -xorg
 """
 
+
 class PreferPipewire:
 
     def update_target_settings(self, target_settings):
