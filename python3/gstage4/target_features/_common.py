@@ -352,6 +352,10 @@ class PreferPipewire:
         target_settings.pkg_use_files["10-prefer-pipewire"] = self._useFileContent.strip("\n") + "\n"
 
     _useFileContent = """
+# don't use pulseaudio
+*/*                                                         -pulseaudio
+media-sound/pulseaudio                                      -*
+
 # prefered sound route: 1. pipewire -> alsa
 #                       2. gstreamer -> pipewire -> alsa
 #                       3. openal -> pipewire -> alsa
