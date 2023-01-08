@@ -37,7 +37,7 @@ class UsePortage:
 
 class UseGenkernel:
 
-    def __init__(self, kernel):
+    def __init__(self, kernel="gentoo-sources"):
         self._kernel = kernel
 
     def update_target_settings(self, target_settings):
