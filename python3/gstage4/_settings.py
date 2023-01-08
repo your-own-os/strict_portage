@@ -146,7 +146,7 @@ class TargetSettings:
             if not isinstance(obj, cls):
                 raise SettingsError("invalid object type")
 
-            if not isinstance(obj.profile, str):
+            if obj.profile is not None and not isinstance(obj.profile, str):
                 raise SettingsError("invalid value for \"profile\"")
 
             # if obj.package_manager not in ["portage", "pkgcore", "pkgwh"]:

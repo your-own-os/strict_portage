@@ -154,8 +154,9 @@ class Builder:
         assert TargetSettings.check_object(settings, raise_exception=False)
 
         # set profile
+        profile = settings.profile is not None if settings.profile else "1"     # generally the default profile is the first in list
         with _MyChrooter(self) as m:
-            m.shell_call("", "eselect profile set %s" % (settings.profile))
+            m.shell_call("", "eselect profile set %s" % (profile))
 
         # write /etc/portage
         t = TargetConfDirWriter(self._s, settings, self._workDirObj.path)
@@ -167,7 +168,7 @@ class Builder:
         t.write_package_license()
         t.write_use_mask()
 
-        self._actionStorage["settings"] = settings
+        self._actionStorage["settings"] = settings                              # FIXME: we should save a copy of settings and fill .profile property
 
     @Action(after=["init_confdir"])
     def action_create_overlays(self, overlay_list):
