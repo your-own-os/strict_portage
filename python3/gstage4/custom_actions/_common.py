@@ -24,7 +24,6 @@
 import crypt
 from .. import CustomAction
 from ..scripts import OneLinerScript
-from ..scripts import ScriptFromBuffer
 from ..scripts import ScriptInstallPackages
 
 
@@ -116,6 +115,21 @@ class RemovePackagesFromWorld:
     @property
     def after(self):
         return []
+
+    @property
+    def before(self):
+        return []
+
+
+class RemoveUsrSrcDirectoryContent:
+
+    @property
+    def custom_scripts(self):
+        return [OneLinerScript("rm -rf /usr/src/*")]
+
+    @property
+    def after(self):
+        return ["init_confdir", "create_overlays", "update_world", "install_kernel"]
 
     @property
     def before(self):
