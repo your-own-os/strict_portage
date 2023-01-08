@@ -53,3 +53,4 @@ from ._application import SshServer
 from ._application import Chrony
 from ._application import NetworkManager
 from ._application import UseAllQemuTargets
+from ._application import NotUseUdisks

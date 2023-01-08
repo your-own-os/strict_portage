@@ -70,7 +70,7 @@ class Chrony:
             service_list.append("chronyd")
 
     _maskFileContent = """
-# we use net-misc/chrony
+# we use net-misc/chrony only
 net-misc/ntp
 net-misc/ntpsec
 net-misc/openntpd
@@ -108,8 +108,26 @@ class UseAllQemuTargets:
         target_settings.pkg_use_files["10-qemu-all-targets"] = self._useFileContent.strip("\n") + "\n"
 
     _useFileContent = """
-# use full power of qemu, especially when there's no extra dependencies
 app-emulation/qemu                                                          tci
 app-emulation/qemu                                                          QEMU_SOFTMMU_TARGETS: *
 app-emulation/qemu                                                          QEMU_USER_TARGETS: *
+"""
+
+
+class NotUseUdisks:
+
+    def update_target_settings(self, target_settings):
+        assert "10-no-udisks" not in target_settings.pkg_use_files
+        assert "10-no-udisks" not in target_settings.pkg_mask_files
+
+        target_settings.pkg_use_files["10-no-udisks"] = self._useFileContent.strip("\n") + "\n"
+        target_settings.pkg_mask_files["10-no-udisks"] = self._maskFileContent.strip("\n") + "\n"
+
+    _useFileContent = """
+*/*     -udisks
+"""
+
+    _maskFileContent = """
+sys-fs/udisks
+sys-fs/udisks-glue
 """
