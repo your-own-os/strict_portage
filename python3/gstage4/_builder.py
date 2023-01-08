@@ -310,19 +310,19 @@ class Builder:
         assert False
 
     @Action(after=["init_confdir", "update_world", "install_kernel"])
-    def action_enable_services(self, enable_service_list):
-        if len(enable_service_list) == 0:
+    def action_enable_services(self, service_list):
+        if len(service_list) == 0:
             return
 
         ts = self._actionStorage["settings"]
 
         if ts.service_manager == "openrc":
             with _MyChrooter(self) as m:
-                for s in enable_service_list:
+                for s in service_list:
                     m.shell_exec("", "rc-update add %s default > /dev/null" % (s))
         elif ts.service_manager == "systemd":
             with _MyChrooter(self) as m:
-                for s in enable_service_list:
+                for s in service_list:
                     m.shell_exec("", "systemctl enable %s -q" % (s))
         else:
             assert False
