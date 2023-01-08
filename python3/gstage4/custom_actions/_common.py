@@ -21,7 +21,10 @@
 # THE SOFTWARE.
 
 
+import crypt
 from .. import CustomAction
+from ..scripts import OneLinerScript
+from ..scripts import ScriptFromBuffer
 
 
 class SimpleCustomAction(CustomAction):                         # FIXME: should be renamed to UserDefinedAction
@@ -42,3 +45,79 @@ class SimpleCustomAction(CustomAction):                         # FIXME: should 
     @property
     def before(self):
         return self._before
+
+
+class SetPasswordForUserRoot(CustomAction):
+
+    def __init__(self, password):
+        self._hash = crypt.crypt(password)
+
+    @property
+    def custom_scripts(self):
+        return [OneLinerScript("sed -i 's#^root:[^:]*:#root:%s:#' /etc/shadow" % (self._hash))]
+
+    @property
+    def after(self):
+        return ["init_confdir", "create_overlays", "update_world", "install_kernel", "enable_services"]
+
+    @property
+    def before(self):
+        return []
+
+
+class AddUser(CustomAction):
+
+    def __init__(self, username, password, comment=""):
+        self._user = username
+        self._pwd = password
+        self._comment = comment
+
+    @property
+    def custom_scripts(self):
+        return []
+
+    @property
+    def after(self):
+        return []
+
+    @property
+    def before(self):
+        return []
+
+
+class RemovePackagesFromWorld:
+
+    def __init__(self, packages):
+        self._pkgList = packages
+
+    @property
+    def custom_scripts(self):
+        return []
+
+    @property
+    def after(self):
+        return []
+
+    @property
+    def before(self):
+        return []
+
+
+class DisablePcSpeaker:
+
+    @property
+    def custom_scripts(self):
+        return [ScriptFromBuffer(self._scriptFileContent)]
+
+    @property
+    def after(self):
+        return ["init_confdir", "create_overlays", "update_world", "install_kernel", "enable_services"]
+
+    @property
+    def before(self):
+        return []
+
+    _scriptFileContent = """
+#!/bin/sh
+echo "blacklist pcspkr" > /etc/modprobe.d/disable-pc-speaker.conf
+"""

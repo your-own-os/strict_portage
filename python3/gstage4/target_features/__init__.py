@@ -48,6 +48,3 @@ from ._common import SupportAllDocumentFormat
 from ._common import SupportAllCompressFormat
 
 from ._common import GettyAutoLogin
-from ._common import SetPasswordForUserRoot
-from ._common import AddUser
-from ._common import RemovePackagesFromWorld

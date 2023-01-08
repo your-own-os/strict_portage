@@ -21,9 +21,7 @@
 # THE SOFTWARE.
 
 
-import crypt
 from ..custom_actions import SimpleCustomAction
-from ..scripts import OneLinerScript
 from ..scripts import ScriptFromBuffer
 from ..scripts import PlacingFilesScript
 
@@ -302,50 +300,6 @@ class GettyAutoLogin:
 [Service]
 ExecStart=
 ExecStart=-/sbin/agetty --autologin root --noclear %I $TERM
-"""
-
-
-class SetPasswordForUserRoot:
-
-    def __init__(self, password):
-        self._hash = crypt.crypt(password)
-
-    def get_custom_action(self):
-        # modify /etc/shadow directly so that password complexity check won't be in our way
-        return SimpleCustomAction(OneLinerScript("sed -i 's#^root:[^:]*:#root:%s:#' /etc/shadow" % (self._hash)),
-                                  after=["init_confdir", "create_overlays", "update_world", "install_kernel", "enable_services"])
-
-
-class AddUser:
-
-    def __init__(self, username, password, comment=""):
-        self._user = username
-        self._pwd = password
-        self._comment = comment
-
-    def get_custom_action(self):
-        assert False
-
-
-class RemovePackagesFromWorld:
-
-    def __init__(self, packages):
-        self._pkgList = packages
-
-    def get_custom_action(self):
-        # FIXME: must after "update_world"
-        assert False
-
-
-class DisablePcSpeaker:
-
-    def get_custom_action(self):
-        return SimpleCustomAction(ScriptFromBuffer(self._scriptFileContent),
-                                  after=["init_confdir", "create_overlays", "update_world", "install_kernel", "enable_services"])
-
-    _scriptFileContent = """
-#!/bin/sh
-echo "blacklist pcspkr" > /etc/modprobe.d/disable-pc-speaker.conf
 """
 
 
