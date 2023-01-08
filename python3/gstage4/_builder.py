@@ -206,12 +206,12 @@ class Builder:
 
         self._actionStorage["overlays"] = overlayRecord
 
-    @Action(after=["init_confdir", "create_overlays"])
-    def action_install_packages(self, package_list):
+    @Action(after=["init_confdir", "create_overlays", "install_packages"])
+    def action_update_world(self, world_set):
         ts = self._actionStorage["settings"]
 
         def __worldNeeded(pkg):
-            if pkg not in package_list:
+            if pkg not in world_set:
                 raise SettingsError("package %s is needed" % (pkg))
 
         # check
@@ -251,27 +251,24 @@ class Builder:
         ORDER = [
             "dev-util/ccache",
         ]
-        installList = sorted(package_list)
+        pkgList = sorted(world_set)
         for pkg in reversed(ORDER):
-            if pkg in installList:
-                installList.remove(pkg)
-                installList.insert(0, pkg)
+            if pkg in pkgList:
+                pkgList.remove(pkg)
+                pkgList.insert(0, pkg)
 
         # write world file
         t = TargetFilesAndDirs(self._workDirObj.path)
         with open(t.world_file_hostpath, "w") as f:
-            for pkg in package_list:
+            for pkg in pkgList:
                 f.write("%s\n" % (pkg))
 
         # install packages
-        installList = [x for x in installList if not Util.portageIsPkgInstalled(self._workDirObj.path, x)]
-        if len(installList) > 0:
-            with _MyChrooter(self) as m:
+        with _MyChrooter(self) as m:
+            installList = [x for x in pkgList if not Util.portageIsPkgInstalled(self._workDirObj.path, x)]
+            if len(installList) > 0:
                 m.script_exec(ScriptInstallPackages(installList, self._s.verbose_level), quiet=self._getQuiet())
 
-    @Action(after=["init_confdir", "create_overlays", "install_packages"])
-    def action_update_world(self):
-        with _MyChrooter(self) as m:
             m.script_exec(ScriptUpdateWorld(self._s.verbose_level), quiet=self._getQuiet())
 
     @Action(after=["init_confdir", "install_packages", "update_world"])
