@@ -34,11 +34,6 @@ from ._common import PreferGnuAndGpl
 from ._common import PreferBinaryPackage
 from ._common import PreferSourcePackage
 
-from ._common import MemTest
-from ._common import SshServer
-from ._common import ChronyDaemon
-from ._common import NetworkManager
-
 from ._common import DisablePcSpeaker
 
 from ._common import SupportAllVideoFormat
@@ -48,3 +43,9 @@ from ._common import SupportAllDocumentFormat
 from ._common import SupportAllCompressFormat
 
 from ._common import GettyAutoLogin
+
+from ._application import MemTest
+from ._application import SshServer
+from ._application import ChronyDaemon
+from ._application import NetworkManager
+from ._application import UseAllQemuTargets
