@@ -80,7 +80,6 @@ net-misc/openntpd
 class NetworkManager:
 
     def __init__(self, exclusive=False):
-        assert not exclusive                                        # FIXME
         self._exclusive = exclusive
 
     def update_target_settings(self, target_settings):
@@ -97,6 +96,8 @@ class NetworkManager:
             service_list.append("NetworkManager")
 
     _maskFileContent = """
+# we don't use static network configuration scripts
+net-misc/netifrc
 """
 
 
