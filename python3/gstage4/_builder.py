@@ -35,7 +35,7 @@ from ._prototype import ScriptInChroot
 from ._errors import SettingsError
 from ._errors import CustomActionError
 from ._host import HostInfo
-from ._settings import TargetSettings
+from ._target import TargetSettings
 from ._runner import Runner
 from .scripts import ScriptFromBuffer
 
