@@ -114,9 +114,6 @@ class NotUseDeprecatedPackagesAndFunctions:
 # media-libs/libquvi depends on dev-lang/lua[deprecated]
 */*                             -quvi
 
-# media-libs/libdv depends on libsdl-version-1, which is deprecated
-*/*                             -dv
-
 # framebuffer device is deprecated by DRM
 */*                             -fbdev
 
