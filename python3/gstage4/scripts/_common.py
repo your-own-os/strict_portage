@@ -39,9 +39,9 @@ class ScriptInstallPackages(ScriptFromBuffer):
             assert False
 
         if record_to_world:
-            buf = buf.replace("@@RECORD_TO_WORLD", "")
+            buf = buf.replace("@@RECORD_TO_WORLD@@", "")
         else:
-            buf = buf.replace("@@RECORD_TO_WORLD", "-1")
+            buf = buf.replace("@@RECORD_TO_WORLD@@", "-1")
 
         buf = buf.replace("@@PKG_NAME@@", " ".join(packages))
 
