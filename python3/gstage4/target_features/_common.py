@@ -234,56 +234,6 @@ sys-firmware/edk2-ovmf-bin
 """
 
 
-class MemTest:
-
-    def update_target_settings(self, target_settings):
-        assert "10-memtest" not in target_settings.pkg_use_files
-
-        target_settings.pkg_use_files["10-memtest"] = self._useFileContent.strip("\n") + "\n"
-
-    def update_world_set(self, world_set):
-        world_set.add("sys-apps/memtest86+")
-
-    _useFileContent = """
-# don't install files into /boot
-sys-apps/memtest86+                   -boot
-"""
-
-
-class SshServer:
-
-    def update_world_set(self, world_set):
-        world_set.add("net-misc/openssh")
-
-    def update_service_list(self, service_list):
-        if "sshd" not in service_list:
-            service_list.append("sshd")
-
-    def get_custom_action(self):
-        # FIXME
-        pass
-
-
-class ChronyDaemon:
-
-    def update_world_set(self, world_set):
-        world_set.add("net-misc/chrony")
-
-    def update_service_list(self, service_list):
-        if "chronyd" not in service_list:
-            service_list.append("chronyd")
-
-
-class NetworkManager:
-
-    def update_world_set(self, world_set):
-        world_set.add("net-misc/networkmanager")
-
-    def update_service_list(self, service_list):
-        if "NetworkManager" not in service_list:
-            service_list.append("NetworkManager")
-
-
 class GettyAutoLogin:
 
     def get_custom_action(self):
@@ -377,4 +327,41 @@ class DisablePcSpeaker:
     _scriptFileContent = """
 #!/bin/sh
 echo "blacklist pcspkr" > /etc/modprobe.d/disable-pc-speaker.conf
+"""
+
+
+class PreferPipewire:
+
+    def update_target_settings(self, target_settings):
+        assert "10-prefer-pipewire" not in target_settings.pkg_use_files
+
+        target_settings.pkg_use_files["10-prefer-pipewire"] = self._useFileContent.strip("\n") + "\n"
+
+    _useFileContent = """
+# prefered sound route: 1. pipewire -> alsa
+#                       2. gstreamer -> pipewire -> alsa
+#                       3. openal -> pipewire -> alsa
+#                       4. alsa (bad)
+#                       5. pulseaudio -> alsa (bad)
+app-emulation/wine-vanilla                                  alsa            # gstreamer support in wine is not an alsa replacement, doesn't support pipewire
+app-emulation/wine-staging                                  alsa            # gstreamer support in wine is not an alsa replacement, doesn't support pipewire
+app-emulation/virtualbox                                    alsa            # does not and should not support gstreamer?
+games-emulation/dosbox-staging                              alsa            # doesn't support gstreamer and pipewire
+media-libs/libmikmod                                        -alsa openal    # doesn't support gstreamer and pipewire
+media-libs/libsdl                                           alsa            # doesn't support gstreamer and pipewire
+media-libs/libsdl2                                          pipewire
+media-libs/mediastreamer2                                   alsa            # doesn't support gstreamer and pipewire
+media-sound/audacity                                        alsa            # doesn't support gstreamer and pipewire
+media-sound/fluidsynth                                      pipewire
+media-sound/lmms                                            alsa            # doesn't support gstreamer and pipewire
+media-sound/mpg123                                          alsa            # doesn't support gstreamer and pipewire
+media-sound/moc                                             alsa            # doesn't support gstreamer and pipewire
+media-sound/musescore                                       alsa            # doesn't support gstreamer and pipewire
+media-sound/timidity++                                      alsa            # doesn't support gstreamer and pipewire
+media-sound/wildmidi                                        -alsa openal    # doesn't support gstreamer and pipewire
+media-sound/vkeybd                                          alsa            # doesn't support gstreamer and pipewire
+media-video/mpv                                             -alsa pipewire
+net-im/zoom                                                 pulseaudio      # doesn't support alsa, gstreamer and pipewire
+net-misc/freerdp                                            pulseaudio      # strange, it has USE flag alsa, ffmepg, gstreamer and pulseaudio. It seems disable alsa+pulseaudio would make it route to OSS.
+media-sound/spotify                                         pulseaudio      # doesn't support alsa, gstreamer and pipewire
 """
