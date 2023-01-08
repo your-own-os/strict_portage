@@ -200,7 +200,7 @@ class Builder:
         if any([isinstance(repo, EmergeSyncRepository) for repo in overlay_list]):
             with _MyChrooter(self) as m:
                 installList = [x for x in pkgSet if not Util.portageIsPkgInstalled(self._workDirObj.path, x)]
-                m.script_exec(ScriptInstallPackages(installList, self._s.verbose_level), quiet=self._getQuiet())
+                m.script_exec(ScriptInstallPackages(installList, False, self._s.verbose_level), quiet=self._getQuiet())
 
                 if any([isinstance(repo, EmergeSyncRepository) for repo in overlay_list]):
                     m.script_exec(ScriptSync(), quiet=self._getQuiet())
@@ -272,7 +272,7 @@ class Builder:
         with _MyChrooter(self) as m:
             installList = [x for x in pkgList if not Util.portageIsPkgInstalled(self._workDirObj.path, x)]
             if len(installList) > 0:
-                m.script_exec(ScriptInstallPackages(installList, self._s.verbose_level), quiet=self._getQuiet())
+                m.script_exec(ScriptInstallPackages(installList, False, self._s.verbose_level), quiet=self._getQuiet())
 
             m.script_exec(ScriptUpdateWorld(self._s.verbose_level), quiet=self._getQuiet())
 

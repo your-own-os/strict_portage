@@ -26,7 +26,6 @@ from .. import CustomAction
 from ..scripts import OneLinerScript
 from ..scripts import ScriptFromBuffer
 from ..scripts import ScriptInstallPackages
-from ..scripts import ScriptUpdateWorld
 
 
 class SimpleCustomAction(CustomAction):                         # FIXME: should be renamed to UserDefinedAction
@@ -89,8 +88,8 @@ class AddUser(CustomAction):
 
 class InstallPackages:
 
-    def __init__(self, packages):
-        self._script = ScriptInstallPackages(packages, 0)
+    def __init__(self, packages, record_to_world):
+        self._script = ScriptInstallPackages(packages, record_to_world, 0)
 
     @property
     def custom_scripts(self):

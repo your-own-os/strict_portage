@@ -26,8 +26,9 @@ from ..scripts import ScriptFromBuffer
 
 class ScriptInstallPackages(ScriptFromBuffer):
 
-    def __init__(self, pkgList, verbose_level):
+    def __init__(self, packages, record_to_world, verbose_level):
         buf = self._scriptContentFirstHalf
+
         if verbose_level == 0:
             buf += self._scriptContentSecondHalfVerboseLv0
         elif verbose_level == 1:
@@ -36,7 +37,13 @@ class ScriptInstallPackages(ScriptFromBuffer):
             buf += self._scriptContentSecondHalfVerboseLv2
         else:
             assert False
-        buf = buf.replace("@@PKG_NAME@@", " ".join(pkgList))
+
+        if record_to_world:
+            buf = buf.replace("@@RECORD_TO_WORLD", "")
+        else:
+            buf = buf.replace("@@RECORD_TO_WORLD", "-1")
+
+        buf = buf.replace("@@PKG_NAME@@", " ".join(packages))
 
         super().__init__(buf)
 
@@ -51,7 +58,7 @@ export CONFIG_PROTECT="-* .x"
 """
 
     _scriptContentSecondHalfVerboseLv0 = """
-emerge --color=y -1 @@PKG_NAME@@ > /var/log/portage/run-merge.log 2>&1 || exit 1
+emerge --color=y @@RECORD_TO_WORLD@@ @@PKG_NAME@@ > /var/log/portage/run-merge.log 2>&1 || exit 1
 """
 
     _scriptContentSecondHalfVerboseLv1 = """
@@ -59,12 +66,12 @@ emerge --color=y -1 @@PKG_NAME@@ > /var/log/portage/run-merge.log 2>&1 || exit 1
 #   >>> Emergeing ...
 #   >>> Installing ...
 #   >>> Uninstalling ...
-emerge --color=y -1 @@PKG_NAME@@ 2>&1 | tee /var/log/portage/run-merge.log | grep -E --color=never "^>>> .*\\(.*[0-9]+.*of.*[0-9]+.*\\)"
+emerge --color=y @@RECORD_TO_WORLD@@ @@PKG_NAME@@ 2>&1 | tee /var/log/portage/run-merge.log | grep -E --color=never "^>>> .*\\(.*[0-9]+.*of.*[0-9]+.*\\)"
 test ${PIPESTATUS[0]} -eq 0 || exit 1
 """
 
     _scriptContentSecondHalfVerboseLv2 = """
-emerge --color=y -1 @@PKG_NAME@@ 2>&1 | tee /var/log/portage/run-update.log
+emerge --color=y @@RECORD_TO_WORLD@@ @@PKG_NAME@@ 2>&1 | tee /var/log/portage/run-update.log
 test ${PIPESTATUS[0]} -eq 0 || exit 1
 """
 
