@@ -344,18 +344,37 @@ echo "blacklist pcspkr" > /etc/modprobe.d/disable-pc-speaker.conf
 """
 
 
+class PreferWayland:
+
+    def update_target_settings(self, target_settings):
+        assert "10-prefer-wayland" not in target_settings.pkg_use_files
+
+        target_settings.pkg_use_files["10-prefer-wayland"] = self._useFileContent.strip("\n") + "\n"
+
+    _useFileContent = """
+# we use wayland, only use X when we have to
+*/*                                           -X
+app-emulation/wine-vanilla                    X                               # wine has no wayland support, it has to use Xwayland
+app-emulation/wine-staging                    X
+dev-util/electron                             X -wayland                      # electron wayland support needs ozone which is broken now
+gui-wm/wayfire                                X                               # enable Xwayland
+app-misc/ddcutil                              X                               # drm needs X?
+
+# keep X minimal
+x11-base/xorg-server                          -elogind                        # why it enables by default?
+x11-base/xorg-server						  -suid -systemd -udev -xorg
+"""
+
 class PreferPipewire:
 
     def update_target_settings(self, target_settings):
         assert "10-prefer-pipewire" not in target_settings.pkg_use_files
+        assert "10-prefer-pipewire" not in target_settings.pkg_mask_files
 
         target_settings.pkg_use_files["10-prefer-pipewire"] = self._useFileContent.strip("\n") + "\n"
+        target_settings.pkg_mask_files["10-prefer-pipewire"] = self._maskFileContent.strip("\n") + "\n"
 
     _useFileContent = """
-# don't use pulseaudio
-*/*                                                         -pulseaudio
-media-sound/pulseaudio                                      -*
-
 # prefered sound route: 1. pipewire -> alsa
 #                       2. gstreamer -> pipewire -> alsa
 #                       3. openal -> pipewire -> alsa
@@ -382,4 +401,16 @@ media-video/mpv                                             -alsa pipewire
 net-im/zoom                                                 pulseaudio      # doesn't support alsa, gstreamer and pipewire
 net-misc/freerdp                                            pulseaudio      # strange, it has USE flag alsa, ffmepg, gstreamer and pulseaudio. It seems disable alsa+pulseaudio would make it route to OSS.
 media-sound/spotify                                         pulseaudio      # doesn't support alsa, gstreamer and pipewire
+
+# keep pulseaudio minimal
+*/*                                                         -pulseaudio
+media-sound/pulseaudio                                      -*
+"""
+
+    _maskFileContent = """
+# we prefer the following paradim:
+#   App --> Pipewire --> ALSA
+#              |
+#              +-------> Bluetooth
+media-sound/bluez-alsa
 """
