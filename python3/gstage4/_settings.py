@@ -21,84 +21,8 @@
 # THE SOFTWARE.
 
 
-import os
 import re
 from ._errors import SettingsError
-
-
-class Settings:
-
-    def __init__(self):
-        self.program_name = None
-
-        self.log_dir = None
-
-        self.verbose_level = 1
-
-        self.host_computing_power = None
-
-        # distfiles directory in host system, will be bind mounted in target system
-        self.host_distfiles_dir = None
-
-        # packages directory in host system
-        self.host_packages_dir = None
-
-        # ccache directory in host system
-        self.host_ccache_dir = None
-
-    @classmethod
-    def check_object(cls, obj, raise_exception=None):
-        assert raise_exception is not None
-
-        if not isinstance(obj, cls):
-            if raise_exception:
-                raise SettingsError("invalid object type")
-            else:
-                return False
-
-        if not isinstance(obj.program_name, str):
-            if raise_exception:
-                raise SettingsError("invalid value for key \"program_name\"")
-            else:
-                return False
-
-        if obj.log_dir is not None and not isinstance(obj.log_dir, str):
-            if raise_exception:
-                raise SettingsError("invalid value for key \"log_dir\"")
-            else:
-                return False
-
-        if not (0 <= obj.verbose_level <= 2):
-            if raise_exception:
-                raise SettingsError("invalid value for key \"verbose_level\"")
-            else:
-                return False
-
-        if obj.host_computing_power is None or not ComputingPower.check_object(obj.host_computing_power, raise_exception=raise_exception):
-            if raise_exception:
-                raise SettingsError("invalid value for key \"host_computing_power\"")
-            else:
-                return False
-
-        if obj.host_distfiles_dir is not None and not os.path.isdir(obj.host_distfiles_dir):
-            if raise_exception:
-                raise SettingsError("invalid value for key \"host_distfiles_dir\"")
-            else:
-                return False
-
-        if obj.host_packages_dir is not None and not os.path.isdir(obj.host_packages_dir):
-            if raise_exception:
-                raise SettingsError("invalid value for key \"host_packages_dir\"")
-            else:
-                return False
-
-        if obj.host_ccache_dir is not None and not os.path.isdir(obj.host_ccache_dir):
-            if raise_exception:
-                raise SettingsError("invalid value for key \"host_ccache_dir\"")
-            else:
-                return False
-
-        return True
 
 
 class TargetSettings:
@@ -298,11 +222,3 @@ class TargetSettingsBuildOpts:
                 return False
 
         return True
-
-
-class ComputingPower:
-
-    def __init__(self, cpu_core_count, memory_size, cooling_level):
-        self.cpu_core_count = cpu_core_count
-        self.memory_size = memory_size               # in byte
-        self.cooling_level = cooling_level           # 1-10, less is weaker

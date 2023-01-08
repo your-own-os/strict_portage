@@ -35,9 +35,7 @@ from ._prototype import ScriptInChroot
 from ._errors import SettingsError
 from ._errors import CustomActionError
 from ._host import HostInfo
-from ._settings import Settings
 from ._settings import TargetSettings
-from ._settings import ComputingPower
 from ._runner import Runner
 from .scripts import ScriptFromBuffer
 
@@ -69,11 +67,11 @@ class Builder:
     def __init__(self, program_name, host_info, work_dir, log_dir=None, verbose_level=1):
         assert HostInfo.check_object(host_info, raise_exception=False)
 
-        self._s = Settings()
+        self._s = _Settings()
         self._s.program_name = program_name
         self._s.log_dir = log_dir
         self._s.verbose_level = verbose_level
-        self._s.host_computing_power = ComputingPower(host_info.cpu_core_count, host_info.memory_size, host_info.cooling_level)
+        self._s.host_computing_power = _ComputingPower(host_info.cpu_core_count, host_info.memory_size, host_info.cooling_level)
         self._s.host_distfiles_dir = host_info.distfiles_dir
         self._s.host_packages_dir = host_info.packages_dir
         self._s.host_ccache_dir = host_info.ccache_dir
@@ -486,6 +484,35 @@ class CustomAction(abc.ABC):
                 return False
 
         return True
+
+
+class _Settings:
+
+    def __init__(self):
+        self.program_name = None
+
+        self.log_dir = None
+
+        self.verbose_level = 1
+
+        self.host_computing_power = None
+
+        # distfiles directory in host system, will be bind mounted in target system
+        self.host_distfiles_dir = None
+
+        # packages directory in host system
+        self.host_packages_dir = None
+
+        # ccache directory in host system
+        self.host_ccache_dir = None
+
+
+class _ComputingPower:
+
+    def __init__(self, cpu_core_count, memory_size, cooling_level):
+        self.cpu_core_count = cpu_core_count
+        self.memory_size = memory_size               # in byte
+        self.cooling_level = cooling_level           # 1-10, less is weaker
 
 
 class _MyRepoUtil:
