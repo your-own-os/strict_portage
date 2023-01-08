@@ -165,6 +165,13 @@ dev-python/pytzdata
 """
 
 
+class AcceptAllLicenses:
+
+    def update_target_settings(self, target_settings):
+        assert len(target_settings.pkg_license) == 0 and len(target_settings.pkg_license_files) == 0
+        target_settings.pkg_license["*/*"] = "*"
+
+
 class UsrMerge:
 
     def update_target_settings(self, target_settings):
