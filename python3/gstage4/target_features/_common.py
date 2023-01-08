@@ -362,7 +362,7 @@ class SupportAllImageFormat:
 
     _useFileContent = """
 # image formats
-*/*                 a52 aac airplay alac aptx cdda dts flac lame ldac mad mp3 musepack ogg opus sndfile speex vorbis wavpack
+*/*                 apng exif gif jpeg jpeg2k mng png svg tiff webp wmf
 """
 
 
