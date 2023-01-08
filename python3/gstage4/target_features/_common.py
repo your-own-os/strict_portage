@@ -394,6 +394,18 @@ class SupportAllCompressFormat:
 */*                 bzip2 gzip lz4 lzma lzo szip xz
 """
 
+class SupportAllGraphicsApi:
+
+    def update_target_settings(self, target_settings):
+        assert "10-graphics-api" not in target_settings.pkg_use_files
+
+        target_settings.pkg_use_files["10-graphics-api"] = self._useFileContent.strip("\n") + "\n"
+
+    _useFileContent = """
+# graphics api
+*/*                 egl eglfs gles2 gles2-only gles3 vaapi vulkan zink
+"""
+
 
 class DisablePcSpeaker:
 
