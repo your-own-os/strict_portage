@@ -107,6 +107,10 @@ class DoNotUseDeprecatedPackagesAndFunctions:
 
 # "wpa_supplicant" is deprecated by "iwd", "nss" is deprecated by "gnutls", "wext" is deprecated
 net-misc/networkmanager    iwd gnutls -nss -wext
+
+# don't use python2.x
+*/*                      -python_targets_python2_7
+*/*                      -python_single_target_python2_7
 """
 
     _maskFileContent = """
