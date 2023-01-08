@@ -475,10 +475,12 @@ class PreferPipewire:
 #                       3. openal -> pipewire -> alsa
 #                       4. alsa (bad)
 #                       5. pulseaudio -> alsa (bad)
+app-emulation/spice                                         gstreamer
 app-emulation/wine-vanilla                                  alsa            # gstreamer support in wine is not an alsa replacement, doesn't support pipewire
 app-emulation/wine-staging                                  alsa            # gstreamer support in wine is not an alsa replacement, doesn't support pipewire
 app-emulation/virtualbox                                    alsa            # does not and should not support gstreamer?
 games-emulation/dosbox-staging                              alsa            # doesn't support gstreamer and pipewire
+gui-libs/gtk                                                gstreamer
 media-libs/libmikmod                                        -alsa openal    # doesn't support gstreamer and pipewire
 media-libs/libsdl                                           alsa            # doesn't support gstreamer and pipewire
 media-libs/libsdl2                                          pipewire
@@ -495,7 +497,10 @@ media-sound/vkeybd                                          alsa            # do
 media-video/mpv                                             -alsa pipewire
 net-im/zoom                                                 pulseaudio      # doesn't support alsa, gstreamer and pipewire
 net-misc/freerdp                                            pulseaudio      # strange, it has USE flag alsa, ffmepg, gstreamer and pulseaudio. It seems disable alsa+pulseaudio would make it route to OSS.
+media-libs/libcanberra                                      gstreamer
 media-sound/spotify                                         pulseaudio      # doesn't support alsa, gstreamer and pipewire
+x11-libs/wxGTK                                              gstreamer
+
 
 # keep pulseaudio minimal
 */*                                                         -pulseaudio
