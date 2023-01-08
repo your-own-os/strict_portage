@@ -51,7 +51,16 @@ class SshServer:
         pass
 
 
-class ChronyDaemon:
+class Chrony:
+
+    def __init__(self, exclusive=False):
+        self._exclusive = exclusive
+
+    def update_target_settings(self, target_settings):
+        assert "10-chrony" not in target_settings.pkg_mask_files
+
+        if self._exclusive:
+            target_settings.pkg_mask_files["10-chrony"] = self._maskFileContent.strip("\n") + "\n"
 
     def update_world_set(self, world_set):
         world_set.add("net-misc/chrony")
@@ -60,8 +69,25 @@ class ChronyDaemon:
         if "chronyd" not in service_list:
             service_list.append("chronyd")
 
+    _maskFileContent = """
+# we use net-misc/chrony
+net-misc/ntp
+net-misc/ntpsec
+net-misc/openntpd
+"""
+
 
 class NetworkManager:
+
+    def __init__(self, exclusive=False):
+        assert not exclusive                                        # FIXME
+        self._exclusive = exclusive
+
+    def update_target_settings(self, target_settings):
+        assert "10-networkmanager" not in target_settings.pkg_mask_files
+
+        if self._exclusive:
+            target_settings.pkg_mask_files["10-networkmanager"] = self._maskFileContent.strip("\n") + "\n"
 
     def update_world_set(self, world_set):
         world_set.add("net-misc/networkmanager")
@@ -69,6 +95,9 @@ class NetworkManager:
     def update_service_list(self, service_list):
         if "NetworkManager" not in service_list:
             service_list.append("NetworkManager")
+
+    _maskFileContent = """
+"""
 
 
 class UseAllQemuTargets:
