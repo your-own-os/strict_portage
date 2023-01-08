@@ -209,7 +209,7 @@ class PreferBinaryPackage:
     def update_target_settings(self, target_settings):
         assert "10-prefer-binary-package" not in target_settings.pkg_mask_files
 
-        target_settings.pkg_mask_files["10-prefer-gnu-and-gpl"] = self._maskFileContent.strip("\n") + "\n"
+        target_settings.pkg_mask_files["10-prefer-binary-package"] = self._maskFileContent.strip("\n") + "\n"
 
     _maskFileContent = """
 # we prefer dev-lang/rust-bin
@@ -217,6 +217,22 @@ dev-lang/rust
 
 # we prefer sys-firmware/edk2-ovmf-bin
 sys-firmware/edk2-ovmf
+"""
+
+
+class PreferSourcePackage:
+
+    def update_target_settings(self, target_settings):
+        assert "10-prefer-source-package" not in target_settings.pkg_mask_files
+
+        target_settings.pkg_mask_files["10-prefer-source-package"] = self._maskFileContent.strip("\n") + "\n"
+
+    _maskFileContent = """
+# we prefer dev-lang/rust
+dev-lang/rust-bin
+
+# we prefer sys-firmware/edk2-ovmf
+sys-firmware/edk2-ovmf-bin
 """
 
 
