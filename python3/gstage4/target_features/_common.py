@@ -350,7 +350,7 @@ echo "blacklist pcspkr" > /etc/modprobe.d/disable-pc-speaker.conf
 
 class PreferWayland:
 
-    def __init__(self, xwayland):
+    def __init__(self, xwayland=True):
         assert xwayland                     # FIXME
 
         self._xwayland = xwayland
@@ -380,9 +380,9 @@ x11-base/xorg-server						  -suid -systemd -udev -xorg
 
 class PreferPipewire:
 
-    def __init__(self, with_pulseaudio, with_jack, with_direct_alsa):
+    def __init__(self, with_pulseaudio=True, with_jack=True, with_direct_alsa=True):
         assert with_pulseaudio                     # FIXME
-        assert with_jack                           # FIXME
+        assert not with_jack                       # FIXME
         assert with_direct_alsa                    # FIXME
 
         self._pulseaudio = with_pulseaudio
