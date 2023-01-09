@@ -85,7 +85,7 @@ class AddUser(CustomAction):
         return []
 
 
-class InstallPackages:
+class InstallPackages(CustomAction):
 
     def __init__(self, packages, record_to_world):
         self._script = ScriptInstallPackages(packages, record_to_world, 0)
@@ -103,7 +103,7 @@ class InstallPackages:
         return ["update_world", "install_kernel", "enable_services"]
 
 
-class RemovePackagesFromWorld:
+class RemovePackagesFromWorld(CustomAction):
 
     def __init__(self, packages):
         self._pkgList = packages
@@ -121,7 +121,7 @@ class RemovePackagesFromWorld:
         return []
 
 
-class RemoveUsrSrcDirectoryContent:
+class RemoveUsrSrcDirectoryContent(CustomAction):
 
     @property
     def custom_scripts(self):
