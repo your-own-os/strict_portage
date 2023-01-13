@@ -67,57 +67,67 @@ class UseFakeKernel:
 class UseOpenrc:
 
     def update_target_settings(self, target_settings):
+        assert "10-openrc" not in target_settings.pkg_use_files
+        assert "10-openrc" not in target_settings.pkg_mask_files
+
         target_settings.service_manager = "openrc"
+
+        target_settings.pkg_use_files["10-openrc"] = self._useFileContent.strip("\n") + "\n"
+        target_settings.pkg_mask_files["10-openrc"] = self._maskFileContent.strip("\n") + "\n"
 
     def update_world_set(self, world_set):
         world_set.add("sys-apps/sysvinit")              # FIXME: maybe we should make it "openrc+sysvinit" and "openrc+s6-linux-init"
         world_set.add("sys-apps/openrc")
 
+    _useFileContent = """
+"""
+
+    _maskFileContent = """
+# don't use other init system
+sys-apps/systemd
+"""
+
 
 class UseSystemd:
 
     def update_target_settings(self, target_settings):
+        assert "10-systemd" not in target_settings.pkg_use_files
+        assert "10-systemd" not in target_settings.pkg_mask_files
+
         target_settings.service_manager = "systemd"
+
+        target_settings.pkg_use_files["10-systemd"] = self._useFileContent.strip("\n") + "\n"
+        target_settings.pkg_mask_files["10-systemd"] = self._maskFileContent.strip("\n") + "\n"
 
     def update_world_set(self, world_set):
         world_set.add("sys-apps/systemd")
 
+    _useFileContent = """
+"""
+
+    _maskFileContent = """
+# don't use other init system
+sys-apps/sysvinit
+sys-apps/s6-linux-init
+sys-apps/openrc
+
+# inetd is deprecated by systemd socket activation
+virtual/inetd
+
+# they are deprecated by systemd-udevd
+sys-fs/udev
+sys-fs/eudev
+"""
+
 
 class NotUseDeprecatedPackagesAndFunctions:
-
-    def __init__(self, service_manager="none"):
-        assert service_manager in ["none", "openrc", "systemd"]
-        self._serviceManager = service_manager
 
     def update_target_settings(self, target_settings):
         assert "10-no-deprecated" not in target_settings.pkg_use_files
         assert "10-no-deprecated" not in target_settings.pkg_mask_files
 
-        # use content
-        buf = self._useFileContent.strip("\n") + "\n"
-        if self._serviceManager == "none":
-            pass
-        elif self._serviceManager == "openrc":
-            pass
-        elif self._serviceManager == "systemd":
-            buf += "\n"
-            buf += self._systemdUseContent.strip("\n") + "\n"
-        else:
-            assert False
-        target_settings.pkg_use_files["10-no-deprecated"] = buf
-
-        # mask content
-        buf = self._maskFileContent.strip("\n") + "\n"
-        if self._serviceManager == "none":
-            pass
-        elif self._serviceManager == "openrc":
-            pass
-        elif self._serviceManager == "systemd":
-            buf += "\n"
-            buf += self._systemdMaskContent.strip("\n") + "\n"
-        else:
-            assert False
-        target_settings.pkg_mask_files["10-no-deprecated"] = buf
+        target_settings.pkg_use_files["10-no-deprecated"] = self._useFileContent.strip("\n") + "\n"
+        target_settings.pkg_mask_files["10-no-deprecated"] = self._maskFileContent.strip("\n") + "\n"
 
     _useFileContent = """
 # disable deprecated functions
@@ -146,15 +156,6 @@ net-misc/spice-gtk              gtk3
 media-video/smplayer            qt5
 net-analyzer/wireshark          qt5
 net-p2p/bitcoin-qt              qt5
-"""
-
-    _systemdUseContent = """
-# inetd is deprecated by systemd socket activation
-virtual/inetd
-
-# they are deprecated by systemd-udevd
-sys-fs/udev
-sys-fs/eudev
 """
 
     _maskFileContent = """
@@ -199,11 +200,6 @@ net-vpn/i2p
 
 # why use the old version openssl?
 <dev-libs/openssl-3.0.0
-"""
-
-    _systemdMaskContent = """
-# too old
-sys-apps/sysvinit
 """
 
 
