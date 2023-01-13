@@ -111,12 +111,12 @@ sys-apps/sysvinit
 sys-apps/s6-linux-init
 sys-apps/openrc
 
-# inetd is deprecated by systemd socket activation
-virtual/inetd
-
 # they are deprecated by systemd-udevd
 sys-fs/udev
 sys-fs/eudev
+
+# inetd is deprecated by systemd socket activation
+virtual/inetd
 """
 
 
