@@ -84,6 +84,7 @@ class UseOpenrc:
 
     _maskFileContent = """
 # don't use other init system
+sys-apps/s6-linux-init
 sys-apps/systemd
 """
 
