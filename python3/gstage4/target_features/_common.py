@@ -60,11 +60,14 @@ class UseGenkernel:
 
 class UseBinaryKernel:
 
+    def __init__(self, kernel_package="sys-kernel/gentoo-kernel-bin"):
+        self._kernelPkg = kernel_package
+
     def update_target_settings(self, target_settings):
         target_settings.kernel_manager = "binary-kernel"
 
     def update_world_set(self, world_set):
-        world_set.add("sys-kernel/gentoo-kernel-bin")
+        world_set.add(self._kernelPkg)
 
 
 class UseFakeKernel:
