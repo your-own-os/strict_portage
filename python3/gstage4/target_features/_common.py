@@ -213,12 +213,18 @@ class AcceptAllLicenses:
 
 class UsrMerge:
 
+    def __init__(self, archLinuxStyle=False):
+        self._mergeSbin = archLinuxStyle
+
     def update_target_settings(self, target_settings):
         if "split-usr" not in target_settings.use_mask:
             target_settings.use_mask.append("split-usr")
 
     def get_custom_action(self):
-        return SimpleCustomAction(ScriptFromBuffer(self._scriptFileContent),
+        buf = self._scriptFileContent
+        if self._mergeSbin:
+            buf += self._scriptMergeSbin
+        return SimpleCustomAction(ScriptFromBuffer(buf),
                                   after=["init_confdir", "create_overlays"],
                                   before=["update_world"])
 
@@ -241,7 +247,9 @@ for dir in ["/bin", "/sbin"] + glob.glob("/lib*"):
     subprocess.run("cp -a --remove-destination %s/* /usr/%s" % (dir, dir[1:]), shell=True)
     shutil.rmtree(dir)
     os.symlink("usr/%s" % (dir[1:]), dir)
+"""
 
+    _scriptMergeSbin = """
 # merge /usr/sbin into /usr/bin
 if True:
     subprocess.run("cp -a --remove-destination /usr/sbin/* /usr/bin", shell=True)
