@@ -37,11 +37,11 @@ class UsePortage:
 
 class UseGenkernel:
 
-    def __init__(self, kernel="gentoo-sources", kernel_config=None, check_kernel_config_version=False):
+    def __init__(self, kernel_package="sys-kernel/gentoo-sources", kernel_config=None, check_kernel_config_version=False):
         if kernel_config is None:
             assert not check_kernel_config_version
 
-        self._kernel = kernel
+        self._kernelPkg = kernel_package
         self._kernelCfg = kernel_config
         self._checkVer = check_kernel_config_version
 
@@ -53,9 +53,9 @@ class UseGenkernel:
         }
 
     def update_world_set(self, world_set):
-        world_set.add("sys-kernel/%s" % (self._kernel))
         world_set.add("sys-kernel/genkernel")
         world_set.add("sys-devel/bc")           # kernel build script needs it
+        world_set.add(self._kernelPkg)
 
 
 class UseBinaryKernel:
