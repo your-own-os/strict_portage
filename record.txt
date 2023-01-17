@@ -272,3 +272,5 @@ sub wait_for_readability {
 https://www.postgresql.org/message-id/flat/CAPTjJmrDuEjvBo00XvLMLOQ5vdXfFo33K1Gmvzvj0KiiahnjEQ%40mail.gmail.com
 If diskchecker.pl fails, storage is unreliable for PostgreSQL, period. Don't put a database on it.
 
+https://wiki.postgresql.org/wiki/Reliable_Writes
+
