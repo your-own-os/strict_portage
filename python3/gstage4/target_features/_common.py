@@ -543,6 +543,7 @@ app-emulation/wine-vanilla                                  alsa            # gs
 app-emulation/wine-staging                                  alsa            # gstreamer support in wine is not an alsa replacement, doesn't support pipewire
 app-emulation/virtualbox                                    alsa            # does not and should not support gstreamer?
 games-emulation/dosbox-staging                              alsa            # doesn't support gstreamer and pipewire
+games-engines/scummvm                                       alsa            # doesn't support gstreamer and pipewire
 gui-libs/gtk                                                gstreamer
 media-libs/libmikmod                                        -alsa openal    # doesn't support gstreamer and pipewire
 media-libs/libsdl                                           alsa            # doesn't support gstreamer and pipewire
@@ -563,7 +564,6 @@ net-misc/freerdp                                            pulseaudio      # st
 media-libs/libcanberra                                      gstreamer
 media-sound/spotify                                         pulseaudio      # doesn't support alsa, gstreamer and pipewire
 x11-libs/wxGTK                                              gstreamer
-
 
 # keep pulseaudio minimal
 */*                                                         -pulseaudio
