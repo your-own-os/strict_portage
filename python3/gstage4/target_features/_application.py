@@ -132,3 +132,21 @@ class NotUseUdisks:
 sys-fs/udisks
 sys-fs/udisks-glue
 """
+
+
+class NotUsePolicyKit:
+
+    def update_target_settings(self, target_settings):
+        assert "10-no-policykit" not in target_settings.pkg_use_files
+        assert "10-no-policykit" not in target_settings.pkg_mask_files
+
+        target_settings.pkg_use_files["10-no-policykit"] = self._useFileContent.strip("\n") + "\n"
+        target_settings.pkg_mask_files["10-no-policykit"] = self._maskFileContent.strip("\n") + "\n"
+
+    _useFileContent = """
+*/*     -policykit
+"""
+
+    _maskFileContent = """
+sys-auth/polkit
+"""

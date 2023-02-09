@@ -52,6 +52,7 @@ from ._common import GettyAutoLogin
 
 from ._application import UseAllQemuTargets
 from ._application import NotUseUdisks
+from ._application import NotUsePolicyKit
 
 from ._application import MemTest
 from ._application import SshServer
