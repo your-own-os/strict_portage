@@ -103,9 +103,6 @@ sys-apps/systemd
 
 class UseSystemd:
 
-    MODULE_FLAG_DISABLE = 1
-    MODULE_FLAG_EXCLUDE = 2
-
     def __init__(self, module_flags={}):
         self._mFlagDict = module_flags
 
@@ -124,12 +121,12 @@ class UseSystemd:
             ret = self._mFlagDict.get(flag_name, None)
             if ret is None:
                 pass
-            elif ret == self.MODULE_FLAG_DISABLE:
+            elif ret == "disable":
                 if disable_func is not None:
                     disable_func()
                 else:
                     assert False
-            elif ret == self.MODULE_FLAG_EXCLUDE:
+            elif ret == "exclude":
                 if exclude_func is not None:
                     exclude_func()
                 else:
@@ -152,9 +149,35 @@ class UseSystemd:
                 "*rc-local*",
             ],
         }))
+        _flagExec("systemd-boot", exclude_func=lambda: _updateDict(td, {
+            "sys-apps/systemd": [
+                "*bootctl*",
+                "*/systemd-boot.7.bz2",
+                "*systemd-boot-system-token*",
+            ],
+        }))
+        _flagExec("systemd-hostnamed", exclude_func=lambda: _updateDict(td, {
+            "sys-apps/systemd": [
+                "*hostname1*",
+                "*hostnamed*",
+                "*hostnamectl*",
+            ],
+        }))
+        _flagExec("systemd-localed", exclude_func=lambda: _updateDict(td, {
+            "sys-apps/systemd": [
+                "*locale1*",
+                "*localed*",
+                "*localectl*",
+            ],
+        }))
         _flagExec("systemd-pstore", exclude_func=lambda: _updateDict(td, {
             "sys-apps/systemd": [
                 "*pstore*",
+            ],
+        }))
+        _flagExec("systemd-timedated", exclude_func=lambda: _updateDict(td, {
+            "sys-apps/systemd": [
+                "*timedate*",
             ],
         }))
         if len(td) > 0:
