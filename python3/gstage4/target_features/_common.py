@@ -233,9 +233,9 @@ class UseSystemd:
                     "*resolv*",
                 ],
             }))
-            _flagExec("systemd-userdbd", exclude_func=lambda: _updateDict(td, {
+            _flagExec("systemd-sysusers", exclude_func=lambda: _updateDict(td, {
                 "sys-apps/systemd": [
-                    "*userdb*",
+                    "*systemd-sysusers*",
                 ],
             }))
             _flagExec("systemd-timedated", exclude_func=lambda: _updateDict(td, {
@@ -248,6 +248,16 @@ class UseSystemd:
                     "*timesync*",
                     "*ntp*",
                     "/lib/systemd/ntp-units.d*",
+                ],
+            }))
+            _flagExec("systemd-userdbd", exclude_func=lambda: _updateDict(td, {
+                "sys-apps/systemd": [
+                    "*userdb*",
+                ],
+            }))
+            _flagExec("ldconfig.service", exclude_func=lambda: _updateDict(td, {
+                "sys-apps/systemd": [
+                    "*ldconfig*",
                 ],
             }))
 
