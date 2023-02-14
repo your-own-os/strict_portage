@@ -973,7 +973,9 @@ class TargetConfDirWriter:
         data = self._ts.install_mask_files.copy()
         assert "00-common" not in data
         if len(self._ts.install_mask) > 0:
-            data["00-common"] = self._ts.install_mask
+            data["00-common"] = {
+                "*/*": self._ts.install_mask
+            }
 
         if len(data) > 0:
             os.mkdir(fpath)
