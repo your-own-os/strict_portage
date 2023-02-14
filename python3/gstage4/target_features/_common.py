@@ -157,7 +157,8 @@ class UseSystemd:
                 "*pstore*",
             ],
         }))
-        target_settings.install_mask_files["10-systemd"] = td
+        if len(td) > 0:
+            target_settings.install_mask_files["10-systemd"] = td
 
     def update_world_set(self, world_set):
         world_set.add("sys-apps/systemd")
