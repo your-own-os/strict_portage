@@ -265,6 +265,11 @@ class UseSystemd:
                     "*userdb*",
                 ],
             }))
+            _flagExec("fstab", exclude_func=lambda: _updateDict({
+                "sys-apps/systemd": [
+                    "*fstab*",
+                ],
+            }))
             _flagExec("fs-operations", exclude_func=lambda: _updateDict({
                 "sys-apps/systemd": [
                     "*makefs*",
