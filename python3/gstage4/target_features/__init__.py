@@ -22,11 +22,13 @@
 
 
 from ._common import UsePortage
+
 from ._common import UseGenkernel
 from ._common import UseBinaryKernel
 from ._common import UseFakeKernel
+
 from ._common import UseOpenrc
-from ._common import UseSystemd
+from ._use_systemd import UseSystemd
 
 from ._common import AcceptAllLicenses
 from ._common import NotUseDeprecatedPackagesAndFunctions
@@ -58,3 +60,4 @@ from ._application import MemTest
 from ._application import SshServer
 from ._application import Chrony
 from ._application import NetworkManager
+
