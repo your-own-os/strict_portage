@@ -147,19 +147,6 @@ class UseSystemd:
                     assert flag_name not in flagRecord
                     flagRecord.add(flag_name)
 
-            _flagExec("sysvinit", exclude_func=lambda: _updateDict({
-                "*/*": [
-                    "/etc/init.d",
-                    "/etc/conf.d",
-                    "/etc/rc.d",
-                ],
-                "sys-apps/systemd": [
-                    "*initctl*",
-                    "*runlevel*",
-                    "*systemd-sysv-generator*",
-                    "*rc-local*",
-                ],
-            }))
             _flagExec("systemd-boot", exclude_func=lambda: _updateDict({
                 "sys-apps/systemd": [
                     "*bootctl*",
@@ -230,9 +217,24 @@ class UseSystemd:
                     "*pstore*",
                 ],
             }))
+            _flagExec("systemd-repart", exclude_func=lambda: _updateDict({
+                "sys-apps/systemd": [
+                    "*repart*",
+                ],
+            }))
             _flagExec("systemd-resolvd", exclude_func=lambda: _updateDict({
                 "sys-apps/systemd": [
                     "*resolv*",
+                ],
+            }))
+            _flagExec("systemd-sysext", exclude_func=lambda: _updateDict({
+                "sys-apps/systemd": [
+                    "*sysext*",
+                ],
+            }))
+            _flagExec("systemd-sysupdate", exclude_func=lambda: _updateDict({
+                "sys-apps/systemd": [
+                    "*sysupdate*",
                 ],
             }))
             _flagExec("systemd-sysusers", exclude_func=lambda: _updateDict({
@@ -252,14 +254,40 @@ class UseSystemd:
                     "/lib/systemd/ntp-units.d*",
                 ],
             }))
+            _flagExec("systemd-update", exclude_func=lambda: _updateDict({
+                "sys-apps/systemd": [
+                    "*system-update*",
+                    "*update-done*",
+                ],
+            }))
             _flagExec("systemd-userdbd", exclude_func=lambda: _updateDict({
                 "sys-apps/systemd": [
                     "*userdb*",
                 ],
             }))
+            _flagExec("fs-operations", exclude_func=lambda: _updateDict({
+                "sys-apps/systemd": [
+                    "*makefs*",
+                    "*growfs*",
+                    "*mkswap*",
+                ],
+            }))
             _flagExec("ldconfig.service", exclude_func=lambda: _updateDict({
                 "sys-apps/systemd": [
                     "*ldconfig*",
+                ],
+            }))
+            _flagExec("sysvinit", exclude_func=lambda: _updateDict({
+                "*/*": [
+                    "/etc/init.d",
+                    "/etc/conf.d",
+                    "/etc/rc.d",
+                ],
+                "sys-apps/systemd": [
+                    "*initctl*",
+                    "*runlevel*",
+                    "*systemd-sysv-generator*",
+                    "*rc-local*",
                 ],
             }))
             assert len(set(self._mFlagDict.keys()) - flagRecord) == 0
