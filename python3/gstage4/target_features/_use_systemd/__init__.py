@@ -21,9 +21,13 @@
 # THE SOFTWARE.
 
 
+import pathlib
+
+
 class UseSystemd:
 
     def __init__(self, module_flags={}):
+        self._selfDir = os.path.dirname(os.path.realpath(__file__))
         self._mFlagDict = module_flags
 
     def update_target_settings(self, target_settings):
@@ -33,9 +37,13 @@ class UseSystemd:
 
         target_settings.service_manager = "systemd"
 
-        target_settings.pkg_use_files["10-systemd"] = self._useFileContent.strip("\n") + "\n"
+        if True:
+            fn = os.path.join(self._selfDir, "package.use")
+            target_settings.pkg_use_files["10-systemd"] = pathlib.Path(fn).read_text()
 
-        target_settings.pkg_mask_files["10-systemd"] = self._maskFileContent.strip("\n") + "\n"
+        if True:
+            fn = os.path.join(self._selfDir, "package.mask")
+            target_settings.pkg_mask_files["10-systemd"] = pathlib.Path(fn).read_text()
 
         if True:
             td = {}
@@ -221,22 +229,3 @@ class UseSystemd:
 
     def update_world_set(self, world_set):
         world_set.add("sys-apps/systemd")
-
-    _useFileContent = """
-# so that we can use systemd-udev
-virtual/libudev                        systemd
-"""
-
-    _maskFileContent = """
-# don't use other init system
-sys-apps/sysvinit
-sys-apps/s6-linux-init
-sys-apps/openrc
-
-# they are deprecated by systemd-udevd
-sys-fs/udev
-sys-fs/eudev
-
-# inetd is deprecated by systemd socket activation
-virtual/inetd
-"""
