@@ -147,7 +147,7 @@ class UseSystemd:
                     assert flag_name not in flagRecord
                     flagRecord.add(flag_name)
 
-            _flagExec("sysvinit", exclude_func=lambda: _updateDict(td, {
+            _flagExec("sysvinit", exclude_func=lambda: _updateDict({
                 "*/*": [
                     "/etc/init.d /etc/conf.d /etc/rc.d",                    # removing sys-apps/openrc init files
                 ],
@@ -158,43 +158,43 @@ class UseSystemd:
                     "*rc-local*",
                 ],
             }))
-            _flagExec("systemd-boot", exclude_func=lambda: _updateDict(td, {
+            _flagExec("systemd-boot", exclude_func=lambda: _updateDict({
                 "sys-apps/systemd": [
                     "*bootctl*",
                     "*/systemd-boot.7.bz2",
                     "*systemd-boot-system-token*",
                 ],
             }))
-            _flagExec("systemd-coredump", exclude_func=lambda: _updateDict(td, {
+            _flagExec("systemd-coredump", exclude_func=lambda: _updateDict({
                 "sys-apps/systemd": [
                     "*coredump*",
                 ],
             }))
-            _flagExec("systemd-hostnamed", exclude_func=lambda: _updateDict(td, {
+            _flagExec("systemd-hostnamed", exclude_func=lambda: _updateDict({
                 "sys-apps/systemd": [
                     "*hostname1*",
                     "*hostnamed*",
                     "*hostnamectl*",
                 ],
             }))
-            _flagExec("systemd-firstboot", exclude_func=lambda: _updateDict(td, {
+            _flagExec("systemd-firstboot", exclude_func=lambda: _updateDict({
                 "sys-apps/systemd": [
                     "*firstboot*",
                 ],
             }))
-            _flagExec("systemd-kexec", exclude_func=lambda: _updateDict(td, {
+            _flagExec("systemd-kexec", exclude_func=lambda: _updateDict({
                 "sys-apps/systemd": [
                     "*kexec*",
                 ],
             }))
-            _flagExec("systemd-localed", exclude_func=lambda: _updateDict(td, {
+            _flagExec("systemd-localed", exclude_func=lambda: _updateDict({
                 "sys-apps/systemd": [
                     "*locale1*",
                     "*localed*",
                     "*localectl*",
                 ],
             }))
-            _flagExec("systemd-machined", exclude_func=lambda: _updateDict(td, {
+            _flagExec("systemd-machined", exclude_func=lambda: _updateDict({
                 "sys-apps/systemd": [
                     "*machine*",
                     "*nspawn*",
@@ -203,59 +203,59 @@ class UseSystemd:
                     "*systemd-exit.service",
                 ],
             }))
-            _flagExec("systemd-networkd", exclude_func=lambda: _updateDict(td, {
+            _flagExec("systemd-networkd", exclude_func=lambda: _updateDict({
                 "sys-apps/systemd": [
                     "*network*",
                     "/lib/systemd/network*",
                     "/etc/systemd/network",
                 ],
             }))
-            _flagExec("systemd-portabled", exclude_func=lambda: _updateDict(td, {
+            _flagExec("systemd-portabled", exclude_func=lambda: _updateDict({
                 "sys-apps/systemd": [
                     "*portable*",
                     "/lib/systemd/portable",
                 ],
             }))
-            _flagExec("systemd-oomd", exclude_func=lambda: _updateDict(td, {
+            _flagExec("systemd-oomd", exclude_func=lambda: _updateDict({
                 "sys-apps/systemd": [
                     "*oom1*",
                     "*oomd*",
                     "*oomctl",
                 ],
             }))
-            _flagExec("systemd-pstore", exclude_func=lambda: _updateDict(td, {
+            _flagExec("systemd-pstore", exclude_func=lambda: _updateDict({
                 "sys-apps/systemd": [
                     "*pstore*",
                 ],
             }))
-            _flagExec("systemd-resolvd", exclude_func=lambda: _updateDict(td, {
+            _flagExec("systemd-resolvd", exclude_func=lambda: _updateDict({
                 "sys-apps/systemd": [
                     "*resolv*",
                 ],
             }))
-            _flagExec("systemd-sysusers", exclude_func=lambda: _updateDict(td, {
+            _flagExec("systemd-sysusers", exclude_func=lambda: _updateDict({
                 "sys-apps/systemd": [
                     "*systemd-sysusers*",
                 ],
             }))
-            _flagExec("systemd-timedated", exclude_func=lambda: _updateDict(td, {
+            _flagExec("systemd-timedated", exclude_func=lambda: _updateDict({
                 "sys-apps/systemd": [
                     "*timedate*",
                 ],
             }))
-            _flagExec("systemd-timesyncd", exclude_func=lambda: _updateDict(td, {
+            _flagExec("systemd-timesyncd", exclude_func=lambda: _updateDict({
                 "sys-apps/systemd": [
                     "*timesync*",
                     "*ntp*",
                     "/lib/systemd/ntp-units.d*",
                 ],
             }))
-            _flagExec("systemd-userdbd", exclude_func=lambda: _updateDict(td, {
+            _flagExec("systemd-userdbd", exclude_func=lambda: _updateDict({
                 "sys-apps/systemd": [
                     "*userdb*",
                 ],
             }))
-            _flagExec("ldconfig.service", exclude_func=lambda: _updateDict(td, {
+            _flagExec("ldconfig.service", exclude_func=lambda: _updateDict({
                 "sys-apps/systemd": [
                     "*ldconfig*",
                 ],
