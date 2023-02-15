@@ -996,6 +996,14 @@ class TargetConfDirWriter:
                     for pkgWildcard in obj.keys():
                         f.write('%s %s\n' % (pkgWildcard, innerFnDict[pkgWildcard]))
 
+    def write_repo_postsync(self):
+        # modify and write out repo.postsync.d (in chroot)
+        fpath = os.path.join(self._dir, "repo.postsync.d")
+        robust_layer.simple_fops.rm(fpath)
+
+        # FIXME
+        assert False
+
     def write_use_mask(self):
         # modify and write out use.mask (in chroot)
         if len(self._ts.use_mask) > 0:
