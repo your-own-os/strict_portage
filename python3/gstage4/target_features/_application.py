@@ -150,3 +150,24 @@ class NotUsePolicyKit:
     _maskFileContent = """
 sys-auth/polkit
 """
+
+
+class NotUseSudo:
+
+    def update_target_settings(self, target_settings):
+        assert "10-no-sudo" not in target_settings.pkg_mask_files
+        assert "10-no-sudo" not in target_settings.install_mask_files
+
+        target_settings.pkg_mask_files["10-no-sudo"] = self._maskFileContent.strip("\n") + "\n"
+
+        target_settings.install_mask_files["10-no-sudo"] = {
+            "*/*": [
+                "/etc/sudoers.d",
+            ],
+        }
+
+    _maskFileContent = """
+app-admin/sudo
+sec-keys/openpgp-keys-sudo
+sec-policy/selinux-sudo
+"""
