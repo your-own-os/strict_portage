@@ -67,15 +67,6 @@ class TailorShadow:
             })
             self._items.remove("logoutd")
 
-        if "chage" in self._items:
-            _updateDict({
-                "sys-apps/shadow": [
-                    "*chage*",
-                    "*expiry*",
-                ],
-            })
-            self._items.remove("chage")
-
         if "chfn" in self._items:
             _updateDict({
                 "sys-apps/shadow": [
@@ -106,7 +97,8 @@ class TailorShadow:
         if "user-and-group-operations" in self._items:
             _updateDict({
                 "sys-apps/shadow": [
-                    "*chpasswd*",
+                    "*chage*",              # for root to change a user's password expiration
+                    "*chpasswd*",           # change passwords in batch mode, obviously it's for root although it has a pam config
                     "*pwck*",
                     "*grpck*",
                     "*pwconv*",
