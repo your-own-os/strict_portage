@@ -100,6 +100,20 @@ class TailorShadow:
             })
             self._items.remove("pwconv-and-grpconv")
 
+        if "user-and-group-operations" in self._items:
+            _updateDict({
+                "sys-apps/shadow": [
+                    "*useradd*",
+                    "*usermod*",
+                    "*userdel*",
+                    "*newusers*",
+                    "*groupadd*",
+                    "*groupmod*",
+                    "*groupdel*",
+                ],
+            })
+            self._items.remove("user-and-group-operations")
+
         assert len(self._items) == 0
         if len(td) > 0:
             target_settings.install_mask_files["10-tailor-shadow"] = td
