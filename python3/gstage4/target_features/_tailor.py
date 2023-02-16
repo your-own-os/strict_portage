@@ -81,6 +81,17 @@ class TailorShadow:
             })
             self._items.remove("pwck-and-grpck")
 
+        if "pwconv-and-grpconv" in self._items:
+            _updateDict({
+                "sys-apps/shadow": [
+                    "*pwconv*",
+                    "*pwunconv*",
+                    "*grpconv*",
+                    "*grpunconv*",
+                ],
+            })
+            self._items.remove("pwconv-and-grpconv")
+
         assert len(self._items) == 0
         if len(td) > 0:
             target_settings.install_mask_files["10-tailor-shadow"] = td
