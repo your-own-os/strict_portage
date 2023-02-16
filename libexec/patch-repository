@@ -80,8 +80,12 @@ def execPatchScript(patchDir, srcDir, dstDir):
             continue
         out = None
         with TempChdir(dstDir):
-            assert fullfn.endswith(".py")
-            out = subprocess.check_output(["python3", fullfn], text=True)     # FIXME, should respect shebang
+            if fullfn.endswith(".py"):
+                out = subprocess.check_output(["python3", fullfn], text=True)
+            elif fullfn.endswith(".sh"):
+                out = subprocess.check_output(["sh", fullfn], text=True)
+            else:
+                assert False
         if out == "outdated":
             print("Warning: patch %s script \"%s\" is outdated." % (patchTypeName, fullfn[len(patchDir) + 1:]))
         elif out == "":

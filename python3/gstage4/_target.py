@@ -30,27 +30,27 @@ class TargetSettings:
     def __init__(self):
         self.profile = None
 
-        self.package_manager = "portage"         # "portage"
-        self.kernel_manager = "none"             # "none", "genkernel", "binary-kernel", "fake"
-        self.service_manager = "none"            # "none", "openrc", "systemd"
+        self.package_manager = "portage"              # "portage"
+        self.kernel_manager = "none"                  # "none", "genkernel", "binary-kernel", "fake"
+        self.service_manager = "none"                 # "none", "openrc", "systemd"
 
-        self.pkg_use = dict()                    # dict<package-wildcard, use-flag-list>
-        self.pkg_mask = []                       # list<package-wildcard>
-        self.pkg_unmask = []                     # list<package-wildcard>
-        self.pkg_accept_keywords = dict()        # dict<package-wildcard, accept-keyword-list>
-        self.pkg_license = dict()                # dict<package-wildcard, license-list>
-        self.use_mask = []                       # list<use-flag>
+        self.pkg_use = dict()                         # dict<package-wildcard, use-flag-list>
+        self.pkg_mask = []                            # list<package-wildcard>
+        self.pkg_unmask = []                          # list<package-wildcard>
+        self.pkg_accept_keywords = dict()             # dict<package-wildcard, accept-keyword-list>
+        self.pkg_license = dict()                     # dict<package-wildcard, license-list>
+        self.use_mask = []                            # list<use-flag>
 
-        self.pkg_use_files = dict()              # dict<file-name, file-content>
-        self.pkg_mask_files = dict()             # dict<file-name, file-content>
-        self.pkg_unmask_files = dict()           # dict<file-name, file-content>
-        self.pkg_accept_keywords_files = dict()  # dict<file-name, file-content>
-        self.pkg_license_files = dict()          # dict<file-name, file-content>
+        self.pkg_use_files = dict()                   # dict<file-name, file-content>
+        self.pkg_mask_files = dict()                  # dict<file-name, file-content>
+        self.pkg_unmask_files = dict()                # dict<file-name, file-content>
+        self.pkg_accept_keywords_files = dict()       # dict<file-name, file-content>
+        self.pkg_license_files = dict()               # dict<file-name, file-content>
 
-        self.install_mask = []                   # dict<package-wildcard, list<install-mask>>
-        self.install_mask_files = dict()         # dict<file-name, dict<package-wildcard, list<install-mask>>>
+        self.install_mask = []                        # dict<package-wildcard, list<install-mask>>
+        self.install_mask_files = dict()              # dict<file-name, dict<package-wildcard, list<install-mask>>>
 
-        self.postsync_patch_directories = []     # list<patch-directory>
+        self.repo_postsync_patch_directories = []     # list<patch-directory>
 
         self.build_opts = TargetSettingsBuildOpts("build_opts")
         self.build_opts.ccache = False
