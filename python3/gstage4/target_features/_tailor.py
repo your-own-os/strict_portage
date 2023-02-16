@@ -44,14 +44,6 @@ class TailorShadow:
                     td[k] = v
                 td[k] += v
 
-        if "chfn" in self._items:
-            _updateDict({
-                "sys-apps/shadow": [
-                    "*chfn*",
-                ],
-            })
-            self._items.remove("chfn")
-
         if "chage" in self._items:
             _updateDict({
                 "sys-apps/shadow": [
@@ -60,6 +52,14 @@ class TailorShadow:
                 ],
             })
             self._items.remove("chage")
+
+        if "chfn" in self._items:
+            _updateDict({
+                "sys-apps/shadow": [
+                    "*chfn*",
+                ],
+            })
+            self._items.remove("chfn")
 
         if "chsh" in self._items:
             _updateDict({
