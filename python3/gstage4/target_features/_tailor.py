@@ -103,29 +103,16 @@ class TailorShadow:
             })
             self._items.remove("groupmems")
 
-        if "pwck-and-grpck" in self._items:
+        if "user-and-group-operations" in self._items:
             _updateDict({
                 "sys-apps/shadow": [
+                    "*chpasswd*",
                     "*pwck*",
                     "*grpck*",
-                ],
-            })
-            self._items.remove("pwck-and-grpck")
-
-        if "pwconv-and-grpconv" in self._items:
-            _updateDict({
-                "sys-apps/shadow": [
                     "*pwconv*",
                     "*pwunconv*",
                     "*grpconv*",
                     "*grpunconv*",
-                ],
-            })
-            self._items.remove("pwconv-and-grpconv")
-
-        if "user-and-group-operations" in self._items:
-            _updateDict({
-                "sys-apps/shadow": [
                     "*useradd*",
                     "*usermod*",
                     "*userdel*",
