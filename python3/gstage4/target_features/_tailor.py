@@ -29,10 +29,10 @@ class TailorSystemd:
 
 
 class TailorShadow:
-    
+
     def __init__(self, items):
         self._items = items
-    
+
     def update_target_settings(self, target_settings):
         assert "10-tailor-shadow" not in target_settings.install_mask_files
 
@@ -51,6 +51,26 @@ class TailorShadow:
                 ],
             })
             self._items.remove("chfn")
+
+        if "chage" in self._items:
+            _updateDict({
+                "sys-apps/shadow": [
+                    "*chage*",
+                    "*expiry*",
+                ],
+            })
+            self._items.remove("chage")
+
+        if "chsh" in self._items:
+            _updateDict({
+                "sys-apps/shadow": [
+                    "*chsh*",
+                ],
+                "sys-apps/baselayout": [
+                    "/etc/shells",
+                ],
+            })
+            self._items.remove("chsh")
 
         assert len(self._items) == 0
         if len(td) > 0:
