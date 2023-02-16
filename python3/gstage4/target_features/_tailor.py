@@ -23,9 +23,9 @@
 
 class TailorSystemd:
 
-    def __init__(self, items):
-        self._items = items
-        assert False
+    def __init__(self, disable_items, exclude_items):
+        self._disableItems = disable_items
+        self._excludeItems = exclude_items
 
     def update_target_settings(self, target_settings):
         assert "10-tailor-systemd" not in target_settings.install_mask_files
@@ -38,15 +38,212 @@ class TailorSystemd:
                     td[k] = v
                 td[k] += v
 
-        assert len(self._items) == 0
+        if "systemd-boot" in self._excludeItems:
+            _updateDict({
+                "sys-apps/systemd": [
+                    "*bootctl*",
+                    "*/systemd-boot.7.bz2",
+                    "*systemd-boot-system-token*",
+                ],
+            })
+            self._excludeItems.remove("systemd-boot")
+
+        if "systemd-coredump" in self._excludeItems:
+            _updateDict({
+                "sys-apps/systemd": [
+                    "*coredump*",
+                ],
+            })
+            self._excludeItems.remove("systemd-coredump")
+
+        if "systemd-hostnamed" in self._excludeItems:
+            _updateDict({
+                "sys-apps/systemd": [
+                    "*hostname1*",
+                    "*hostnamed*",
+                    "*hostnamectl*",
+                ],
+            })
+            self._excludeItems.remove("systemd-hostnamed")
+
+        if "systemd-firstboot" in self._excludeItems:
+            _updateDict({
+                "sys-apps/systemd": [
+                    "*firstboot*",
+                ],
+            })
+            self._excludeItems.remove("systemd-firstboot")
+
+        if "systemd-kexec" in self._excludeItems:
+            _updateDict({
+                "sys-apps/systemd": [
+                    "*kexec*",
+                ],
+            })
+            self._excludeItems.remove("systemd-kexec")
+
+        if "systemd-localed" in self._excludeItems:
+            _updateDict({
+                "sys-apps/systemd": [
+                    "*locale1*",
+                    "*localed*",
+                    "*localectl*",
+                ],
+            })
+            self._excludeItems.remove("systemd-localed")
+
+        if "systemd-machined" in self._excludeItems:
+            _updateDict({
+                "sys-apps/systemd": [
+                    "*machine*",
+                    "*nspawn*",
+                    "*detect-virt*",
+                    "*exit.target",
+                    "*systemd-exit.service",
+                ],
+            })
+            self._excludeItems.remove("systemd-machined")
+
+        if "systemd-networkd" in self._excludeItems:
+            _updateDict({
+                "sys-apps/systemd": [
+                    "*network*",
+                    "/lib/systemd/network*",
+                    "/etc/systemd/network",
+                ],
+            })
+            self._excludeItems.remove("systemd-networkd")
+
+        if "systemd-portabled" in self._excludeItems:
+            _updateDict({
+                "sys-apps/systemd": [
+                    "*portable*",
+                    "/lib/systemd/portable",
+                ],
+            })
+            self._excludeItems.remove("systemd-portabled")
+
+        if "systemd-oomd" in self._excludeItems:
+            _updateDict({
+                "sys-apps/systemd": [
+                    "*oom1*",
+                    "*oomd*",
+                    "*oomctl",
+                ],
+            })
+            self._excludeItems.remove("systemd-oomd")
+
+        if "systemd-pstore" in self._excludeItems:
+            _updateDict({
+                "sys-apps/systemd": [
+                    "*pstore*",
+                ],
+            })
+            self._excludeItems.remove("systemd-pstore")
+
+        if "systemd-resolvd" in self._excludeItems:
+            _updateDict({
+                "sys-apps/systemd": [
+                    "*resolv*",
+                ],
+            })
+            self._excludeItems.remove("systemd-resolvd")
+
+        if "systemd-sysext" in self._excludeItems:
+            _updateDict({
+                "sys-apps/systemd": [
+                    "*sysext*",
+                ],
+            })
+            self._excludeItems.remove("systemd-sysext")
+
+        if "systemd-sysupdate" in self._excludeItems:
+            _updateDict({
+                "sys-apps/systemd": [
+                    "*sysupdate*",
+                ],
+            })
+            self._excludeItems.remove("systemd-sysupdate")
+
+        if "systemd-sysusers" in self._excludeItems:
+            _updateDict({
+                "sys-apps/systemd": [
+                    "*systemd-sysusers*",
+                ],
+            })
+            self._excludeItems.remove("systemd-sysusers")
+
+        if "systemd-timedated" in self._excludeItems:
+            _updateDict({
+                "sys-apps/systemd": [
+                    "*timedate*",
+                ],
+            })
+            self._excludeItems.remove("systemd-timedated")
+
+        if "systemd-timesyncd" in self._excludeItems:
+            _updateDict({
+                "sys-apps/systemd": [
+                    "*timesync*",
+                    "*ntp*",
+                    "/lib/systemd/ntp-units.d*",
+                ],
+            })
+            self._excludeItems.remove("systemd-timesyncd")
+
+        if "systemd-update" in self._excludeItems:
+            _updateDict({
+                "sys-apps/systemd": [
+                    "*system-update*",
+                    "*update-done*",
+                ],
+            })
+            self._excludeItems.remove("systemd-update")
+
+        if "systemd-userdbd" in self._excludeItems:
+            _updateDict({
+                "sys-apps/systemd": [
+                    "*userdb*",
+                ],
+            })
+            self._excludeItems.remove("systemd-userdbd")
+
+        if "fstab" in self._excludeItems:
+            _updateDict({
+                "sys-apps/systemd": [
+                    "*fstab*",
+                ],
+            })
+            self._excludeItems.remove("fstab")
+
+        if "fs-operations" in self._excludeItems:
+            _updateDict({
+                "sys-apps/systemd": [
+                    "*repart*",
+                    "*makefs*",
+                    "*growfs*",
+                    "*mkswap*",
+                ],
+            })
+            self._excludeItems.remove("fs-operations")
+
+        if "ldconfig.service" in self._excludeItems:
+            _updateDict({
+                "sys-apps/systemd": [
+                    "*ldconfig*",
+                ],
+            })
+            self._excludeItems.remove("ldconfig.service")
+
+        assert len(self._excludeItems) == 0
         if len(td) > 0:
             target_settings.install_mask_files["10-tailor-systemd"] = td
 
 
 class TailorShadow:
 
-    def __init__(self, items):
-        self._items = items
+    def __init__(self, exclude_items):
+        self._items = exclude_items
 
     def update_target_settings(self, target_settings):
         assert "10-tailor-shadow" not in target_settings.install_mask_files
@@ -79,7 +276,7 @@ class TailorShadow:
             _updateDict({
                 "sys-apps/shadow": [
                     "*chsh*",
-                    "/etc/pam.d/shfn",      # FIXME: it seems has something to do with chsh according to ebuild file 
+                    "/etc/pam.d/shfn",      # FIXME: it seems has something to do with chsh according to ebuild file
                 ],
                 "sys-apps/baselayout": [
                     "/etc/shells",
