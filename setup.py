@@ -29,7 +29,7 @@ setup(
     description="A simple python module for gentoo live disk building.",
     author=email.utils.parseaddr(__author__)[0],
     author_email=email.utils.parseaddr(__author__)[1],
-    url='https://github.com/fpemud-os/gstage4',
+    url='https://gitee.com/your-own-os/gstage4',
     license='GNU General Public License (GPL)',
     platforms=['Linux'],
     classifiers=[
