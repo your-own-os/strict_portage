@@ -86,6 +86,14 @@ class TailorShadow:
             })
             self._items.remove("chsh")
 
+        if "expiry" in self._items:
+            _updateDict({
+                "sys-apps/shadow": [
+                    "*expiry*",
+                ],
+            })
+            self._items.remove("expiry")
+
         if "groupmems" in self._items:
             _updateDict({
                 "sys-apps/shadow": [
@@ -98,7 +106,6 @@ class TailorShadow:
             _updateDict({
                 "sys-apps/shadow": [
                     "*chage*",              # for root to change a user's password expiration
-                    "*expiry*",             # for root to check expiry policy
                     "*chpasswd*",           # change passwords in batch mode, obviously it's for root although it has a pam config
                     "*pwck*",
                     "*grpck*",
