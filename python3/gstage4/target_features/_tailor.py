@@ -79,6 +79,7 @@ class TailorShadow:
             _updateDict({
                 "sys-apps/shadow": [
                     "*chsh*",
+                    "/etc/pam.d/shfn",      # FIXME: it seems has something to do with chsh according to ebuild file 
                 ],
                 "sys-apps/baselayout": [
                     "/etc/shells",
@@ -120,6 +121,7 @@ class TailorShadow:
                     "*groupadd*",
                     "*groupmod*",
                     "*groupdel*",
+                    "/etc/pam.d/shadow",    # this is the PAM config for user{add,del,mod} and group{add,del,mod}
                 ],
             })
             self._items.remove("user-and-group-operations-for-admin")
