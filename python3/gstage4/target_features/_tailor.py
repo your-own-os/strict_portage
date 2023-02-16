@@ -72,21 +72,14 @@ class TailorShadow:
             })
             self._items.remove("chsh")
 
-        if "pwck" in self._items:
+        if "pwck-and-grpck" in self._items:
             _updateDict({
                 "sys-apps/shadow": [
                     "*pwck*",
-                ],
-            })
-            self._items.remove("pwck")
-
-        if "grpck" in self._items:
-            _updateDict({
-                "sys-apps/shadow": [
                     "*grpck*",
                 ],
             })
-            self._items.remove("grpck")
+            self._items.remove("pwck-and-grpck")
 
         assert len(self._items) == 0
         if len(td) > 0:
