@@ -94,10 +94,11 @@ class TailorShadow:
             })
             self._items.remove("groupmems")
 
-        if "user-and-group-operations" in self._items:
+        if "user-and-group-operations-for-admin" in self._items:
             _updateDict({
                 "sys-apps/shadow": [
                     "*chage*",              # for root to change a user's password expiration
+                    "*expiry*",             # for root to check expiry policy
                     "*chpasswd*",           # change passwords in batch mode, obviously it's for root although it has a pam config
                     "*pwck*",
                     "*grpck*",
@@ -114,7 +115,7 @@ class TailorShadow:
                     "*groupdel*",
                 ],
             })
-            self._items.remove("user-and-group-operations")
+            self._items.remove("user-and-group-operations-for-admin")
 
         assert len(self._items) == 0
         if len(td) > 0:
