@@ -52,6 +52,9 @@ from ._common import SupportAllGraphicsApi
 
 from ._common import GettyAutoLogin
 
+from ._tailor import TailorSystemd
+from ._tailor import TailorShadow
+
 from ._application import UseAllQemuTargets
 from ._application import NotUseUdisks
 from ._application import NotUsePolicyKit
