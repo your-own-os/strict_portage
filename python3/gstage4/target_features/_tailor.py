@@ -44,6 +44,14 @@ class TailorShadow:
                     td[k] = v
                 td[k] += v
 
+        if "logoutd" in self._items:
+            _updateDict({
+                "sys-apps/shadow": [
+                    "*logoutd*",
+                ],
+            })
+            self._items.remove("logoutd")
+
         if "chage" in self._items:
             _updateDict({
                 "sys-apps/shadow": [
