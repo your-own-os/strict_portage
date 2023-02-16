@@ -331,3 +331,4 @@ class TailorShadow:
         assert len(self._items) == 0
         if len(td) > 0:
             target_settings.install_mask_files["10-tailor-shadow"] = td
+            target_settings.repo_postsync_patch_directories.append("/usr/libexec/gstage4/tailor-shadow")
