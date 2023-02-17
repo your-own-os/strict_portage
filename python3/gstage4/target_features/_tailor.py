@@ -306,6 +306,11 @@ class TailorShadow:
         if "user-and-group-operations-for-admin" in items:
             # INSTALL_MASK can not eliminate possibly empty /etc/pam.d directory, so we modify ebuild
             target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "shadow-remove-user-and-group-operations-for-admin"))
+            _updateDict({
+                "*/*": [
+                    "/etc/skel",
+                ],
+            })
             items.remove("user-and-group-operations-for-admin")
 
         assert len(items) == 0
