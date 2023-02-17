@@ -276,14 +276,19 @@ class TailorShadow:
             items.remove("logoutd")
 
         if "chfn" in items:
-            # INSTALL_MASK can not eliminate possibly empty /etc/pam.d directory, so we modify ebuild
-            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "shadow-remove-chfn"))
+            _updateDict({
+                "sys-apps/shadow": [
+                    "*chfn*",
+                ],
+            })
             items.remove("chfn")
 
         if "chsh" in items:
-            # INSTALL_MASK can not eliminate possibly empty /etc/pam.d directory, so we modify ebuild
-            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "shadow-remove-chsh"))
             _updateDict({
+                "sys-apps/shadow": [
+                    "*chsh*",
+                    "*shfn*",
+                ],
                 "sys-apps/baselayout": [
                     "/etc/shells",              # no other application uses /etc/shells
                 ],
@@ -299,14 +304,32 @@ class TailorShadow:
             items.remove("expiry")
 
         if "groupmems" in items:
-            # INSTALL_MASK can not eliminate possibly empty /etc/pam.d directory, so we modify ebuild
-            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "shadow-remove-groupmems"))
+            _updateDict({
+                "sys-apps/shadow": [
+                    "*groupmems*",
+                ],
+            })
             items.remove("groupmems")
 
         if "user-and-group-operations-for-admin" in items:
-            # INSTALL_MASK can not eliminate possibly empty /etc/pam.d directory, so we modify ebuild
-            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "shadow-remove-user-and-group-operations-for-admin"))
             _updateDict({
+                "sys-apps/shadow": [
+                    "*chage*",
+                    "*chpasswd*",
+                    "*pwck*",
+                    "*grpck*",
+                    "*pwconv*",
+                    "*pwunconv*",
+                    "*grpconv*",
+                    "*grpunconv*",
+                    "*useradd*",
+                    "*usermod*",
+                    "*userdel*",
+                    "*groupadd*",
+                    "*groupmod*",
+                    "*groupdel*",
+                    "/etc/pam.d/shadow",
+                ],
                 "*/*": [
                     "/etc/skel",
                 ],
