@@ -7,6 +7,8 @@ import pathlib
 try:
     buf2 = """
 ## patch ####
+find "${D}" -name "*chsh*" | xargs rm -rf
+find "${D}" -name "*shfn*" | xargs rm -rf
 [ -z "$(ls -A ${D}/etc/pam.d)" ] && rmdir ${D}/etc/pam.d
 ## end ####"""
     buf2 = buf2.replace("\n", "\n\t")

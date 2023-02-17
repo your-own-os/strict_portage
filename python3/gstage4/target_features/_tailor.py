@@ -270,19 +270,14 @@ class TailorShadow:
             self._items.remove("logoutd")
 
         if "chfn" in self._items:
-            _updateDict({
-                "sys-apps/shadow": [
-                    "*chfn*",
-                ],
-            })
+            # INSTALL_MASK can not eliminate possibly empty /etc/pam.d directory, so we modify ebuild
+            target_settings.repo_postsync_patch_directories.append("/usr/libexec/gstage4/tailor-shadow-remove-chfn")
             self._items.remove("chfn")
 
         if "chsh" in self._items:
+            # INSTALL_MASK can not eliminate possibly empty /etc/pam.d directory, so we modify ebuild
+            target_settings.repo_postsync_patch_directories.append("/usr/libexec/gstage4/tailor-shadow-remove-chsh")
             _updateDict({
-                "sys-apps/shadow": [
-                    "*chsh*",
-                    "/etc/pam.d/shfn",      # FIXME: it seems has something to do with chsh according to ebuild file
-                ],
                 "sys-apps/baselayout": [
                     "/etc/shells",
                 ],
@@ -298,37 +293,15 @@ class TailorShadow:
             self._items.remove("expiry")
 
         if "groupmems" in self._items:
-            _updateDict({
-                "sys-apps/shadow": [
-                    "*groupmems*",
-                ],
-            })
+            # INSTALL_MASK can not eliminate possibly empty /etc/pam.d directory, so we modify ebuild
+            target_settings.repo_postsync_patch_directories.append("/usr/libexec/gstage4/tailor-shadow-remove-groupmems")
             self._items.remove("groupmems")
 
         if "user-and-group-operations-for-admin" in self._items:
-            _updateDict({
-                "sys-apps/shadow": [
-                    "*chage*",              # for root to change a user's password expiration
-                    "*chpasswd*",           # change passwords in batch mode, obviously it's for root although it has a PAM config
-                    "*pwck*",
-                    "*grpck*",
-                    "*pwconv*",
-                    "*pwunconv*",
-                    "*grpconv*",
-                    "*grpunconv*",
-                    "*useradd*",
-                    "*usermod*",
-                    "*userdel*",
-                    "*newusers*",           # create users in batch mode, obviously it's for root although it has a PAM config
-                    "*groupadd*",
-                    "*groupmod*",
-                    "*groupdel*",
-                    "/etc/pam.d/shadow",    # this is the PAM config for user{add,del,mod} and group{add,del,mod}
-                ],
-            })
+            # INSTALL_MASK can not eliminate possibly empty /etc/pam.d directory, so we modify ebuild
+            target_settings.repo_postsync_patch_directories.append("/usr/libexec/gstage4/tailor-shadow-remove-user-and-group-operations-for-admin")
             self._items.remove("user-and-group-operations-for-admin")
 
         assert len(self._items) == 0
         if len(td) > 0:
             target_settings.install_mask_files["10-tailor-shadow"] = td
-            target_settings.repo_postsync_patch_directories.append("/usr/libexec/gstage4/tailor-shadow")
