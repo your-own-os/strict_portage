@@ -50,7 +50,7 @@ class TargetSettings:
         self.install_mask = []                        # dict<package-wildcard, list<install-mask>>
         self.install_mask_files = dict()              # dict<file-name, dict<package-wildcard, list<install-mask>>>
 
-        self.repo_postsync_scripts = []               # dict<file-name, file-content>
+        self.repo_postsync_scripts = dict()           # dict<file-name, file-content>
         self.repo_postsync_patch_directories = []     # list<patch-directory>
 
         self.build_opts = TargetSettingsBuildOpts("build_opts")
@@ -100,12 +100,6 @@ class TargetSettings:
             if obj.use_mask is None or not isinstance(obj.use_mask, list):
                 raise SettingsError("invalid value for \"use_mask\"")
 
-            if obj.install_mask is None or not isinstance(obj.install_mask, dict):
-                raise SettingsError("invalid value for \"install_mask\"")
-            if obj.install_mask_files is None or not isinstance(obj.install_mask_files, dict):
-                raise SettingsError("invalid value for \"install_mask_files\"")
-            __checkFilenames(obj.install_mask_files.keys(), "install_mask_files")
-
             if not isinstance(obj.pkg_use_files, dict):
                 raise SettingsError("invalid value for \"pkg_use_files\"")
             __checkFilenames(obj.pkg_use_files.keys(), "pkg_use_files")
@@ -125,6 +119,18 @@ class TargetSettings:
             if not isinstance(obj.pkg_license_files, dict):
                 raise SettingsError("invalid value for \"pkg_license_files\"")
             __checkFilenames(obj.pkg_license_files.keys(), "pkg_license_files")
+
+            if obj.install_mask is None or not isinstance(obj.install_mask, dict):
+                raise SettingsError("invalid value for \"install_mask\"")
+            if obj.install_mask_files is None or not isinstance(obj.install_mask_files, dict):
+                raise SettingsError("invalid value for \"install_mask_files\"")
+            __checkFilenames(obj.install_mask_files.keys(), "install_mask_files")
+
+            if obj.repo_postsync_scripts is None or not isinstance(obj.repo_postsync_scripts, dict):
+                raise SettingsError("invalid value for \"repo_postsync_scripts\"")
+            if obj.repo_postsync_patch_directories is None or not isinstance(obj.repo_postsync_patch_directories, list):
+                raise SettingsError("invalid value for \"repo_postsync_patch_directories\"")
+            __checkFilenames(obj.repo_postsync_scripts.keys(), "repo_postsync_scripts")
 
             if obj.build_opts is None or not TargetSettingsBuildOpts.check_object(obj.build_opts, raise_exception=raise_exception):
                 raise SettingsError("invalid value for \"build_opts\"")
