@@ -21,7 +21,7 @@ find "${D}" -name "*newusers*" | xargs rm -rf               # create users in ba
 find "${D}" -name "*groupadd*" | xargs rm -rf
 find "${D}" -name "*groupmod*" | xargs rm -rf
 find "${D}" -name "*groupdel*" | xargs rm -rf
-find "${D}" -name "/etc/pam.d/shadow" | xargs rm -rf        # this is the PAM config for user{add,del,mod} and group{add,del,mod}
+rm -rf ${D}/etc/pam.d/shadow                                # this is the PAM config for user{add,del,mod} and group{add,del,mod}
 
 [ -z "$(ls -A ${D}/etc/pam.d)" ] && rmdir ${D}/etc/pam.d
 ## end ####"""
