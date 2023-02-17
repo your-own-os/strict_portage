@@ -121,6 +121,26 @@ app-emulation/qemu                                                          QEMU
 """
 
 
+class NotUseLogrotate:
+
+    def update_target_settings(self, target_settings):
+        assert "10-no-logrotate" not in target_settings.pkg_mask_files
+        assert "10-no-logrotate" not in target_settings.install_mask_files
+
+        target_settings.pkg_mask_files["10-no-logrotate"] = self._maskFileContent.strip("\n") + "\n"
+
+        target_settings.install_mask_files["10-no-logrotate"] = {
+            "*/*": [
+                "/etc/logrotate.d",
+            ],
+        }
+
+    _maskFileContent = """
+app-admin/logrotate
+sec-policy/selinux-logrotate
+"""
+
+
 class NotUseUdisks:
 
     def update_target_settings(self, target_settings):

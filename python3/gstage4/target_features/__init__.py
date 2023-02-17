@@ -56,6 +56,7 @@ from ._tailor import TailorSystemd
 from ._tailor import TailorShadow
 
 from ._application import UseAllQemuTargets
+from ._application import NotUseLogrotate
 from ._application import NotUseUdisks
 from ._application import NotUsePolicyKit
 from ._application import NotUseSudo
