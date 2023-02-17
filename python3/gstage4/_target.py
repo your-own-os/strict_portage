@@ -50,6 +50,7 @@ class TargetSettings:
         self.install_mask = []                        # dict<package-wildcard, list<install-mask>>
         self.install_mask_files = dict()              # dict<file-name, dict<package-wildcard, list<install-mask>>>
 
+        self.repo_postsync_scripts = []               # dict<file-name, file-content>
         self.repo_postsync_patch_directories = []     # list<patch-directory>
 
         self.build_opts = TargetSettingsBuildOpts("build_opts")
