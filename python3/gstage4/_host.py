@@ -35,6 +35,10 @@ class HostInfo:
         self.memory_size = None             # in byte
         self.cooling_level = None           # 1-10, less is weaker
 
+        # repo.postsync.d patch framework
+        self.repo_postsync_patch_script = "/usr/libexec/patch-repository"
+        self.repo_postsync_patch_source_dir = "/usr/libexec/patch-repository.d"
+
         # distfiles directory in host system, will be bind mounted in target system
         self.distfiles_dir = None
 

@@ -21,13 +21,16 @@
 # THE SOFTWARE.
 
 
+import os
+
+
 class TailorSystemd:
 
     def __init__(self, disable_items, exclude_items):
         self._disableItems = disable_items
         self._excludeItems = exclude_items
 
-    def update_target_settings(self, target_settings):
+    def update_target_settings(self, host_info, target_settings):
         assert "10-tailor-systemd" not in target_settings.install_mask_files
 
         td = {}
@@ -49,7 +52,7 @@ class TailorSystemd:
             self._excludeItems.remove("systemd-boot")
 
         if "systemd-coredump" in self._excludeItems:
-            target_settings.repo_postsync_patch_directories.append("/usr/libexec/gstage4/tailor-systemd-remove-coredump-user")
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "tailor-systemd-remove-coredump-user"))
             _updateDict({
                 "sys-apps/systemd": [
                     "*coredump*",
@@ -106,7 +109,7 @@ class TailorSystemd:
             self._excludeItems.remove("systemd-machined")
 
         if "systemd-networkd" in self._excludeItems:
-            target_settings.repo_postsync_patch_directories.append("/usr/libexec/gstage4/tailor-systemd-remove-network-user")
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "tailor-systemd-remove-network-user"))
             _updateDict({
                 "sys-apps/systemd": [
                     "*network*",
@@ -126,7 +129,7 @@ class TailorSystemd:
             self._excludeItems.remove("systemd-portabled")
 
         if "systemd-oomd" in self._excludeItems:
-            target_settings.repo_postsync_patch_directories.append("/usr/libexec/gstage4/tailor-systemd-remove-oom-user")
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "tailor-systemd-remove-oom-user"))
             _updateDict({
                 "sys-apps/systemd": [
                     "*oom1*",
@@ -145,7 +148,7 @@ class TailorSystemd:
             self._excludeItems.remove("systemd-pstore")
 
         if "systemd-resolvd" in self._excludeItems:
-            target_settings.repo_postsync_patch_directories.append("/usr/libexec/gstage4/tailor-systemd-remove-resolve-user")
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "tailor-systemd-remove-resolve-user"))
             _updateDict({
                 "sys-apps/systemd": [
                     "*resolv*",
@@ -186,7 +189,7 @@ class TailorSystemd:
             self._excludeItems.remove("systemd-timedated")
 
         if "systemd-timesyncd" in self._excludeItems:
-            target_settings.repo_postsync_patch_directories.append("/usr/libexec/gstage4/tailor-systemd-remove-timesync-user")
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "tailor-systemd-remove-timesync-user"))
             _updateDict({
                 "sys-apps/systemd": [
                     "*timesync*",
@@ -250,7 +253,7 @@ class TailorShadow:
     def __init__(self, exclude_items):
         self._items = exclude_items
 
-    def update_target_settings(self, target_settings):
+    def update_target_settings(self, host_info, target_settings):
         assert "10-tailor-shadow" not in target_settings.install_mask_files
 
         td = {}
@@ -271,12 +274,12 @@ class TailorShadow:
 
         if "chfn" in self._items:
             # INSTALL_MASK can not eliminate possibly empty /etc/pam.d directory, so we modify ebuild
-            target_settings.repo_postsync_patch_directories.append("/usr/libexec/gstage4/tailor-shadow-remove-chfn")
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "tailor-shadow-remove-chfn"))
             self._items.remove("chfn")
 
         if "chsh" in self._items:
             # INSTALL_MASK can not eliminate possibly empty /etc/pam.d directory, so we modify ebuild
-            target_settings.repo_postsync_patch_directories.append("/usr/libexec/gstage4/tailor-shadow-remove-chsh")
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "tailor-shadow-remove-chsh"))
             _updateDict({
                 "sys-apps/baselayout": [
                     "/etc/shells",              # no other application uses /etc/shells
@@ -294,12 +297,12 @@ class TailorShadow:
 
         if "groupmems" in self._items:
             # INSTALL_MASK can not eliminate possibly empty /etc/pam.d directory, so we modify ebuild
-            target_settings.repo_postsync_patch_directories.append("/usr/libexec/gstage4/tailor-shadow-remove-groupmems")
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "tailor-shadow-remove-groupmems"))
             self._items.remove("groupmems")
 
         if "user-and-group-operations-for-admin" in self._items:
             # INSTALL_MASK can not eliminate possibly empty /etc/pam.d directory, so we modify ebuild
-            target_settings.repo_postsync_patch_directories.append("/usr/libexec/gstage4/tailor-shadow-remove-user-and-group-operations-for-admin")
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "tailor-shadow-remove-user-and-group-operations-for-admin"))
             self._items.remove("user-and-group-operations-for-admin")
 
         assert len(self._items) == 0
