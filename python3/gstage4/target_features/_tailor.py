@@ -260,8 +260,8 @@ class TailorSystemd:
 
 class TailorShadow:
 
-    def __init__(self, exclude_items):
-        self._items = exclude_items
+    def __init__(self, remove_items):
+        self._items = remove_items
 
     def update_target_settings(self, target_settings):
         assert "10-tailor-shadow" not in target_settings.install_mask_files
@@ -363,3 +363,51 @@ class TailorAvahi:
             disableItems.remove("socket-activation")
 
         assert len(disableItems) == 0
+
+
+class TailorEselect:
+
+    def __init__(self, remove_items):
+        self._removeItems = remove_items
+
+    def update_target_settings(self, target_settings):
+        assert "10-tailor-eselect" not in target_settings.install_mask_files
+
+        items = self._removeItems
+        td = {}
+
+        def _updateDict(src):
+            for k, v in src.items():
+                if k not in td:
+                    td[k] = []
+                td[k] += v
+
+        def _simpleRemoveModule(outerName):
+            name = outerName.replace("-module", "")
+            if outerName in items:
+                _updateDict({
+                    "app-admin/eselect": [
+                        "*%s*" % (name),
+                    ],
+                })
+                items.remove(outerName)
+
+        _simpleRemoveModule("editor-module")
+
+        _simpleRemoveModule("env-module")
+
+        _simpleRemoveModule("kernel-module")
+
+        _simpleRemoveModule("locale-module")
+
+        _simpleRemoveModule("pager-module")
+
+        _simpleRemoveModule("profile-module")
+
+        _simpleRemoveModule("rc-module")
+
+        _simpleRemoveModule("visual-module")
+
+        assert len(items) == 0
+        if len(td) > 0:
+            target_settings.install_mask_files["10-tailor-eselect"] = td
