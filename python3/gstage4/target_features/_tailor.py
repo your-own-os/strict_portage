@@ -43,6 +43,14 @@ class TailorSystemd:
                     td[k] = []
                 td[k] += v
 
+        if "systemd-udevd-socket-activation" in disableItems:
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "systemd-disable-udevd-socket-activation"))
+            disableItems.remove("systemd-udev-socket-activation")
+
+        if "kmod-static-nodes" in disableItems:
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "systemd-disable-kmod-static-nodes"))
+            disableItems.remove("kmod-static-nodes")
+
         if "systemd-boot" in excludeItems:
             _updateDict({
                 "sys-apps/systemd": [
@@ -351,7 +359,7 @@ class TailorAvahi:
         disableItems = list(self._disableItems)
 
         if "socket-activation" in disableItems:
-            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "avahi-remove-socket-activation"))
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "avahi-disable-socket-activation"))
             disableItems.remove("socket-activation")
 
         assert len(disableItems) == 0
