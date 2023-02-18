@@ -56,6 +56,7 @@ from ._tailor import TailorSystemd
 from ._tailor import TailorShadow
 from ._tailor import TailorAvahi
 from ._tailor import TailorEselect
+from ._tailor import TailorGit
 
 from ._mirror import UseGogMirror
 from ._mirror import UseHbMirror
