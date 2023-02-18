@@ -325,6 +325,7 @@ class TailorShadow:
                     "*useradd*",
                     "*usermod*",
                     "*userdel*",
+                    "*newusers*",
                     "*groupadd*",
                     "*groupmod*",
                     "*groupdel*",
