@@ -322,7 +322,7 @@ class TailorShadow:
         if "old-group-operations" in items:         # group operations are old, no one use them in a modern distribution
             _updateDict({
                 "sys-apps/shadow": [
-                    "*/gpasswd*",
+                    "gpasswd*",
                     "*newgrp*",
                     "*sg*",
                 ],
