@@ -319,11 +319,22 @@ class TailorShadow:
             })
             items.remove("groupmems")
 
+        if "old-group-operations" in items:         # group operations are old, no one use them in a modern distribution
+            _updateDict({
+                "sys-apps/shadow": [
+                    "*/gpasswd*",
+                    "*newgrp*",
+                    "*sg*",
+                ],
+            })
+            items.remove("old-group-operations")
+
         if "user-and-group-operations-for-admin" in items:
             _updateDict({
                 "sys-apps/shadow": [
                     "*chage*",
                     "*chpasswd*",
+                    "*chgpasswd*",
                     "*pwck*",
                     "*grpck*",
                     "*pwconv*",

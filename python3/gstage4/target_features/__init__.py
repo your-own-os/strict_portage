@@ -63,9 +63,9 @@ from ._mirror import UseHbMirror
 
 from ._application import UseAllQemuTargets
 from ._application import NotUseLogrotate
-from ._application import NotUseUdisks
 from ._application import NotUsePolicyKit
 from ._application import NotUseSudo
+from ._application import NotUseUdisks
 
 from ._application import MemTest
 from ._application import SshServer
