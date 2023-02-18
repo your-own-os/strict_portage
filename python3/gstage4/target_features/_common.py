@@ -294,9 +294,9 @@ if True:
 class DesktopEnvironmentNeutral:
 
     def update_target_settings(self, target_settings):
-        assert "10-de-neutral" not in target_settings.pkg_use_files
+        assert "10-desktop-environment-neutral" not in target_settings.pkg_use_files
 
-        target_settings.pkg_use_files["10-de-neutral"] = self._useFileContent.strip("\n") + "\n"
+        target_settings.pkg_use_files["10-desktop-environment-neutral"] = self._useFileContent.strip("\n") + "\n"
 
     _useFileContent = """
 # disable DE related flags as much as possible
