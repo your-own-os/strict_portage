@@ -126,9 +126,7 @@ if __name__ == "__main__":
         usage()
         sys.exit(1)
 
-    selfDir = os.path.dirname(os.path.realpath(__file__))
-    sourceDir = os.path.join(selfDir, "%s.d" % (os.path.basename(sys.argv[0])))
-
+    sourceDir = sys.argv[0] + ".d"
     targetDirRepoName = sys.argv[1]
     syncUrl = sys.argv[2]
     targetDir = sys.argv[3]
