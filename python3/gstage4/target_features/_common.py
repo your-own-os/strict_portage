@@ -148,6 +148,9 @@ sys-fs/eudev
 
 # inetd is deprecated by systemd socket activation
 virtual/inetd
+
+# it depends on sys-apps/sysvinit
+gui-libs/display-manager-init
 """
 
 
