@@ -54,6 +54,7 @@ from ._common import GettyAutoLogin
 
 from ._tailor import TailorSystemd
 from ._tailor import TailorShadow
+from ._tailor import TailorAvahi
 
 from ._application import UseAllQemuTargets
 from ._application import NotUseLogrotate

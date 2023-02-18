@@ -340,3 +340,18 @@ class TailorShadow:
         assert len(items) == 0
         if len(td) > 0:
             target_settings.install_mask_files["10-tailor-shadow"] = td
+
+
+class TailorAvahi:
+
+    def __init__(self, disable_items):
+        self._disableItems = disable_items
+
+    def update_target_settings(self, host_info, target_settings):
+        disableItems = list(self._disableItems)
+
+        if "socket-activation" in disableItems:
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "avahi-remove-socket-activation"))
+            disableItems.remove("socket-activation")
+
+        assert len(disableItems) == 0
