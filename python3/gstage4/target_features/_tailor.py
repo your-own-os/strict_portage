@@ -426,14 +426,14 @@ class TailorEselect:
 
 class TailorGit:
 
-    def __init__(self, enable_items):
-        self._enableItems = enable_items
+    def __init__(self, add_items):
+        self._addItems = add_items
 
     def update_target_settings(self, host_info, target_settings):
-        items = list(self._enableItems)
+        items = list(self._addItems)
 
         if "http-connection-timeout" in items:
-            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "git-enable-http-connection-timeout"))
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "git-add-http-connection-timeout"))
             items.remove("http-connection-timeout")
 
         assert len(items) == 0
