@@ -21,6 +21,7 @@
 # THE SOFTWARE.
 
 
+import os
 from ..custom_actions import SimpleCustomAction
 from ..scripts import ScriptFromBuffer
 from ..scripts import PlacingFilesScript
@@ -246,12 +247,35 @@ class AcceptAllLicenses:
 
 class UsrMerge:
 
-    def __init__(self, archLinuxStyle=False):
-        self._mergeSbin = archLinuxStyle
+    """
+    UsrMerge is started by Fedora (https://fedoraproject.org/wiki/Features/UsrMove), which merges the following directories:
+    /bin   -> /usr/bin
+    /sbin  -> /usr/sbin
+    /lib   -> /usr/lib
+    /lib64 -> /usr/lib64
 
-    def update_target_settings(self, target_settings):
+    This scheme is what Gentoo is following, but not officially supported yet.
+
+    And Arch Linux has an addtional optimization based on it, which I think is a good one:
+    /usr/sbin -> /usr/bin
+
+    This patchset is for whom are willing to make that happen on his/her own system.
+
+    Reference:
+    [1] https://leo3418.github.io/2021/01/16/gentoo-merge-usr.html
+    [2] https://fedoraproject.org/wiki/Features/UsrMove
+    [3] https://bugs.gentoo.org/690294
+    """
+
+    def __init__(self, merge_sbin=False):
+        self._mergeSbin = merge_sbin
+
+    def update_target_settings(self, host_info, target_settings):
         if "split-usr" not in target_settings.use_mask:
             target_settings.use_mask.append("split-usr")
+
+        if self._mergeSbin:
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "merge-sbin"))
 
     def get_custom_action(self):
         buf = self._scriptFileContent
