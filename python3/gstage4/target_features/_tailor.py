@@ -295,7 +295,6 @@ class TailorShadow:
             _updateDict({
                 "sys-apps/shadow": [
                     "*chsh*",
-                    "*shfn*",
                 ],
                 "sys-apps/baselayout": [
                     "/etc/shells",              # no other application uses /etc/shells
