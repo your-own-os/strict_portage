@@ -258,6 +258,36 @@ class TailorSystemd:
             target_settings.install_mask_files["10-tailor-systemd"] = td
 
 
+class TailorBaselayout:
+
+    def __init__(self, remove_items):
+        self._items = remove_items
+
+    def update_target_settings(self, target_settings):
+        assert "10-tailor-baselayout" not in target_settings.install_mask_files
+
+        items = self._items
+        td = {}
+
+        def _updateDict(src):
+            for k, v in src.items():
+                if k not in td:
+                    td[k] = []
+                td[k] += v
+
+        if "/etc/shells" in items:
+            _updateDict({
+                "sys-apps/baselayout": [
+                    "/etc/shells",
+                ],
+            })
+            items.remove("/etc/shells")
+
+        assert len(items) == 0
+        if len(td) > 0:
+            target_settings.install_mask_files["10-tailor-baselayout"] = td
+
+
 class TailorShadow:
 
     def __init__(self, remove_items):
