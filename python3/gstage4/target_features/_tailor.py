@@ -466,3 +466,33 @@ class TailorGit:
             items.remove("http-connection-timeout")
 
         assert len(items) == 0
+
+
+class TailorLmSensors:
+
+    def __init__(self, remove_items):
+        self._removeItems = remove_items
+
+    def update_target_settings(self, host_info, target_settings):
+        assert "10-tailor-lm-sensors" not in target_settings.install_mask_files
+
+        items = list(self._removeItems)
+        td = {}
+
+        def _updateDict(src):
+            for k, v in src.items():
+                if k not in td:
+                    td[k] = []
+                td[k] += v
+
+        if "fancontrol" in items:
+            _updateDict({
+                "sys-apps/lm-sensors": [
+                    "*fancontrol*",
+                ],
+            })
+            items.remove("fancontrol")
+
+        assert len(items) == 0
+        if len(td) > 0:
+            target_settings.install_mask_files["10-tailor-lm-sensors"] = td
