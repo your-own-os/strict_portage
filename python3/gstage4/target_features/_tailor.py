@@ -26,7 +26,7 @@ import os
 
 class TailorSystemd:
 
-    def __init__(self, disable_items, remove_items):
+    def __init__(self, disable_items=[], remove_items=[]):
         self._disableItems = disable_items
         self._removeItems = remove_items
 
@@ -260,7 +260,7 @@ class TailorSystemd:
 
 class TailorBaselayout:
 
-    def __init__(self, remove_items):
+    def __init__(self, remove_items=[]):
         self._items = remove_items
 
     def update_target_settings(self, target_settings):
@@ -290,7 +290,7 @@ class TailorBaselayout:
 
 class TailorShadow:
 
-    def __init__(self, remove_items):
+    def __init__(self, remove_items=[]):
         self._items = remove_items
 
     def update_target_settings(self, target_settings):
@@ -392,7 +392,7 @@ class TailorShadow:
 
 class TailorAvahi:
 
-    def __init__(self, disable_items):
+    def __init__(self, disable_items=[]):
         self._disableItems = disable_items
 
     def update_target_settings(self, host_info, target_settings):
@@ -407,7 +407,7 @@ class TailorAvahi:
 
 class TailorEselect:
 
-    def __init__(self, remove_items):
+    def __init__(self, remove_items=[]):
         self._removeItems = remove_items
 
     def update_target_settings(self, target_settings):
@@ -455,7 +455,7 @@ class TailorEselect:
 
 class TailorGit:
 
-    def __init__(self, add_items):
+    def __init__(self, add_items=[]):
         self._addItems = add_items
 
     def update_target_settings(self, host_info, target_settings):
@@ -470,7 +470,7 @@ class TailorGit:
 
 class TailorLmSensors:
 
-    def __init__(self, remove_items):
+    def __init__(self, remove_items=[]):
         self._removeItems = remove_items
 
     def update_target_settings(self, host_info, target_settings):
