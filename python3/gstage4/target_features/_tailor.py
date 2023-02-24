@@ -530,12 +530,20 @@ class TailorPam:
                 "sys-libs/pam": [
                     "*pam_limits.so",
                     "/etc/security/limits.conf",
+                    "/etc/security/limits.d",
                 ],
             })
             items.remove("pam_limits")
 
-
-
+        if "pam_env" in items:
+            _updateDict({
+                "sys-libs/pam": [
+                    "*pam_env.so",
+                    "/etc/security/pam_env.conf",
+                ],
+            })
+            items.remove("pam_env")
+        # FIXME: "/etc/environments"?
 
         assert len(items) == 0
         if len(td) > 0:
