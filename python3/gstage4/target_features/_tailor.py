@@ -545,6 +545,33 @@ class TailorPam:
             items.remove("pam_env")
         # FIXME: "/etc/environments"?
 
+        if "pam_cap" in items:
+            _updateDict({
+                "sys-libs/pam": [
+                    "*pam_cap.so",
+                    "/etc/security/capability.conf",
+                ],
+            })
+            items.remove("pam_cap")
+
+        if "pam_access" in items:
+            _updateDict({
+                "sys-libs/pam": [
+                    "*pam_access.so",
+                    "/etc/security/access.conf",
+                ],
+            })
+            items.remove("pam_access")
+
+        if "pam_time" in items:
+            _updateDict({
+                "sys-libs/pam": [
+                    "*pam_time.so",
+                    "/etc/security/time.conf",
+                ],
+            })
+            items.remove("pam_time")
+
         assert len(items) == 0
         if len(td) > 0:
             target_settings.install_mask_files["10-tailor-pam"] = td
