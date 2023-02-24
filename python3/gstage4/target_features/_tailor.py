@@ -525,6 +525,18 @@ class TailorPam:
             })
             items.remove("pam_group")
 
+        if "pam_limits" in items:
+            _updateDict({
+                "sys-libs/pam": [
+                    "*pam_limits.so",
+                    "/etc/security/limits.conf",
+                ],
+            })
+            items.remove("pam_limits")
+
+
+
+
         assert len(items) == 0
         if len(td) > 0:
             target_settings.install_mask_files["10-tailor-pam"] = td
