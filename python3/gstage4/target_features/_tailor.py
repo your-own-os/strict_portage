@@ -572,6 +572,12 @@ class TailorPam:
             })
             items.remove("pam_time")
 
+        # faillock.conf
+        # namespace.conf
+        # namespace.d
+        # namespace.init
+        # passwdqc.conf
+
         assert len(items) == 0
         if len(td) > 0:
             target_settings.install_mask_files["10-tailor-pam"] = td
