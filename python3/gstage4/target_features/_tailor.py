@@ -545,20 +545,11 @@ class TailorPam:
             items.remove("pam_env")
         # FIXME: "/etc/environments"?
 
-        if "pam_cap" in items:
-            _updateDict({
-                "sys-libs/pam": [
-                    "*pam_cap.so",
-                    "/etc/security/capability.conf",
-                ],
-            })
-            items.remove("pam_cap")
-
         if "pam_access" in items:
             _updateDict({
                 "sys-libs/pam": [
-                    "*pam_access.so",
-                    "/etc/security/access.conf",
+                    "*pam_access*",
+                    "*access.conf*",
                 ],
             })
             items.remove("pam_access")
@@ -566,16 +557,21 @@ class TailorPam:
         if "pam_time" in items:
             _updateDict({
                 "sys-libs/pam": [
-                    "*pam_time.so",
-                    "/etc/security/time.conf",
+                    "*pam_time.*",
+                    "*time.conf*",
                 ],
             })
             items.remove("pam_time")
 
+        if "pam_namespace" in items:
+            _updateDict({
+                "sys-libs/pam": [
+                    "*namespace*",
+                ],
+            })
+            items.remove("pam_namespace")
+
         # faillock.conf
-        # namespace.conf
-        # namespace.d
-        # namespace.init
         # passwdqc.conf
 
         assert len(items) == 0
