@@ -351,6 +351,44 @@ sys-libs/glibc                                                                  
 """
 
 
+class UseGnomeKeyring:
+
+    def update_target_settings(self, target_settings):
+        assert "10-gnome-keyring" not in target_settings.pkg_use_files
+        assert "10-gnome-keyring" not in target_settings.pkg_mask_files
+
+        target_settings.pkg_use_files["10-gnome-keyring"] = self._useFileContent.strip("\n") + "\n"
+        target_settings.pkg_mask_files["10-gnome-keyring"] = self._maskFileContent.strip("\n") + "\n"
+
+    _useFileContent = """
+# don't enable gnome-keyring globally, at least sys-auth/pambase has some complexity with it
+app-crypt/pinentry                                                                                gnome-keyring
+app-text/evince                                                                                   gnome-keyring
+dev-vcs/git                                                                                       gnome-keyring
+dev-vcs/subversion                                                                                gnome-keyring
+gnome-base/gvfs                                                                                   gnome-keyring
+x11-libs/wxGTK                                                                                    gnome-keyring
+"""
+
+    _maskFileContent = """
+app-admin/keepassxc
+"""
+
+
+class UseKeePassXc:
+
+    def update_target_settings(self, target_settings):
+        assert "10-keepassxc" not in target_settings.pkg_use_files
+        assert "10-keepassxc" not in target_settings.pkg_mask_files
+
+        target_settings.pkg_use_files["10-keepassxc"] = UseGnomeKeyring._useFileContent.strip("\n") + "\n"
+        target_settings.pkg_mask_files["10-keepassxc"] = self._maskFileContent.strip("\n") + "\n"
+
+    _maskFileContent = """
+app-admin/gnome-keyring
+"""
+
+
 class PreferGnuAndGpl:
 
     def update_target_settings(self, target_settings):
