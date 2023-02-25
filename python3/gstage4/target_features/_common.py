@@ -384,6 +384,9 @@ class UseKeePassXc:
         target_settings.pkg_use_files["10-keepassxc"] = UseGnomeKeyring._useFileContent.strip("\n") + "\n"
         target_settings.pkg_mask_files["10-keepassxc"] = self._maskFileContent.strip("\n") + "\n"
 
+        # FIXME: keepassxc has no pam integration?
+        assert False
+
     _maskFileContent = """
 app-admin/gnome-keyring
 """
