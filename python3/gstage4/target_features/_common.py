@@ -370,6 +370,7 @@ app-text/evince                                                                 
 dev-vcs/git                                                                                       gnome-keyring
 dev-vcs/subversion                                                                                gnome-keyring
 gnome-base/gvfs                                                                                   gnome-keyring
+net-libs/webkit-gtk                                                                               gnome-keyring
 x11-libs/wxGTK                                                                                    gnome-keyring
 """
 
