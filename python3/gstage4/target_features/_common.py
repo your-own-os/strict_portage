@@ -135,6 +135,9 @@ class UseSystemd:
     _useFileContent = """
 # so that we can use systemd-udev
 virtual/libudev                        systemd
+
+# so that it does not depends on gui-libs/display-manager-init
+x11-base/xorg-server                   systemd
 """
 
     _maskFileContent = """
@@ -634,7 +637,7 @@ app-misc/ddcutil                              X                               # 
 
 # keep X minimal
 x11-base/xorg-server                          -elogind                        # why it enables by default?
-x11-base/xorg-server						  -suid -systemd -udev -xorg
+x11-base/xorg-server						  -suid -udev -xorg
 """
 
     _maskFileContent = """
