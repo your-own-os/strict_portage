@@ -66,21 +66,26 @@ class Builder:
     It is the driver class for pretty much everything that gstage4 does.
     """
 
-    def __init__(self, program_name, host_info, work_dir, log_dir=None, verbose_level=1):
-        assert HostInfo.check_object(host_info, raise_exception=False)
-
+    def __init__(self, program_name, host_info, work_dir, target_settings, log_dir=None, verbose_level=1):
         self._s = _Settings()
-        self._s.program_name = program_name
-        self._s.log_dir = log_dir
-        self._s.verbose_level = verbose_level
-        self._s.host_computing_power = _ComputingPower(host_info.cpu_core_count, host_info.memory_size, host_info.cooling_level)
-        self._s.host_distfiles_dir = host_info.distfiles_dir
-        self._s.host_packages_dir = host_info.packages_dir
-        self._s.host_ccache_dir = host_info.ccache_dir
-        if self._s.log_dir is not None:
-            os.makedirs(self._s.log_dir, mode=0o750, exist_ok=True)
+        if True:
+            assert HostInfo.check_object(host_info, raise_exception=False)
+            self._s.program_name = program_name
+            self._s.log_dir = log_dir
+            self._s.verbose_level = verbose_level
+            self._s.host_computing_power = _ComputingPower(host_info.cpu_core_count, host_info.memory_size, host_info.cooling_level)
+            self._s.host_distfiles_dir = host_info.distfiles_dir
+            self._s.host_packages_dir = host_info.packages_dir
+            self._s.host_ccache_dir = host_info.ccache_dir
+            if self._s.log_dir is not None:
+                os.makedirs(self._s.log_dir, mode=0o750, exist_ok=True)
 
         self._workDirObj = work_dir
+
+        self._ts = target_settings
+        if True:
+            assert TargetSettings.check_object(self._ts, raise_exception=False)
+            assert (self._ts.build_opts.ccache and self._s.host_ccache_dir is not None) or (not self._ts.build_opts.ccache and self._s.host_ccache_dir is None)
 
         self._actionList = [
             self.action_unpack,
@@ -98,7 +103,6 @@ class Builder:
         self._actionStorage = {
             "arch": None,                   # target arch
             "repo": None,                   # gentoo repository information
-            "settings": None,               # target settings
             "overlays": {},                 # overlay information
         }
 
@@ -145,14 +149,11 @@ class Builder:
         self._actionStorage["repo"] = repo
 
     @Action(after=["create_gentoo_repository"])
-    def action_init_confdir(self, settings):
-        assert TargetSettings.check_object(settings, raise_exception=False)
-        assert (settings.build_opts.ccache and self._s.host_ccache_dir is not None) or (not settings.build_opts.ccache and self._s.host_ccache_dir is None)
-
-        t = TargetConfDirWriter(self._s, settings, self._workDirObj.path)
+    def action_init_confdir(self):
+        t = TargetConfDirWriter(self._s, self._ts, self._workDirObj.path)
 
         # set profile
-        profile = settings.profile if settings.profile is not None else "1"     # generally the default profile is the first in list
+        profile = self._ts.profile if self._ts.profile is not None else "1"     # generally the default profile is the first in list
         with _MyChrooter(self) as m:
             m.shell_call("", "eselect profile set %s" % (profile))
 
@@ -167,10 +168,8 @@ class Builder:
         t.write_use_mask()
 
         # create ccache directory
-        if settings.build_opts.ccache:
+        if self._ts.build_opts.ccache:
             os.makedirs(t.ccachedir_hostpath, exist_ok=True)
-
-        self._actionStorage["settings"] = settings                              # FIXME: we should save a copy of settings and fill .profile property
 
     @Action(after=["init_confdir"])
     def action_create_overlays(self, overlay_list):
@@ -214,7 +213,7 @@ class Builder:
 
     @Action(after=["init_confdir", "create_overlays"])
     def action_update_world(self, world_set):
-        ts = self._actionStorage["settings"]
+        ts = self._ts
 
         def __worldNeeded(pkg):
             if pkg not in world_set:
@@ -280,7 +279,7 @@ class Builder:
 
     @Action(after=["init_confdir", "update_world"])
     def action_install_kernel(self):
-        ts = self._actionStorage["settings"]
+        ts = self._ts
 
         if ts.kernel_manager == "genkernel":
             t = TargetConfDirParser(self._workDirObj.path)
@@ -319,7 +318,7 @@ class Builder:
         if len(service_list) == 0:
             return
 
-        ts = self._actionStorage["settings"]
+        ts = self._ts
 
         if ts.service_manager == "openrc":
             with _MyChrooter(self) as m:
@@ -677,7 +676,8 @@ class _MyChrooter(Runner):
 
 class TargetFilesAndDirs:
 
-    def __init__(self, chrootDir):
+    def __init__(self, target_settings, chrootDir):
+        self._ts = target_settings
         self._chroot_path = chrootDir
 
     @property
