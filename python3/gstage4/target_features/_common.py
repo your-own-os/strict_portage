@@ -122,7 +122,7 @@ class UseSystemd:
                 "/etc/rc.d",
             ],
             "sys-apps/systemd": [
-                "*initctl*",
+                "*initctl*",                    # FIXME: no initctl for >=systemd-253-r1?
                 "*runlevel*",
                 "*systemd-sysv-generator*",
                 "*rc-local*",
