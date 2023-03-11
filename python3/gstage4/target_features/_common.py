@@ -354,43 +354,6 @@ sys-libs/glibc                                                                  
 """
 
 
-class SetDownloader:
-
-    def __init__(self, downloader="wget", git_downloader="git", svn_downloader="subversion", bzr_downloader="bzr"):
-        assert downloader in ["wget"]
-        assert git_downloader in ["git", "gitdown"]
-        assert svn_downloader in ["subversion"]
-        assert bzr_downloader in ["bzr"]
-
-        self._downloader = downloader
-        self._gitDownloader = git_downloader
-        self._svnDownloader = svn_downloader
-        self._bzrDownloader = bzr_downloader
-
-    def update_world_set(self, world_set):
-        if self._downloader == "wget":
-            world_set.add("net-misc/wget")
-        else:
-            assert False
-
-        if self._gitDownloader == "git":
-            world_set.add("dev-vcs/git")
-        if self._gitDownloader == "gitdown":
-            world_set.add("net-misc/gitdown")
-        else:
-            assert False
-
-        if self._svnDownloader == "subversion":
-            world_set.add("dev-vcs/subversion")
-        else:
-            assert False
-
-        if self._bzrDownloader == "bzr":
-            world_set.add("dev-vcs/bzr")
-        else:
-            assert False
-
-
 class UseGnomeKeyring:
 
     def update_target_settings(self, target_settings):
