@@ -8,8 +8,8 @@ try:
     # what to insert (with blank line in the beginning and the end)
     buf2 = r"""
 mv "${D}/usr/bin/git" "${D}/usr/bin/git-reference"
-ln "git-reference" "${D}/usr/bin/git"
-## end ####"""
+ln -s git-reference "${D}/usr/bin/git"
+"""
     buf2 = buf2.replace("\n", "\n\t")
     buf2 += "\n"
 
