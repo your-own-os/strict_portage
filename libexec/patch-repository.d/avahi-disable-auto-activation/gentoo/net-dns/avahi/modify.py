@@ -7,12 +7,15 @@ import pathlib
 try:
     # what to insert (with blank line in the beginning and the end)
     buf2 = r"""
+# don't use dbus auto-activation
+rm ${D}/usr/share/dbus-1/system-services/org.freedesktop.Avahi.service
+
 # don't use socket-activation
 find "${D}" -name "*.socket" | xargs rm -rf
 sed -i '/avahi-daemon\.socket/d'                      ${D}/usr/lib/systemd/system/avahi-daemon.service
 sed -i 's/Requires=avahi-daemon\.socket /Requires=/g' ${D}/usr/lib/systemd/system/avahi-dnsconfd.service
 sed -i '/avahi-daemon\.socket/d'                      ${D}/usr/lib/systemd/system/avahi-dnsconfd.service
-## end ####"""
+"""
     buf2 = buf2.replace("\n", "\n\t")
     buf2 += "\n"
 

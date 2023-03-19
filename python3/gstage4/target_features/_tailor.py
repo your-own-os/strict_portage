@@ -398,9 +398,9 @@ class TailorAvahi:
     def update_target_settings(self, host_info, target_settings):
         disableItems = list(self._disableItems)
 
-        if "socket-activation" in disableItems:
-            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "avahi-disable-socket-activation"))
-            disableItems.remove("socket-activation")
+        if "auto-activation" in disableItems:
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "avahi-disable-auto-activation"))
+            disableItems.remove("auto-activation")
 
         assert len(disableItems) == 0
 
