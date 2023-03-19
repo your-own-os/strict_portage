@@ -9,6 +9,7 @@ try:
     buf2 = r"""
 # don't use dbus auto-activation
 rm ${D}/usr/share/dbus-1/system-services/org.freedesktop.Avahi.service
+[ -z "$(ls -A ${D}/usr/share/dbus-1/system-services)" ] && rmdir ${D}/usr/share/dbus-1/system-services
 
 # don't use socket-activation
 find "${D}" -name "*.socket" | xargs rm -rf
