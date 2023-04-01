@@ -674,30 +674,31 @@ class PreferPipewire:
 #                       4. alsa (bad)
 #                       5. pulseaudio -> alsa (bad)
 app-emulation/spice                                         gstreamer
-app-emulation/wine-vanilla                                  alsa            # gstreamer support in wine is not an alsa replacement, doesn't support pipewire
-app-emulation/wine-staging                                  alsa            # gstreamer support in wine is not an alsa replacement, doesn't support pipewire
-app-emulation/virtualbox                                    alsa            # does not and should not support gstreamer?
-games-emulation/dosbox-staging                              alsa            # doesn't support gstreamer and pipewire
-games-engines/scummvm                                       alsa            # doesn't support gstreamer and pipewire
+app-emulation/wine-vanilla                                  alsa                # gstreamer support in wine is not an alsa replacement, doesn't support pipewire
+app-emulation/wine-staging                                  alsa                # gstreamer support in wine is not an alsa replacement, doesn't support pipewire
+app-emulation/virtualbox                                    alsa                # does not and should not support gstreamer?
+games-emulation/dosbox-staging                              alsa                # doesn't support gstreamer and pipewire
+games-engines/scummvm                                       alsa                # doesn't support gstreamer and pipewire
 gui-libs/gtk                                                gstreamer
-media-libs/libmikmod                                        -alsa openal    # doesn't support gstreamer and pipewire
-media-libs/libsdl                                           alsa            # doesn't support gstreamer and pipewire
+media-libs/libmikmod                                        -alsa openal        # doesn't support gstreamer and pipewire
+media-libs/libsdl                                           alsa                # doesn't support gstreamer and pipewire
 media-libs/libsdl2                                          pipewire
-media-libs/mediastreamer2                                   alsa            # doesn't support gstreamer and pipewire
-media-sound/audacity                                        alsa            # doesn't support gstreamer and pipewire
+media-libs/mediastreamer2                                   alsa                # doesn't support gstreamer and pipewire
+media-sound/audacity                                        alsa                # doesn't support gstreamer and pipewire
 media-sound/fluidsynth                                      pipewire
-media-sound/lmms                                            alsa            # doesn't support gstreamer and pipewire
-media-sound/mpg123                                          alsa            # doesn't support gstreamer and pipewire
-media-sound/moc                                             alsa            # doesn't support gstreamer and pipewire
-media-sound/musescore                                       alsa            # doesn't support gstreamer and pipewire
-media-sound/timidity++                                      alsa            # doesn't support gstreamer and pipewire
-media-sound/wildmidi                                        -alsa openal    # doesn't support gstreamer and pipewire
-media-sound/vkeybd                                          alsa            # doesn't support gstreamer and pipewire
+media-sound/lmms                                            alsa                # doesn't support gstreamer and pipewire
+media-sound/mpg123                                          alsa                # doesn't support gstreamer and pipewire
+media-sound/moc                                             alsa                # doesn't support gstreamer and pipewire
+media-sound/musescore                                       alsa                # doesn't support gstreamer and pipewire
+media-sound/timidity++                                      alsa                # doesn't support gstreamer and pipewire
+media-sound/wildmidi                                        -alsa openal        # doesn't support gstreamer and pipewire
+media-sound/vkeybd                                          alsa                # doesn't support gstreamer and pipewire
 media-video/mpv                                             -alsa pipewire
-net-im/zoom                                                 pulseaudio      # doesn't support alsa, gstreamer and pipewire
-net-misc/freerdp                                            pulseaudio      # strange, it has USE flag alsa, ffmepg, gstreamer and pulseaudio. It seems disable alsa+pulseaudio would make it route to OSS.
+net-im/zoom                                                 pulseaudio          # doesn't support alsa, gstreamer and pipewire
+net-misc/freerdp                                            pulseaudio          # strange, it has USE flag alsa, ffmepg, gstreamer and pulseaudio. It seems disable alsa+pulseaudio would make it route to OSS.
 media-libs/libcanberra                                      gstreamer
-media-sound/spotify                                         pulseaudio      # doesn't support alsa, gstreamer and pipewire
+media-sound/spotify                                         pulseaudio          # doesn't support alsa, gstreamer and pipewire
+www-client/firefox-bin                                      -alsa pulseaudio    # doesn't support alsa, gstreamer and pipewire, it's alsa flag is for medis-sound/apulse
 x11-libs/wxGTK                                              gstreamer
 
 # keep pulseaudio minimal
