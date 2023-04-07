@@ -699,6 +699,7 @@ net-misc/freerdp                                            pulseaudio          
 media-libs/libcanberra                                      gstreamer
 media-sound/spotify                                         pulseaudio          # doesn't support alsa, gstreamer and pipewire
 www-client/firefox-bin                                      -alsa pulseaudio    # doesn't support alsa, gstreamer and pipewire, it's alsa flag is for medis-sound/apulse
+www-client/chromium                                         pulseaudio          # doesn't support alsa, gstreamer and pipewire
 x11-libs/wxGTK                                              gstreamer
 
 # keep pulseaudio minimal
