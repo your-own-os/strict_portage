@@ -375,6 +375,7 @@ x11-libs/wxGTK                                                                  
 """
 
     _maskFileContent = """
+# we use app-admin/gnome-keyring
 app-admin/keepassxc
 """
 
@@ -392,9 +393,25 @@ class UseKeePassXc:
         assert False
 
     _maskFileContent = """
+# we use app-admin/keepassxc
 app-admin/gnome-keyring
 """
 
+
+class UseWget2:
+
+    def update_target_settings(self, target_settings):
+        assert "10-wget2" not in target_settings.pkg_mask_files
+
+        target_settings.pkg_mask_files["10-wget2"] = self._maskFileContent.strip("\n") + "\n"
+
+        # FIXME: keepassxc has no pam integration?
+        assert False
+
+    _maskFileContent = """
+# we use net-misc/wget2
+net-misc/wget
+"""
 
 class PreferGnuAndGpl:
 

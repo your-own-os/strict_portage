@@ -33,6 +33,8 @@ from ._common import UseSystemd
 from ._common import UseGnomeKeyring
 from ._common import UseKeePassXc
 
+from ._common import UseWget2
+
 from ._common import AcceptAllLicenses
 from ._common import NotUseDeprecatedPackagesAndFunctions
 from ._common import UsrMerge
