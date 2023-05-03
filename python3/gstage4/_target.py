@@ -47,7 +47,7 @@ class TargetSettings:
         self.pkg_accept_keywords_files = dict()       # dict<file-name, file-content>
         self.pkg_license_files = dict()               # dict<file-name, file-content>
 
-        self.install_mask = []                        # dict<package-wildcard, list<install-mask>>
+        self.install_mask = dict()                    # dict<package-wildcard, list<install-mask>>
         self.install_mask_files = dict()              # dict<file-name, dict<package-wildcard, list<install-mask>>>
 
         self.repo_postsync_scripts = dict()           # dict<file-name, file-content>
