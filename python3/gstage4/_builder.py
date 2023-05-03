@@ -978,7 +978,7 @@ class TargetConfDirWriter:
 
         if len(data) > 0:
             os.mkdir(fpath)
-            os.makedirs(fpath2, exists_ok=True)
+            os.makedirs(fpath2, exist_ok=True)
             for file_name, obj in data.items():
                 assert len(obj) >= 1
                 innerFnDict = dict()
