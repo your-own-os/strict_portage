@@ -20,35 +20,137 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+class SetTargetUseFlagsBase:
 
-class SetPythonTargetUseFlags:
-
-    class SelectAll:
+    class SelectOnlyLatestVersion:
         pass
 
-    class FilterByUserSelection:
+    class FilterByStableVersion:
+        def __init__(self, select_newer_versions=False):
+            self._equalAndAbove = select_newer_versions
 
-        def __init__(self, equal_and_above=True):
-            self._equalAndAbove = equal_and_above
+    class FilterByUserSelection:
+        def __init__(self, select_newer_versions=False):
+            self._equalAndAbove = select_newer_versions
 
     class FilterByGentooRepository:
         pass
 
     class FilterByOverlays:
-
         def __init__(self, overlay_list):
             self._overlayList = overlay_list
 
     class FilterByPackages:
-
         def __init__(self, package_list):
             self._packageList = package_list
 
-    def __init__(self, flag_objects):
-        self._flagObjects = flag_objects
+    def __init__(self, name, filters):
+        self._name = name
+        self._filters = filters
+        self._usefn = "10-%s-targets" % (name)
+
+
+
+class SetPythonTargetUseFlags(SetTargetUseFlagsBase):
+
+    def __init__(self, filters):
+        super().__init__("python", filters)
+
+    def update_target_settings(self, target_settings):
+
+
+        assert "10-python-targets" not in target_settings.pkg_use_files
+        assert "10-openrc" not in target_settings.pkg_mask_files
+
+        target_settings.service_manager = "openrc"
+
+        target_settings.pkg_use_files["10-openrc"] = self._useFileContent.strip("\n") + "\n"
+        target_settings.pkg_mask_files["10-openrc"] = self._maskFileContent.strip("\n") + "\n"
+
+
+
+
+        # default use flag
+        defaultUse = getDefaultTargetsUseFlag()
+        if defaultUse is None:
+            if checkOrRefresh:
+                if os.path.exists(usefn):
+                    raise Exception("\"%s\" should not exist" % (usefn))
+            else:
+                robust_layer.simple_fops.rm(usefn)
+        else:
+            ret, mainPackage = checkMainPackageOfTargetUseFlag(defaultUse)
+            if not ret:
+                raise Exception("main package \"%s\" for USE flag \"%s\" is masked" % (mainPackage, defaultUse))
+
+            fnContent = ""
+            fnContent += "# default version\n"
+            fnContent += "*/* %s\n" % (defaultUse)
+
+            # use flag of higher versions
+            if True:
+                useSet = set()
+                if True:
+                    for repoName in self.repoman.getRepositoryList():
+                        repoDir = self.repoman.getRepoDir(repoName)
+                        fn = os.path.join(repoDir, "profiles", "desc", "%s_targets.desc" % (name))
+                        if os.path.exists(fn):
+                            useSet |= set(self.__getTargetsUseFlagList(fn))
+                    for overlayName in self.layman.getOverlayList():
+                        fn = os.path.join(self.layman.getOverlayDir(overlayName), "profiles", "desc", "%s_targets.desc" % (name))
+                        if os.path.exists(fn):
+                            useSet |= set(self.__getTargetsUseFlagList(fn))
+                fnContent += "\n"
+                fnContent += "# higher versions\n"
+                if True:
+                    line = ""
+                    for u in sorted(list(useSet)):
+                        if not checkMainPackageOfTargetUseFlag(u)[0]:
+                            continue
+                        if cmpTargetsUseFlag(useSet, u, defaultUse) <= 0:
+                            continue
+                        line += " " + u
+                    if line != "":
+                        fnContent += "*/*%s\n" % (line)
+                    else:
+                        fnContent += "\n"
+
+            # operate configuration file
+            if checkOrRefresh:
+                if not os.path.exists(usefn):
+                    raise Exception("\"%s\" does not exist" % (usefn))
+                with open(usefn, "r") as f:
+                    if fnContent != f.read():
+                        raise Exception("\"%s\" has invalid content" % (usefn))
+            else:
+                with open(usefn, "w") as f:
+                    f.write(fnContent)
+
 
 
 class SetRubyTargetUseFlags:
+
+    class SelectOnlyLatestVersion:
+        pass
+
+    class FilterByStableVersion:
+        def __init__(self, select_newer_versions=False):
+            self._equalAndAbove = select_newer_versions
+
+    class FilterByUserSelection:
+        def __init__(self, select_newer_versions=False):
+            self._equalAndAbove = select_newer_versions
+
+    class FilterByGentooRepository:
+        pass
+
+    class FilterByOverlays:
+        def __init__(self, overlay_list):
+            self._overlayList = overlay_list
+
+    class FilterByPackages:
+        def __init__(self, package_list):
+            self._packageList = package_list
 
     def __init__(self):
         pass
