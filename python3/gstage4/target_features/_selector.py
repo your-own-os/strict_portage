@@ -57,15 +57,9 @@ class SetPythonTargetUseFlags(SetTargetUseFlagsBase):
         super().__init__("python", filters)
 
     def update_target_settings(self, target_settings):
+        assert self._usefn not in target_settings.pkg_use_files
 
-
-        assert "10-python-targets" not in target_settings.pkg_use_files
-        assert "10-openrc" not in target_settings.pkg_mask_files
-
-        target_settings.service_manager = "openrc"
-
-        target_settings.pkg_use_files["10-openrc"] = self._useFileContent.strip("\n") + "\n"
-        target_settings.pkg_mask_files["10-openrc"] = self._maskFileContent.strip("\n") + "\n"
+        target_settings.pkg_use_files[self._usefn] = self._useFileContent.strip("\n") + "\n"
 
 
 
