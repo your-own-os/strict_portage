@@ -590,7 +590,20 @@ games-engines/scummvm                                                           
 
 class KillConfigVT:
 
-    
+    # FIXME: should also modify BBKI kernel config
+
+    def update_target_settings(self, target_settings):
+        assert "10-kill-configvt" not in target_settings.install_mask_files
+
+        target_settings.install_mask_files["10-kill-configvt"] = {
+            "sys-apps/systemd": [
+                "*vconsole*",
+                "*getty*",
+                "*autovt*",
+                "/etc/systemd/system/getty.target.wants",
+            ],
+        }
+
 
 class DisablePcSpeaker:
 
