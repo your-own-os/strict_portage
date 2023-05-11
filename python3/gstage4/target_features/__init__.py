@@ -30,6 +30,9 @@ from ._common import UseFakeKernel
 from ._common import UseOpenrc
 from ._common import UseSystemd
 
+from ._common import UseVT
+from ._common import NotUseVT
+
 from ._common import UseGnomeKeyring
 from ._common import UseKeePassXc
 
@@ -48,7 +51,6 @@ from ._common import PreferSystemComponent
 from ._common import PreferWayland
 from ._common import PreferPipewire
 
-from ._common import KillConfigVT
 from ._common import DisablePcSpeaker
 from ._common import RemoveDoc
 
