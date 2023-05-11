@@ -649,7 +649,7 @@ class PreferWayland:
     def __init__(self, xwayland=True):
         self._xwayland = xwayland
 
-    def update_target_settings(self, target_settings):
+    def update_target_settings(self, host_info, target_settings):
         assert "10-prefer-wayland" not in target_settings.pkg_use_files
         assert "10-prefer-wayland" not in target_settings.pkg_mask_files
 
