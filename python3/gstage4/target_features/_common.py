@@ -166,9 +166,9 @@ class NotUseVT:
     # makes userspace be ready for CONFIG_VT=n, we don't manipulate kernel config file
 
     def update_target_settings(self, host_info, target_settings):
-        assert "10-kill-configvt" not in target_settings.install_mask_files
+        assert "10-no-vt" not in target_settings.install_mask_files
 
-        target_settings.install_mask_files["10-kill-configvt"] = {
+        target_settings.install_mask_files["10-no-vt"] = {
             "sys-apps/systemd": [
                 "*vconsole*",
                 "*getty*",
