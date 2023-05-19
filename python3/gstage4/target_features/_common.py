@@ -731,6 +731,7 @@ gui-libs/gtk                                                gstreamer
 media-libs/libmikmod                                        -alsa openal        # doesn't support gstreamer and pipewire
 media-libs/libsdl                                           -alsa               # support pipewire through media-libs/libsdl2
 media-libs/libsdl2                                          -alsa pipewire
+media-libs/openal                                           -alsa pipewire
 media-libs/mediastreamer2                                   alsa                # doesn't support gstreamer and pipewire
 media-sound/audacity                                        alsa                # doesn't support gstreamer and pipewire
 media-sound/fluidsynth                                      -alsa pipewire
