@@ -826,7 +826,7 @@ class TargetConfDirWriter:
 
             # set MAKEOPTS and EMERGE_DEFAULT_OPTS
             myf.write('MAKEOPTS="%s"\n' % (' '.join(paraMakeOpts)))
-            myf.write('EMERGE_DEFAULT_OPTS="--quiet-build=y --autounmask --autounmask-continue --autounmask-license=y %s"\n' % (' '.join(paraEmergeOpts)))
+            myf.write('EMERGE_DEFAULT_OPTS="--quiet-build=y --autounmask --autounmask-continue --autounmask-license=y --backtrack=100 %s"\n' % (' '.join(paraEmergeOpts)))
             myf.write('\n')
 
     def write_package_use(self):
