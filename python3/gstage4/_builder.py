@@ -271,10 +271,9 @@ class Builder:
 
         # install packages
         with _MyChrooter(self) as m:
-            installList = [x for x in pkgList if not Util.portageIsPkgInstalled(self._workDirObj.path, x)]
-            if len(installList) > 0:
-                m.script_exec(ScriptInstallPackages(installList, False, self._s.verbose_level), quiet=self._getQuiet())
-
+            # installList = [x for x in pkgList if not Util.portageIsPkgInstalled(self._workDirObj.path, x)]
+            # if len(installList) > 0:
+            #     m.script_exec(ScriptInstallPackages(installList, False, self._s.verbose_level), quiet=self._getQuiet())
             m.script_exec(ScriptUpdateWorld(self._s.verbose_level), quiet=self._getQuiet())
 
     @Action(after=["init_confdir", "update_world"])
