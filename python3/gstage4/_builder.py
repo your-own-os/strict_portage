@@ -253,27 +253,21 @@ class Builder:
             if "git" in self._actionStorage.get("overlays", {}).values():
                 __worldNeeded("dev-vcs/git")
 
-        # create installList
-        ORDER = [
-            "dev-util/ccache",
-        ]
-        pkgList = sorted(world_set)
-        for pkg in reversed(ORDER):
-            if pkg in pkgList:
-                pkgList.remove(pkg)
-                pkgList.insert(0, pkg)
-
         # write world file
         t = TargetFilesAndDirs(self._workDirObj.path)
         with open(t.world_file_hostpath, "w") as f:
             for pkg in pkgList:
                 f.write("%s\n" % (pkg))
 
-        # install packages
+        # install packages & update world
         with _MyChrooter(self) as m:
-            # installList = [x for x in pkgList if not Util.portageIsPkgInstalled(self._workDirObj.path, x)]
-            # if len(installList) > 0:
-            #     m.script_exec(ScriptInstallPackages(installList, False, self._s.verbose_level), quiet=self._getQuiet())
+            # we need to install ccache first
+            if "dev-util/ccache" in world_set and not Util.portageIsPkgInstalled(self._workDirObj.path, "dev-util/ccache"):
+                installList = ["dev-util/ccache"]
+                m.script_exec(ScriptInstallPackages(installList, False, self._s.verbose_level), quiet=self._getQuiet())
+
+            # we don't install packages seperately.
+            # many packages need global USE flag change when installing, such as python_targets_XXX, so it needs to be combined with updating world
             m.script_exec(ScriptUpdateWorld(self._s.verbose_level), quiet=self._getQuiet())
 
     @Action(after=["init_confdir", "update_world"])
