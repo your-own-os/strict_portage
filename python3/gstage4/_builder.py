@@ -252,6 +252,10 @@ class Builder:
         if True:
             if "git" in self._actionStorage.get("overlays", {}).values():
                 __worldNeeded("dev-vcs/git")
+        if True:
+            # many *-9999 packages needs them to fetch files
+            __worldNeeded("dev-vcs/git")
+            __worldNeeded("dev-vcs/subversion")
 
         # write world file
         t = TargetFilesAndDirs(self._workDirObj.path)
@@ -259,16 +263,20 @@ class Builder:
             for pkg in sorted(list(world_set)):
                 f.write("%s\n" % (pkg))
 
+        # we need to install some packages before others
+        preInstallList = [
+            "dev-util/ccache",
+            "dev-vcs/git",
+            "dev-vcs/subversion",
+        ]
+        for i in reversed(range(0, len(preInstallList))):
+            if preInstallList[i] in world_set and not Util.portageIsPkgInstalled(self._workDirObj.path, preInstallList[i]):
+                preInstallList.pop(i)
+
         # install packages & update world
         with _MyChrooter(self) as m:
-            # we need to install ccache first
-            installList = []
-            if "dev-util/ccache" in world_set and not Util.portageIsPkgInstalled(self._workDirObj.path, "dev-util/ccache"):
-                installList.append("dev-util/ccache")
-            if "dev-vcs/git" in world_set and not Util.portageIsPkgInstalled(self._workDirObj.path, "dev-vcs/git"):
-                installList.append("dev-vcs/git")
-            if len(installList) > 0:
-                m.script_exec(ScriptInstallPackages(installList, False, self._s.verbose_level), quiet=self._getQuiet())
+            if len(preInstallList) > 0:
+                m.script_exec(ScriptInstallPackages(preInstallList, False, self._s.verbose_level), quiet=self._getQuiet())
 
             # we don't install packages seperately
             # many packages change global USE flag when installing, such as python_targets_XXX, so it needs to be combined with updating world to solve conflicts
