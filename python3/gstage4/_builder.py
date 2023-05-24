@@ -263,8 +263,7 @@ class Builder:
         with _MyChrooter(self) as m:
             # we need to install ccache first
             if "dev-util/ccache" in world_set and not Util.portageIsPkgInstalled(self._workDirObj.path, "dev-util/ccache"):
-                installList = ["dev-util/ccache"]
-                m.script_exec(ScriptInstallPackages(installList, False, self._s.verbose_level), quiet=self._getQuiet())
+                m.script_exec(ScriptInstallPackages(["dev-util/ccache"], False, self._s.verbose_level), quiet=self._getQuiet())
 
             # we don't install packages seperately.
             # many packages need global USE flag change when installing, such as python_targets_XXX, so it needs to be combined with updating world
