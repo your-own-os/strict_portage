@@ -862,8 +862,8 @@ class TargetFilesAndDirsOpenFileForWrite:
         return self
 
     def __exit__(self, type, value, traceback):
-        os.chown(self._f, self._owner, self._group)
-        os.chmod(self._f, self._mode)
+        os.fchown(self._f, self._owner, self._group)
+        os.fchmod(self._f, self._mode)
         self._f.close()
         self._f = None
 
