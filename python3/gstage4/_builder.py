@@ -119,10 +119,10 @@ class Builder:
         seed_stage.unpack(self._workDirObj.path)
 
         t = TargetFilesAndDirs(self._workDirObj.path)
-        os.makedirs(t.logdir_hostpath, exist_ok=True)
-        os.makedirs(t.distdir_hostpath, exist_ok=True)
-        os.makedirs(t.binpkgdir_hostpath, exist_ok=True)
-        with open(t.world_file_hostpath, "w") as f:
+        t.make_dir_by_hostpath("logdir", exist_ok=True)
+        t.make_dir_by_hostpath("distdir", exist_ok=True)
+        t.make_dir_by_hostpath("binpkgdir", exist_ok=True)
+        with t.open_file_for_write_by_hostpath("world_file") as f:
             f.write("")
 
         self._actionStorage["arch"] = seed_stage.get_arch()
@@ -258,7 +258,7 @@ class Builder:
 
         # write world file
         t = TargetFilesAndDirs(self._workDirObj.path)
-        with open(t.world_file_hostpath, "w") as f:
+        with t.open_file_for_write_by_hostpath("world_file") as f:
             for pkg in sorted(list(world_set)):
                 f.write("%s\n" % (pkg))
 
@@ -716,6 +716,10 @@ class TargetFilesAndDirs:
         return "/usr/src"
 
     @property
+    def world_file_path(self):
+        return os.path.join(self.statedir_path, "world")
+
+    @property
     def confdir_metadata(self):
         return ("root", "root", 0o40755)
 
@@ -748,8 +752,8 @@ class TargetFilesAndDirs:
         return ("root", "root", 0o40755)           # FIXME
 
     @property
-    def world_file_path(self):
-        return os.path.join(self.statedir_path, "world")
+    def world_file_metadata(self):
+        return ("root", "portage", 0o40644)
 
     @property
     def confdir_hostpath(self):
@@ -786,6 +790,77 @@ class TargetFilesAndDirs:
     @property
     def world_file_hostpath(self):
         return os.path.join(self._chroot_path, self.world_file_path[1:])
+
+    def make_dir_by_hostpath(self, path_id, exist_ok=False):
+        path = getattr(self, path_id + "_hostpath")
+        owner, group, mode = getattr(self, path_id + "_metadata")
+        owner, group = self._convertOwner(owner), self._convertGroup(group)
+
+        if os.path.exists(path):
+            if not exist_ok:
+                raise FileExistsError("%s exists" % (path))
+            else:
+                st = os.stat(path)
+                if st.st_uid != owner:
+                    raise FileExistsError("existing directory %s has invalid owner %d" % (path, st.st_uid))
+                if st.st_gid != group:
+                    raise FileExistsError("existing directory %s has invalid group %d" % (path, st.st_gid))
+                if st.st_mode != mode:
+                    raise FileExistsError("existing directory %s has invalid mode 0o%o" % (path, st.st_mode))
+        else:
+            os.mkdir(path)
+            os.chown(path, owner)
+            os.chgrp(path, group)
+            os.chmod(path, mode)
+
+    def open_file_for_write_by_hostpath(self, path_id):
+        return TargetFilesAndDirsOpenFileForWrite(self, path_id)
+
+    def _convertOwner(self, owner):
+        if owner == "root":
+            return 0
+        else:
+            passwd_file = os.path.join(self._chroot_path, "etc", "passwd")
+            data = self._parsePasswdOrGroup(passwd_file)
+            return data[owner]
+
+    def _convertGroup(self, group):
+        if group == "root":
+            return 0
+        else:
+            group_file = os.path.join(self._chroot_path, "etc", "group")
+            data = self._parsePasswdOrGroup(group_file)
+            return data[group]
+
+    def _parsePasswdOrGroup(self, path):
+        ret = dict()
+        for line in pathlib.Path(path).read_text().split("\n"):
+            if line == "" or line.startswith("#"):
+                continue
+            t = line.split(":")
+            ret[t[0]] = int(t[2])      # <username, user-id> or <group-name, group-id>
+        return ret
+
+
+class TargetFilesAndDirsOpenFileForWrite:
+
+    def __init__(self, parent, path_id):
+        self._parent = parent
+        self._path = getattr(self, path_id + "_hostpath")
+        self._owner, self._group, self._mode = getattr(self, path_id + "_metadata")
+        self._owner, self._group = self._parent._convertOwner(self._owner), self._parent._convertGroup(self._group)
+        self._f = None
+
+    def __enter__(self):
+        self._f = open(self._path, "w")
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self._f.close()
+        self._f = None
+        os.chown(self._path, self._owner)
+        os.chgrp(self._path, self._group)
+        os.chmod(self._path, self._mode)
 
 
 class TargetConfDirWriter:
