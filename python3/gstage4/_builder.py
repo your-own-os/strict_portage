@@ -806,7 +806,7 @@ class TargetFilesAndDirs:
                 if st.st_gid != group:
                     if path_id == "distdir":
                         # FIXME: it seems gentoo stage3 has a bug that /var/cache/distfiles has wrong mode
-                        os.chgrp(path, group)
+                        os.chown(path, owner, group)
                     else:
                         raise FileExistsError("existing directory %s has invalid group %d" % (path, st.st_gid))
                 if st.st_mode != mode:
@@ -817,8 +817,7 @@ class TargetFilesAndDirs:
                         raise FileExistsError("existing directory %s has invalid mode 0o%o" % (path, st.st_mode))
         else:
             os.mkdir(path)
-            os.chown(path, owner)
-            os.chgrp(path, group)
+            os.chown(path, owner, group)
             os.chmod(path, mode)
 
     def open_file_for_write_by_hostpath(self, path_id):
@@ -864,11 +863,10 @@ class TargetFilesAndDirsOpenFileForWrite:
         return self
 
     def __exit__(self, type, value, traceback):
+        os.chown(self._f, self._owner, self._group)
+        os.chmod(self._f, self._mode)
         self._f.close()
         self._f = None
-        os.chown(self._path, self._owner)
-        os.chgrp(self._path, self._group)
-        os.chmod(self._path, self._mode)
 
 
 class TargetConfDirWriter:
