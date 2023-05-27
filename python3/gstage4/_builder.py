@@ -854,7 +854,7 @@ class TargetFilesAndDirsOpenFileForWrite:
     def __init__(self, parent, path_id):
         self._path = getattr(parent, path_id + "_hostpath")
         self._owner, self._group, self._mode = getattr(parent, path_id + "_metadata")
-        self._owner, self._group = self._parent._convertOwner(self._owner), self._parent._convertGroup(self._group)
+        self._owner, self._group = parent._convertOwner(self._owner), parent._convertGroup(self._group)
         self._f = None
 
     def __enter__(self):
