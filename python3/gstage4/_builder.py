@@ -855,17 +855,19 @@ class TargetFilesAndDirsOpenFileForWrite:
         self._path = getattr(parent, path_id + "_hostpath")
         self._owner, self._group, self._mode = getattr(parent, path_id + "_metadata")
         self._owner, self._group = parent._convertOwner(self._owner), parent._convertGroup(self._group)
-        self._f = None
+
+    def write(self, *kargs):
+        self._f.write(*kargs)
 
     def __enter__(self):
         self._f = open(self._path, "w")
         return self
 
     def __exit__(self, type, value, traceback):
-        os.fchown(self._f, self._owner, self._group)
-        os.fchmod(self._f, self._mode)
         self._f.close()
-        self._f = None
+        del self._f
+        os.chown(self._path, self._owner, self._group)
+        os.chmod(self._path, self._mode)
 
 
 class TargetConfDirWriter:
