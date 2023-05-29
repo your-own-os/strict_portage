@@ -1,0 +1,132 @@
+#!/usr/bin/env python3
+
+# robust git operations
+#
+# Copyright (c) 2019-2020 Fpemud <fpemud@sina.com>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
+
+import os
+import re
+import sys
+import time
+import subprocess
+import urllib.parse
+from ._util import Util
+
+
+def additional_environ():
+    return {
+        "GIT_HTTP_LOW_SPEED_LIMIT": "1024",
+        "GIT_HTTP_LOW_SPEED_TIME": "60",            # we don't use GIT_HTTP_CONNECT_TIMEOUT as git network operation is not "continuable"
+        "GIT_HTTP_CONNECT_TIMEOUT": "10",           # only has effect for patched git (https://stackoverflow.com/questions/28180013/can-you-specify-a-timeout-to-git-fetch)
+    }
+
+
+
+def pull(*args):
+    assert not any(x in os.environ for x in additional_environ())
+    assert not any(x in ["-r", "--rebase", "--no-rebase"] for x in args)
+
+    _doGitNetOp("pull", ["--rebase"] + list(args))
+
+
+def push(*args):
+    assert not any(x in os.environ for x in additional_environ())
+
+    _doGitNetOp("push", list(args))
+
+
+class PrivateUrlNotExistError(Exception):
+    pass
+
+
+def _doGitNetOp(action, cmdList):
+    # Util.cmdListExec() use pipe to do advanced process, we add "--progress" so that progress can still be displayed
+    # "--quiet" would take priority if specified by user
+    if sys.stderr.isatty() and "--progress" not in cmdList:
+        cmdList.insert(0, "--progress")
+
+    while True:
+        try:
+            proc = subprocess.Popen(["/usr/bin/git-reference", action] + cmdList, env=Util.mergeDict(os.environ, additional_environ()),
+                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            Util._communicate(proc)
+            break
+        except subprocess.CalledProcessError as e:
+            # terminated by signal, no retry needed
+            if e.returncode > 128:
+                raise
+
+            # unrecoverable error
+            if re.search("^fatal: unknown index entry format .*", e.stdout, re.M) is not None:
+                raise
+            if re.search("^error: cannot pull with rebase: You have unstaged changes.", e.stdout, re.M) is not None:
+                raise
+
+            # unrecoverable error: private domain name does not exists
+            # we think public domain names are always well maintained, but private domain names are not.
+            # always retry for public domain name failure of any reason, abort opertaion when private domain name does not exist
+            _checkPrivateDomainNotExist(e)
+
+            time.sleep(1)
+
+
+def _checkPrivateDomainNotExist(e):
+    # note: we are matching the output of a pty, take control characters into consideration
+
+    m = re.search("^fatal: unable to access '.*': Couldn't resolve host '(.*)'", e.stdout, re.M)
+    if m is not None:
+        if Util.domainNameIsPrivate(m.group(1)) and Util.domainNameNotExist(m.group(1)):
+            raise PrivateUrlNotExistError()
+
+    m = re.search("^fatal: unable to access '.*': Could not resolve host: (\\S+)", e.stdout, re.M)
+    if m is not None:
+        if Util.domainNameIsPrivate(m.group(1)) and Util.domainNameNotExist(m.group(1)):
+            raise PrivateUrlNotExistError()
+
+    m = re.search("^fatal: unable to access '(.*)': name lookup timed out", e.stdout, re.M)
+    if m is not None:
+        domain = urllib.parse.urlparse(m.group(1)).netloc
+        if Util.domainNameIsPrivate(domain) and Util.domainNameNotExist(domain):
+            raise PrivateUrlNotExistError()
+
+
+if __name__ == "__main__":
+    try:
+        if len(sys.argv) >= 2:
+            if sys.argv[1] == "clone":
+                assert not any(x in os.environ for x in additional_environ())
+                _doGitNetOp("clone", sys.argv[2:])
+            elif sys.argv[1] == "fetch":
+                assert not any(x in os.environ for x in additional_environ())
+                _doGitNetOp("fetch", sys.argv[2:])
+            elif sys.argv[1] == "pull":
+                robust_layer.git.pull(*sys.argv[2:])
+            elif sys.argv[1] == "push":
+                robust_layer.git.push(*sys.argv[2:])
+            else:
+                print("Operation \"%s\" not supported" % (sys.argv[1]), file=sys.stderr)
+                sys.exit(1)
+    except robust_layer.git.PrivateUrlNotExistError:
+        print("Unrecoverable error: Private URL doest not exist.", file=sys.stderr)
+        sys.exit(1)
+    except subprocess.CalledProcessError as e:
+        sys.exit(e.returncode)
