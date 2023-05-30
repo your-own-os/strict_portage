@@ -40,25 +40,11 @@ def additional_environ():
     }
 
 
-
-def pull(*args):
-    assert not any(x in os.environ for x in additional_environ())
-    assert not any(x in ["-r", "--rebase", "--no-rebase"] for x in args)
-
-    _doGitNetOp("pull", ["--rebase"] + list(args))
-
-
-def push(*args):
-    assert not any(x in os.environ for x in additional_environ())
-
-    _doGitNetOp("push", list(args))
-
-
 class PrivateUrlNotExistError(Exception):
     pass
 
 
-def _doGitNetOp(action, cmdList):
+def doGitNetOp(action, cmdList):
     # we use pipe to do advanced process, we add "--progress" so that progress can still be displayed
     # "--quiet" would take priority if specified by user
     if sys.stderr.isatty() and "--progress" not in cmdList:
@@ -84,7 +70,7 @@ def _doGitNetOp(action, cmdList):
             # unrecoverable error: private domain name does not exists
             # we think public domain names are always well maintained, but private domain names are not.
             # always retry for public domain name failure of any reason, abort opertaion when private domain name does not exist
-            _checkPrivateDomainNotExist(e)
+            Util.checkPrivateDomainNotExist(e)
 
             time.sleep(1)
 
@@ -116,45 +102,45 @@ class Util:
                     sys.stdout.flush()
 
         retcode = proc.wait()
-        if retcode > 128:
-            time.sleep(PARENT_WAIT)
         if retcode != 0:
             raise subprocess.CalledProcessError(retcode, proc.args, sStdout.decode(sys.stdout.encoding), "")
 
+    @staticmethod
+    def checkPrivateDomainNotExist(e):
+        # note: we are matching the output of a pty, take control characters into consideration
 
-def _checkPrivateDomainNotExist(e):
-    # note: we are matching the output of a pty, take control characters into consideration
+        m = re.search("^fatal: unable to access '.*': Couldn't resolve host '(.*)'", e.stdout, re.M)
+        if m is not None:
+            if Util.domainNameIsPrivate(m.group(1)) and Util.domainNameNotExist(m.group(1)):
+                raise PrivateUrlNotExistError()
 
-    m = re.search("^fatal: unable to access '.*': Couldn't resolve host '(.*)'", e.stdout, re.M)
-    if m is not None:
-        if Util.domainNameIsPrivate(m.group(1)) and Util.domainNameNotExist(m.group(1)):
-            raise PrivateUrlNotExistError()
+        m = re.search("^fatal: unable to access '.*': Could not resolve host: (\\S+)", e.stdout, re.M)
+        if m is not None:
+            if Util.domainNameIsPrivate(m.group(1)) and Util.domainNameNotExist(m.group(1)):
+                raise PrivateUrlNotExistError()
 
-    m = re.search("^fatal: unable to access '.*': Could not resolve host: (\\S+)", e.stdout, re.M)
-    if m is not None:
-        if Util.domainNameIsPrivate(m.group(1)) and Util.domainNameNotExist(m.group(1)):
-            raise PrivateUrlNotExistError()
-
-    m = re.search("^fatal: unable to access '(.*)': name lookup timed out", e.stdout, re.M)
-    if m is not None:
-        domain = urllib.parse.urlparse(m.group(1)).netloc
-        if Util.domainNameIsPrivate(domain) and Util.domainNameNotExist(domain):
-            raise PrivateUrlNotExistError()
+        m = re.search("^fatal: unable to access '(.*)': name lookup timed out", e.stdout, re.M)
+        if m is not None:
+            domain = urllib.parse.urlparse(m.group(1)).netloc
+            if Util.domainNameIsPrivate(domain) and Util.domainNameNotExist(domain):
+                raise PrivateUrlNotExistError()
 
 
 if __name__ == "__main__":
     if len(sys.argv) >= 2:
         if sys.argv[1] == "clone":
             assert not any(x in os.environ for x in additional_environ())
-            _doGitNetOp("clone", sys.argv[2:])
+            doGitNetOp("clone", sys.argv[2:])
+            sys.exit(0)
         elif sys.argv[1] == "fetch":
             assert not any(x in os.environ for x in additional_environ())
-            _doGitNetOp("fetch", sys.argv[2:])
+            doGitNetOp("fetch", sys.argv[2:])
+            sys.exit(0)
         elif sys.argv[1] == "pull":
-            robust_layer.git.pull(*sys.argv[2:])
+            doGitNetOp("pull", sys.argv[2:])
+            sys.exit(0)
         elif sys.argv[1] == "push":
-            robust_layer.git.push(*sys.argv[2:])
-        else:
-            print("Operation \"%s\" not supported" % (sys.argv[1]), file=sys.stderr)
-            sys.exit(1)
-    
+            doGitNetOp("push", sys.argv[2:])
+            sys.exit(0)
+
+    subprocess.check_call(["/usr/bin/git-reference"] + sys.argv[1:])
