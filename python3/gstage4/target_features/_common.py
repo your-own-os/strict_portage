@@ -723,35 +723,35 @@ class PreferPipewire:
 #                       4. pulseaudio -> pipewire -> alsa (bad)
 #                       5. alsa -> pipewire -> alsa (worse)
 #                       6. alsa (forbidden)
-app-emulation/spice                                         gstreamer           # sound route #2
-app-emulation/wine-vanilla                                  -alsa pulseaudio    # sound route #4 (bad), gstreamer support in wine is not what we image
-app-emulation/wine-staging                                  -alsa pulseaudio    # sound route #4 (bad), gstreamer support in wine is not what we image
-app-emulation/virtualbox                                    alsa                # sound route #5 (worse)
-games-emulation/dosbox-staging                              alsa                # sound route #5 (worse)
-games-engines/scummvm                                       alsa                # sound route #5 (worse)
-gui-libs/gtk                                                gstreamer           # sound route #2
-media-libs/libmikmod                                        -alsa openal        # sound route #3
-media-libs/libsdl                                           -alsa               # sound route #1, support pipewire through media-libs/libsdl2
-media-libs/libsdl2                                          -alsa pipewire      # sound route #1
-media-libs/openal                                           -alsa pipewire      # sound route #1
-media-libs/mediastreamer2                                   alsa                # doesn't support gstreamer and pipewire
-media-sound/audacity                                        alsa                # doesn't support gstreamer and pipewire
-media-sound/fluidsynth                                      -alsa pipewire
-media-sound/lmms                                            alsa                # doesn't support gstreamer and pipewire
-media-sound/mpg123                                          alsa                # doesn't support gstreamer and pipewire
-media-sound/moc                                             alsa                # doesn't support gstreamer and pipewire
-media-sound/musescore                                       alsa                # doesn't support gstreamer and pipewire
-media-sound/timidity++                                      alsa                # doesn't support gstreamer and pipewire
-media-sound/wildmidi                                        -alsa openal        # doesn't support gstreamer and pipewire
-media-sound/vkeybd                                          alsa                # doesn't support gstreamer and pipewire
-media-video/mpv                                             -alsa pipewire
-net-im/zoom                                                 pulseaudio          # doesn't support alsa, gstreamer and pipewire
-net-misc/freerdp                                            pulseaudio          # strange, it has USE flag alsa, ffmepg, gstreamer and pulseaudio. It seems disable alsa+pulseaudio would make it route to OSS.
-media-libs/libcanberra                                      -alsa gstreamer
-media-sound/spotify                                         pulseaudio          # doesn't support alsa, gstreamer and pipewire
-www-client/firefox-bin                                      -alsa pulseaudio    # doesn't support alsa, gstreamer and pipewire, it's alsa flag is for medis-sound/apulse
-www-client/chromium                                         pulseaudio          # doesn't support alsa, gstreamer and pipewire
-x11-libs/wxGTK                                              gstreamer
+app-emulation/spice                                         gstreamer           # sound route 2
+app-emulation/wine-vanilla                                  -alsa pulseaudio    # sound route 4 (bad), gstreamer support in wine is not what we image
+app-emulation/wine-staging                                  -alsa pulseaudio    # sound route 4 (bad), gstreamer support in wine is not what we image
+app-emulation/virtualbox                                    alsa                # sound route 5 (worse)
+games-emulation/dosbox-staging                              alsa                # sound route 5 (worse)
+games-engines/scummvm                                       alsa                # sound route 5 (worse)
+gui-libs/gtk                                                gstreamer           # sound route 2
+media-libs/libmikmod                                        -alsa openal        # sound route 3
+media-libs/libsdl                                           -alsa               # sound route 1, support pipewire through media-libs/libsdl2
+media-libs/libsdl2                                          -alsa pipewire      # sound route 1
+media-libs/openal                                           -alsa pipewire      # sound route 1
+media-libs/mediastreamer2                                   alsa                # sound route 5 (worse)
+media-sound/audacity                                        alsa                # sound route 5 (worse)
+media-sound/fluidsynth                                      -alsa pipewire      # sound route 1
+media-sound/lmms                                            alsa                # sound route 5 (worse)
+media-sound/mpg123                                          alsa                # sound route 5 (worse)
+media-sound/moc                                             alsa                # sound route 5 (worse)
+media-sound/musescore                                       alsa                # sound route 5 (worse)
+media-sound/timidity++                                      alsa                # sound route 5 (worse)
+media-sound/wildmidi                                        -alsa openal        # sound route 3
+media-sound/vkeybd                                          alsa                # sound route 5 (worse)
+media-video/mpv                                             -alsa pipewire      # sound route 1
+net-im/zoom                                                 pulseaudio          # sound route 4 (bad), doesn't support alsa, gstreamer and pipewire
+net-misc/freerdp                                            pulseaudio          # sound route 4 (bad), strange, it has USE flag alsa, ffmepg, gstreamer and pulseaudio. It seems disable alsa+pulseaudio would make it route to OSS.
+media-libs/libcanberra                                      -alsa gstreamer     # sound route 2
+media-sound/spotify                                         pulseaudio          # sound route 4 (bad), doesn't support alsa, gstreamer and pipewire
+www-client/firefox-bin                                      -alsa pulseaudio    # sound route 4 (bad), doesn't support alsa, gstreamer and pipewire, it's alsa flag is for medis-sound/apulse
+www-client/chromium                                         pulseaudio          # sound route 4 (bad), doesn't support alsa, gstreamer and pipewire
+x11-libs/wxGTK                                              gstreamer           # sound route 2
 
 # keep pulseaudio minimal
 */*                                                         -pulseaudio         # note: */* USE flag has a lower priority than package specific USE flags above
