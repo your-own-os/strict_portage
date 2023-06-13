@@ -209,10 +209,6 @@ sec-policy/selinux-sudo
 
 class Kmscon:
 
-    # FIXME
-    def __init__(self, exclusive=False):
-        self._exclusive = exclusive
-
     def update_target_settings(self, host_info, target_settings):
         assert target_settings.service_manager == "systemd"
         assert "10-kmscon" not in target_settings.pkg_use_files
@@ -225,7 +221,7 @@ class Kmscon:
         world_set.add("sys-apps/kmscon")
 
     def update_service_list(self, service_list):
-        # display-manager service should not be enabled, but we can't check it
+        # display-manager service should not be enabled, but we are not able to check it
         if "kmscon" not in service_list:
             service_list.append("kmscon")
 
