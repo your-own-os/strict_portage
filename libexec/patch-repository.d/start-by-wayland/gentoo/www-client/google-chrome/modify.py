@@ -7,7 +7,7 @@ import pathlib
 try:
     # what to insert (with blank line in the beginning and the end)
     buf2 = r"""
-sed -i s#"$HERE/chrome" "$@"#"$HERE/chrome" --enable-features=UseOzonePlatform --ozone-platform=wayland "$@"#g' ${D}/opt/google/chrome/google-chrome
+sed -i 's#"$HERE/chrome" "$@"#"$HERE/chrome" --enable-features=UseOzonePlatform --ozone-platform=wayland "$@"#g' ${D}/opt/google/chrome/google-chrome
 """
     buf2 = buf2.replace("\n", "\n\t")
     buf2 += "\n"
