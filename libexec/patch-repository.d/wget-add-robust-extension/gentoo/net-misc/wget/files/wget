@@ -2,6 +2,7 @@
 while true ; do
     wget-reference $@
     if [ $? == 4 ] ; then
+        echo "Failed due to network error, will retry after 10 seconds."        # FIXME: should check --quiet in $@
         sleep 10
         continue
     fi
