@@ -72,6 +72,7 @@ from ._tailor import TailorAvahi
 from ._tailor import TailorEselect
 from ._tailor import TailorGit
 from ._tailor import TailorWget
+from ._tailor import TailorRsync
 from ._tailor import TailorLmSensors
 
 from ._mirror import UseGogMirror

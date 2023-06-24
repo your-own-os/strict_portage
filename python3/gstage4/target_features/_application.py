@@ -226,4 +226,3 @@ class Kmscon:
     _useFileContent = """
 sys-apps/kmscon systemd
 """
-

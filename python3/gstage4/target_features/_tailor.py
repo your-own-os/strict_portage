@@ -490,6 +490,21 @@ class TailorWget:
         assert len(items) == 0
 
 
+class TailorRsync:
+
+    def __init__(self, add_items=[]):
+        self._addItems = add_items
+
+    def update_target_settings(self, host_info, target_settings):
+        items = list(self._addItems)
+
+        if "robust-extension" in items:
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "rsync-add-robust-extension"))
+            items.remove("robust-extension")
+
+        assert len(items) == 0
+
+
 class TailorLmSensors:
 
     def __init__(self, remove_items=[]):
