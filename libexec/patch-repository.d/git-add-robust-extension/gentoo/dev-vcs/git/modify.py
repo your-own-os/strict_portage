@@ -15,7 +15,6 @@ try:
     buf2 = r"""
 dobin "${FILESDIR}/git"     \# /usr/bin/git is the same as /usr/libexec/git-core/git, replace /usr/bin/git with our own robust script that calls /usr/libexec/git-core/git
 """
-    buf2 = ""                            # FIXME
     buf2 = buf2.replace("\n", "\n\t")
     buf2 += "\n"
 
