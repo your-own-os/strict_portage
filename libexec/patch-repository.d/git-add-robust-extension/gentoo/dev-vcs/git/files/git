@@ -105,6 +105,8 @@ class GitRetry:
         r'Unable to look up',
         r'Couldn\'t resolve host',
         r'Could not resolve host',
+        # http-timeout-extension
+        r'Operation too slow',
     ]), re.IGNORECASE)
 
     def __init__(self, retry_count=None, delay=None, delay_factor=None):
