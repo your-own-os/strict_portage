@@ -105,6 +105,7 @@ class GitRetry:
         r'Unable to look up',
         r'Couldn\'t resolve host',
         r'Could not resolve host',
+        r'Timeout was reached',
         # http-timeout-extension
         r'Operation too slow',
     ]), re.IGNORECASE)
