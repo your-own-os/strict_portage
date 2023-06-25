@@ -598,7 +598,7 @@ class SupportAllCompressFormat:
 
     _useFileContent = """
 # compress formats
-*/*                 bzip2 gzip lz4 lzma lzo szip xz zstd
+*/*                 7zip bzip2 gzip lz4 lzma lzo szip xz zstd
 """
 
 
