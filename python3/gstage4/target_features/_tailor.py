@@ -253,6 +253,23 @@ class TailorSystemd:
             })
             removeItems.remove("ldconfig.service")
 
+        if "hardware-group" in removeItems:
+            # FIXME: many applications are using them, why?
+            assert False
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "systemd-remove-tty-group"))
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "systemd-remove-dailout-group"))
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "systemd-remove-kmem-group"))
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "systemd-remove-input-group"))
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "systemd-remove-video-group"))
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "systemd-remove-render-group"))
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "systemd-remove-sgx-group"))
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "systemd-remove-audio-group"))
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "systemd-remove-lp-group"))
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "systemd-remove-disk-group"))
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "systemd-remove-cdrom-group"))
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "systemd-remove-tape-group"))
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "systemd-remove-kvm-group"))
+
         assert len(removeItems) == 0
         if len(td) > 0:
             target_settings.install_mask_files["10-tailor-systemd"] = td
