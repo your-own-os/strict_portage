@@ -253,7 +253,7 @@ class TailorSystemd:
             })
             removeItems.remove("ldconfig.service")
 
-        if "hardware-group" in removeItems:
+        if "hardware-groups" in removeItems:
             # FIXME: many applications are using them, why?
             assert False
             target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "systemd-remove-tty-group"))
