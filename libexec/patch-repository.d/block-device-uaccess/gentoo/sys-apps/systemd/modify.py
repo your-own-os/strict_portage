@@ -9,16 +9,16 @@ try:
     buf2 = r"""
 # we don't add uaccess tag onto block devices, so that we can eliminate udisks
 sed -i -E ':x; /\\$/ { N; s/\\\n +//; tx }'   ${D}/usr/lib/udev/rules.d/70-uaccess.rules                                          # combind lines ends with \ to one line
-
-sed -i '/# optical drives/i \
+"""
+    buf3 = r"""sed -i '/# optical drives/i \
 # all kinds of disks\
 SUBSYSTEM=="block", TAG+="uaccess"\
 ' ${D}/usr/lib/udev/rules.d/70-uaccess.rules
-
+"""
+    buf4 = r"""
 sed -i -E 's/TAG=="uaccess", SUBSYSTEM!="sound"/TAG=="uaccess", SUBSYSTEM!="block|sound"/g' ${D}/usr/lib/udev/rules.d/71-seat.rules
 ## end ####"""
-    buf2 = buf2.replace("\n", "\n\t")
-    buf2 += "\n"
+    buf2 = buf2.replace("\n", "\n\t") + ("\n\t" + buf3) + buf4.replace("\n", "\n\t") + "\n"
 
     for fn in glob.glob("*.ebuild"):
         buf = pathlib.Path(fn).read_text()
