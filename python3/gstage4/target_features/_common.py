@@ -152,6 +152,9 @@ sys-apps/sysvinit
 sys-apps/s6-linux-init
 sys-apps/openrc
 
+# mask all openrc thing
+sys-fs/udev-init-scripts
+
 # they are deprecated by systemd-udevd
 sys-fs/udev
 sys-fs/eudev
