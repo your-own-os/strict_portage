@@ -14,7 +14,7 @@ diff -u -r /var/tmp/portage/dev-vcs/git-2.32.0/work/git-2.32.0/http.c ./http.c
  		return 0;
  	}
 +	if (!strcmp("http.connecttimeout", var)) { // overriden by env var GIT_HTTP_CONNECT_TIMEOUT
-+		curl_connecttimeout = (long)git_config_int(var, value);
++		curl_connecttimeout = (long)git_config_int(var, value, ctx->kvi);
 +		return 0;
 +	}
  
