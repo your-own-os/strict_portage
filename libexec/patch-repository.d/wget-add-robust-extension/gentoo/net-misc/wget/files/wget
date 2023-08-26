@@ -6,5 +6,5 @@ while true ; do
         sleep 10                                                                # FIXME: should use retrywait in /etc/wgetrc and cli parameters
         continue
     fi
-    break
+    exit $?
 done
