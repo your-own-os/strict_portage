@@ -757,7 +757,7 @@ media-libs/mediastreamer2                                   alsa                
 media-sound/audacity                                        alsa                # sound route 5 (worse)
 media-sound/fluidsynth                                      -alsa pipewire      # sound route 1
 media-sound/lmms                                            alsa                # sound route 5 (worse)
-media-sound/mpg123                                          alsa                # sound route 5 (worse)
+media-sound/mpg123                                          -alsa pulseaudio    # sound route 4 (bad)
 media-sound/moc                                             alsa                # sound route 5 (worse)
 media-sound/musescore                                       alsa                # sound route 5 (worse)
 media-sound/sonic-visualiser                                pulseaudio          # sound route 4 (bad)
