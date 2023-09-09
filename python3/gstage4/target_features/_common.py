@@ -81,6 +81,11 @@ class UseBbki:
 
     def update_target_settings(self, target_settings):
         target_settings.kernel_manager = "bbki"
+        target_settings.kernel_manager_bbki = {
+            "kernel": "linux",
+            "kernel_addons": {
+            }
+        }
 
         # FIXME
         assert False
