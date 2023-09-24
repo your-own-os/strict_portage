@@ -8,7 +8,7 @@ try:
     # what to insert (with blank line in the beginning and the end)
     buf2 = r"""
 if ! use standalone-service ; then
-    rm -rf ${D}/etc/lighttpd
+    rm -rf ${D}/etc
     rm -rf ${D}/usr/lib/systemd
 fi
 """
