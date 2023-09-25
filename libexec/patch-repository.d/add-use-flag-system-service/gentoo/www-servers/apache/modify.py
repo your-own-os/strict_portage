@@ -7,7 +7,7 @@ import pathlib
 try:
     # what to insert (with blank line in the beginning and the end)
     buf2 = r"""
-if ! use standalone-service ; then
+if ! use system-service ; then
     rm -rf ${D}/etc
     rm -rf ${D}/usr/lib/systemd
 fi
@@ -29,7 +29,7 @@ fi
         buf = buf[:pos] + buf2 + buf[pos:]
 
         # insert new use flag
-        buf += '\nIUSE="${IUSE} +standalone-service"\n'
+        buf += '\nIUSE="${IUSE} +system-service"\n'
 
         with open(fn, "w") as f:
             f.write(buf)
