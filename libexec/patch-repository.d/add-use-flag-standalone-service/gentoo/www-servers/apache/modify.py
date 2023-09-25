@@ -29,7 +29,7 @@ fi
         buf = buf[:pos] + buf2 + buf[pos:]
 
         # insert new use flag
-        buf += '\nIUSE="${IUSE} standalone-service"\n'
+        buf += '\nIUSE="${IUSE} +standalone-service"\n'
 
         with open(fn, "w") as f:
             f.write(buf)
