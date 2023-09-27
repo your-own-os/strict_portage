@@ -237,10 +237,14 @@ net-misc/networkmanager         iwd gnutls -nss -wext
 */*                             -python_single_target_python2_7
 
 # select between gtk2 and gtk3
-*/*                             -gtk2 gtk3
+*/*                             -gtk2
+net-misc/spice-gtk              gtk3
 
 # select between qt4, qt5 and qt6
 */*                             -qt4 qt5
+media-video/smplayer            qt5
+net-analyzer/wireshark          qt5
+net-p2p/bitcoin-qt              qt5
 """
 
     _maskFileContent = """
