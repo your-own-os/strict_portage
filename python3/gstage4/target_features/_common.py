@@ -240,7 +240,7 @@ net-misc/networkmanager         iwd gnutls -nss -wext
 */*                             -gtk2 gtk3
 
 # select between qt4, qt5 and qt6
-*/*                             -qt4 qt5 qt6
+*/*                             -qt4 qt5
 """
 
     _maskFileContent = """
