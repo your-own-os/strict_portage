@@ -377,8 +377,10 @@ class DesktopEnvironmentNeutral:
 
     def update_target_settings(self, target_settings):
         assert "10-desktop-environment-neutral" not in target_settings.pkg_use_files
+        assert "10-desktop-environment-neutral" not in target_settings.pkg_mask_files
 
         target_settings.pkg_use_files["10-desktop-environment-neutral"] = self._useFileContent.strip("\n") + "\n"
+        target_settings.pkg_mask_files["10-desktop-environment-neutral"] = self._maskFileContent.strip("\n") + "\n"
 
     _useFileContent = """
 # disable DE related flags as much as possible
@@ -386,6 +388,14 @@ class DesktopEnvironmentNeutral:
 
 # use gnome-base/gsettings-desktop-schemas, which is a good work of gnome, all DEs should accept it
 media-libs/libcanberra                                                                                     gnome
+
+# don't use "XDG user dir", for example ~/Desktop or ~/Downloads
+dev-perl/File-HomeDir                                                                                      -xdg
+"""
+
+    _maskFileContent = """
+# we don't use "XDG user dir", for example ~/Desktop or ~/Downloads
+x11-misc/xdg-user-dirs
 """
 
 
