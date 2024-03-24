@@ -173,8 +173,8 @@ sys-apps/s6-linux-init
 sys-apps/openrc
 
 # mask all openrc thing
-# FIXME: systemd-utils[udev] needs it, why?
-# sys-fs/udev-init-scripts
+sys-apps/systemd-utils
+sys-fs/udev-init-scripts
 
 # they are deprecated by systemd-udevd
 sys-fs/udev
