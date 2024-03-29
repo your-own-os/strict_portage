@@ -152,8 +152,14 @@ class Builder:
         t = TargetConfDirWriter(self._s, self._ts, self._workDirObj.path)
 
         # set profile
-        profile = self._ts.profile if self._ts.profile is not None else "1"     # generally the default profile is the first in list
         with _MyChrooter(self) as m:
+            if self._ts.profile is not None:
+                profile = self._ts.profie
+            else:
+                # generally the default profile is the first stable profile in list
+                out = m.shell_call("", "eselect profile list")
+                profile = re.search(r"\[([0-9]+)\] .* \(stable\)", out, re.M).group(1)
+
             m.shell_call("", "eselect profile set %s" % (profile))
 
         # write /etc/portage

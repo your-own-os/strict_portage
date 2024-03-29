@@ -100,7 +100,8 @@ class Runner:
         env = "LANG=C.utf8 PATH=/bin:/usr/bin:/sbin:/usr/sbin " + env
         assert self._detectArch() == platform.machine()
 
-        subprocess.check_output("%s chroot \"%s\" %s" % (env, self._dir, cmd), shell=True, stderr=subprocess.STDOUT)
+        ret = subprocess.check_output("%s chroot \"%s\" %s" % (env, self._dir, cmd), shell=True, stderr=subprocess.STDOUT, universal_newlines=True)
+        return ret.stdout
 
     def shell_exec(self, env, cmd, quiet=False):
         assert len(self._mountList) > 0
@@ -112,7 +113,7 @@ class Runner:
         if not quiet:
             subprocess.check_call("%s chroot \"%s\" %s" % (env, self._dir, cmd), shell=True)
         else:
-            subprocess.check_output("%s chroot \"%s\" %s" % (env, self._dir, cmd), shell=True, stderr=subprocess.STDOUT)
+            subprocess.run("%s chroot \"%s\" %s" % (env, self._dir, cmd), shell=True, check=True, paramStdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
     def script_exec(self, scriptObj, quiet=False):
         assert len(self._mountList) > 0
