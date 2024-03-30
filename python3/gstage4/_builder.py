@@ -149,32 +149,35 @@ class Builder:
 
     @Action(after=["create_gentoo_repository"])
     def action_init_confdir(self):
-        t = TargetConfDirWriter(self._s, self._ts, self._workDirObj.path)
+        t = TargetConfDirParser(self._workDirObj.path)
+        tw = TargetConfDirWriter(self._s, self._ts, self._workDirObj.path)
 
         # set profile
-        with _MyChrooter(self) as m:
-            if self._ts.profile is not None:
-                profile = self._ts.profile
-            else:
-                # generally the default profile is the first stable profile in list
+        if self._ts.profile is not None:                                            # using profile specified by caller
+            with _MyChrooter(self) as m:
+                m.shell_call("", "eselect profile set %s" % (self._ts.profile))
+        elif t.get_profile() is not None:                                           # profile already exists
+            print("debug ", t.get_profile())
+            pass
+        else:                                                                       # select first stable profile in list as the default profile
+            with _MyChrooter(self) as m:
                 out = m.shell_call("", "eselect profile list")
                 profile = re.search(r"\[([0-9]+)\] .* \(stable\)", out, re.M).group(1)
-
-            m.shell_call("", "eselect profile set %s" % (profile))
+                m.shell_call("", "eselect profile set %s" % (profile))
 
         # write /etc/portage
-        t.write_make_conf()
-        t.write_package_use()
-        t.write_package_mask()
-        t.write_package_unmask()
-        t.write_package_accept_keywords()
-        t.write_package_license()
-        t.write_package_env()
-        t.write_use_mask()
+        tw.write_make_conf()
+        tw.write_package_use()
+        tw.write_package_mask()
+        tw.write_package_unmask()
+        tw.write_package_accept_keywords()
+        tw.write_package_license()
+        tw.write_package_env()
+        tw.write_use_mask()
 
         # create ccache directory
         if self._ts.build_opts.ccache:
-            os.makedirs(t.ccachedir_hostpath, exist_ok=True)
+            os.makedirs(tw.ccachedir_hostpath, exist_ok=True)
 
     @Action(after=["init_confdir"])
     def action_create_overlays(self, overlay_list):
@@ -883,6 +886,43 @@ class TargetFilesAndDirsOpenFileForWrite:
         os.chmod(self._path, self._mode)
 
 
+class TargetConfDirParser:
+
+    def __init__(self, chrootDir):
+        self._dir = TargetFilesAndDirs(chrootDir).confdir_hostpath
+
+    def get_profile(self):
+        fullfn = os.path.join(self._dir, "make.profile")
+        if not os.path.exists(fullfn):
+            return None
+
+        profileDir = os.readlink(fullfn)
+        assert os.path.exists(os.path.join(self._dir, profileDir))
+
+        idx = profileDir.index("profiles/")
+        return profileDir[idx + len("profiles/")]
+
+    def get_make_conf_make_opts_jobs(self):
+        buf = pathlib.Path(os.path.join(self._dir, "make.conf")).read_text()
+
+        m = re.search("MAKEOPTS=\".*--jobs=([0-9]+).*\"", buf, re.M)
+        if m is not None:
+            return int(m.group(1))
+
+        m = re.search("MAKEOPTS=\".*-j([0-9]+).*\"", buf, re.M)
+        if m is not None:
+            return int(m.group(1))
+
+        assert False
+
+    def get_make_conf_load_average(self):
+        buf = pathlib.Path(os.path.join(self._dir, "make.conf")).read_text()
+        m = re.search("EMERGE_DEFAULT_OPTS=\".*--load-average=([0-9]+).*\"", buf, re.M)
+        if m is not None:
+            return int(m.group(1))
+        assert False
+
+
 class TargetConfDirWriter:
 
     def __init__(self, settings, targetSettings, chrootDir):
@@ -1142,32 +1182,6 @@ class TargetConfDirWriter:
             with open(fpath, "w") as myf:
                 for use_flag in self._ts.use_mask:
                     myf.write("%s\n" % (use_flag))
-
-
-class TargetConfDirParser:
-
-    def __init__(self, chrootDir):
-        self._dir = TargetFilesAndDirs(chrootDir).confdir_hostpath
-
-    def get_make_conf_make_opts_jobs(self):
-        buf = pathlib.Path(os.path.join(self._dir, "make.conf")).read_text()
-
-        m = re.search("MAKEOPTS=\".*--jobs=([0-9]+).*\"", buf, re.M)
-        if m is not None:
-            return int(m.group(1))
-
-        m = re.search("MAKEOPTS=\".*-j([0-9]+).*\"", buf, re.M)
-        if m is not None:
-            return int(m.group(1))
-
-        assert False
-
-    def get_make_conf_load_average(self):
-        buf = pathlib.Path(os.path.join(self._dir, "make.conf")).read_text()
-        m = re.search("EMERGE_DEFAULT_OPTS=\".*--load-average=([0-9]+).*\"", buf, re.M)
-        if m is not None:
-            return int(m.group(1))
-        assert False
 
 
 class TargetConfDirCleaner:
