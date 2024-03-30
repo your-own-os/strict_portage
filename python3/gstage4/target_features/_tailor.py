@@ -91,7 +91,7 @@ class TailorSystemd:
                     "*mount.ddi*",
                 ],
             })
-            removeItems.remove("systemd-battery-check")
+            removeItems.remove("systemd-dissect")
 
         if "systemd-hostnamed" in removeItems:
             tm += [
