@@ -157,7 +157,6 @@ class Builder:
             with _MyChrooter(self) as m:
                 m.shell_call("", "eselect profile set %s" % (self._ts.profile))
         elif t.get_profile() is not None:                                           # profile already exists
-            print("debug ", t.get_profile())
             pass
         else:                                                                       # select first stable profile in list as the default profile
             with _MyChrooter(self) as m:
