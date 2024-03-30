@@ -256,6 +256,7 @@ class TailorSystemd:
             _updateDict({
                 "sys-apps/systemd": [
                     "*system-update*",
+                    "*systemd-update-helper*",
                     "*update-done*",
                 ],
             })
