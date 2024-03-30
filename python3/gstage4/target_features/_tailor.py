@@ -53,6 +53,14 @@ class TailorSystemd:
             target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "systemd-disable-kmod-static-nodes"))
             disableItems.remove("kmod-static-nodes")
 
+        if "systemd-battery-check" in removeItems:
+            _updateDict({
+                "sys-apps/systemd": [
+                    "*battery-check*",
+                ],
+            })
+            removeItems.remove("systemd-battery-check")
+
         if "systemd-boot" in removeItems:
             _updateDict({
                 "sys-apps/systemd": [
@@ -75,6 +83,15 @@ class TailorSystemd:
                 ],
             })
             removeItems.remove("systemd-coredump")
+
+        if "systemd-dissect" in removeItems:
+            _updateDict({
+                "sys-apps/systemd": [
+                    "*systemd-dissect*",
+                    "*mount.ddi*",
+                ],
+            })
+            removeItems.remove("systemd-battery-check")
 
         if "systemd-hostnamed" in removeItems:
             tm += [
@@ -251,14 +268,6 @@ class TailorSystemd:
                 ],
             })
             removeItems.remove("systemd-userdbd")
-
-        if "systemd-battery-check" in removeItems:
-            _updateDict({
-                "sys-apps/systemd": [
-                    "*battery-check*",
-                ],
-            })
-            removeItems.remove("systemd-battery-check")
 
         if "fstab" in removeItems:
             _updateDict({
