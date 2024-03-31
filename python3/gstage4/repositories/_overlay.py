@@ -21,7 +21,9 @@
 # THE SOFTWARE.
 
 
+import functools
 import lxml.etree
+import urllib.request
 from .. import MountRepository
 from .. import EmergeSyncRepository
 
@@ -61,11 +63,24 @@ class RegisteredOverlay(EmergeSyncRepository):
 
     """Overlay in Gentoo Overlay Database (https://api.gentoo.org/overlays/repositories.xml)"""
 
-    def __init__(self, overlay_name):
-        ret = self._parse()
+    _foreignData = (0, None)
+
+    def __init__(self, overlay_name, repositories_data=None):
+        if repositories_data is not None:
+            if self._foreignData[0] == 0:
+                self._foreignData = (1, repositories_data)
+            else:
+                assert self._foreignData[0] == 1 and self._foreignData[1] == repositories_data
+        else:
+            if self._foreignData[0] == 0:
+                self._foreignData = (-1, None)
+            else:
+                assert self._foreignData[0] == -1
+            repositories_data = self._parse()
+
         self._name = overlay_name
-        self._syncType = ret[overlay_name][0]
-        self._syncUrl = ret[overlay_name][1]
+        self._syncType = repositories_data[overlay_name][0]
+        self._syncUrl = repositories_data[overlay_name][1]
 
     def get_name(self):
         return self._name
@@ -82,7 +97,9 @@ class RegisteredOverlay(EmergeSyncRepository):
         buf += "sync-uri = %s\n" % (self._syncUrl)
         return buf
 
-    def _parse(self):
+    @staticmethod
+    @functools.cache
+    def _parse():
         cList = [
             ("git", "https", "github.com"),
             ("git", "https", "gitlab.com"),
@@ -96,8 +113,12 @@ class RegisteredOverlay(EmergeSyncRepository):
             ("rsync", "rsync", None),
         ]
 
+        buf = None
+        with urllib.request.urlopen("https://api.gentoo.org/overlays/repositories.xml") as resp:
+            buf = resp.read().decode("utf-8")
+
         ret = dict()
-        rootElem = lxml.etree.parse("https://api.gentoo.org/overlays/repositories.xml").getroot()
+        rootElem = lxml.etree.fromstring(buf).getroot()
         for nameTag in rootElem.xpath(".//repo/name"):
             overlayName = nameTag.text
             if overlayName in ret:
