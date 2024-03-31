@@ -25,8 +25,8 @@ import os
 import re
 import time
 import shutil
-import tempfile
 import subprocess
+import PySquashfsImage
 
 
 class Util:
@@ -140,34 +140,60 @@ class TempChdir:
         os.chdir(self.olddir)
 
 
-class TmpMount:
+class SqfsExtractor:
 
-    def __init__(self, path, options=None):
-        self._path = path
-        self._tmppath = tempfile.mkdtemp()
+    """
+    The following code is copy and modified from PySquashfsImage.extract
+    hardlink, device file, special file, user/group/mode, xattr are not supported
+    """
 
-        try:
-            cmd = ["mount"]
-            if options is not None:
-                cmd.append("-o")
-                cmd.append(options)
-            cmd.append(self._path)
-            cmd.append(self._tmppath)
-            subprocess.run(cmd, check=True, universal_newlines=True)
-        except BaseException:
-            os.rmdir(self._tmppath)
-            raise
+    @classmethod
+    def extract(cls, filepath, dest):
+        with PySquashfsImage.SquashFsImage.from_file(filepath) as image:
+            cls._sqfsExtractDir(image.select("/"), dest, {})
 
-    def __enter__(self):
-        return self
+    @classmethod
+    def _sqfsExtractDir(cls, directory, dest, lookup_table):
+        for file in directory:
+            path = os.path.join(dest, os.path.relpath(file.path, directory.path))
+            if file.is_dir:
+                os.mkdir(path)
+                cls._sqfsExtractDir(file, path, lookup_table)
+            else:
+                cls._sqfsExtractFile(file, path, lookup_table)
 
-    def __exit__(self, type, value, traceback):
-        self.close()
+    @classmethod
+    def _sqfsExtractFile(cls, file, dest, lookup_table):
+        if cls._lookup(lookup_table, file.inode.inode_number) is not None:
+            assert False                                                            # no hardlink is allowed
+        elif isinstance(file, PySquashfsImage.file.RegularFile):
+            with open(dest, "wb") as f:
+                for block in file.iter_bytes():
+                    f.write(block)
+        elif isinstance(file, PySquashfsImage.file.Symlink):
+            os.symlink(file.readlink(), dest)
+        elif isinstance(file, (PySquashfsImage.file.BlockDevice, PySquashfsImage.file.CharacterDevice)):
+            assert False
+        elif isinstance(file, PySquashfsImage.file.FIFO):
+            assert False
+        elif isinstance(file, PySquashfsImage.file.Socket):
+            assert False
+        else:
+            assert False
+        cls._insert_lookup(lookup_table, file.inode.inode_number, dest)
 
-    @property
-    def mountpoint(self):
-        return self._tmppath
+    @staticmethod
+    def _lookup(lookup_table, number):
+        index = PySquashfsImage.macro.LOOKUP_INDEX(number - 1)
+        offset = PySquashfsImage.macro.LOOKUP_OFFSET(number - 1)
+        if lookup_table.get(index) is None:
+            return None
+        return lookup_table[index].get(offset)
 
-    def close(self):
-        subprocess.run(["umount", self._tmppath], check=True, universal_newlines=True)
-        os.rmdir(self._tmppath)
+    @staticmethod
+    def _insert_lookup(lookup_table, number, pathname):
+        index = PySquashfsImage.macro.LOOKUP_INDEX(number - 1)
+        offset = PySquashfsImage.macro.LOOKUP_OFFSET(number - 1)
+        if lookup_table.get(index) is None:
+            lookup_table[index] = {}
+        lookup_table[index][offset] = pathname

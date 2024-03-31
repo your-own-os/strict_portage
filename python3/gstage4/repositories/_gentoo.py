@@ -28,8 +28,7 @@ import urllib.request
 from .. import ManualSyncRepository
 from .. import EmergeSyncRepository
 from .. import MountRepository
-from .._util import Util
-from .._util import TmpMount
+from .._util import SqfsExtractor
 
 
 class CloudGentoo(EmergeSyncRepository):
@@ -109,8 +108,7 @@ class GentooSnapshot(ManualSyncRepository):
             with tarfile.open(self._path, mode="r:xz") as tf:
                 tf.extractall(datadir_hostpath)
         elif self._path.endswith(".sqfs"):
-            with TmpMount(self._path) as mp:
-                Util.shellCall("cp -r %s/* %s" % (mp.mountpoint, datadir_hostpath))
+            SqfsExtractor.extract(self._path, datadir_hostpath)
         else:
             assert False
 
