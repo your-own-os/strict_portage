@@ -82,7 +82,7 @@ class RegisteredOverlay(EmergeSyncRepository):
         buf += "sync-uri = %s\n" % (self._syncUrl)
         return buf
 
-    def _parse(self, fullfn):
+    def _parse(self):
         cList = [
             ("git", "https", "github.com"),
             ("git", "https", "gitlab.com"),
