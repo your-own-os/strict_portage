@@ -140,11 +140,6 @@ class RegisteredOverlay(EmergeSyncRepository):
                                 ret[overlayName] = (tVcsType, tUrl)
                                 break
                 if overlayName in ret:
-                    if ret[overlayName][1].startswith("https://github.com/"):
-                        # for github mirror
-                        url = ret[overlayName][1]
-                        url = url.replace("https://github.com/", "mirror://github/")
-                        ret[overlayName] = (ret[overlayName][0], url)
                     break
 
             if overlayName not in ret:
