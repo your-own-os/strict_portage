@@ -46,6 +46,8 @@ from ._runner import Runner
 from ._builder import Builder
 from ._builder import CustomAction
 
+from ._errors import HostInfoError
+from ._errors import UpstreamError
 from ._errors import SettingsError
 from ._errors import SeedStageError
 from ._errors import WorkDirError

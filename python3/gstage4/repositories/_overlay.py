@@ -25,6 +25,8 @@ import lxml.etree
 import urllib.request
 from .. import MountRepository
 from .. import EmergeSyncRepository
+from .. import UpstreamError
+from .. import SettingsError
 
 
 class OverlayFromHost(MountRepository):
@@ -62,24 +64,18 @@ class RegisteredOverlay(EmergeSyncRepository):
 
     """Overlay in Gentoo Overlay Database (https://api.gentoo.org/overlays/repositories.xml)"""
 
-    _foreignData = (0, None)
+    _localData = None
 
-    def __init__(self, overlay_name, local_data=None):
-        if local_data is not None:
-            if self._foreignData[0] == 0:
-                self._foreignData = (1, local_data)
-            else:
-                assert self._foreignData[0] == 1 and self._foreignData[1] == local_data
-        else:
-            if self._foreignData[0] == 0:
-                self._foreignData = (-1, self._parse())
-            else:
-                assert self._foreignData[0] == -1 and self._foreignData[1] is not None
-            local_data = self._foreignData[1]
+    def __init__(self, overlay_name):
+        if self._localData is None:
+            self._localData = self._parse()
+
+        if overlay_name not in self._localData:
+            raise SettingsError("overlay \"%s\" does not exist" % (overlay_name))
 
         self._name = overlay_name
-        self._syncType = local_data[overlay_name][0]
-        self._syncUrl = local_data[overlay_name][1]
+        self._syncType = self._localData[overlay_name][0]
+        self._syncUrl = self._localData[overlay_name][1]
 
     def get_name(self):
         return self._name
@@ -111,37 +107,34 @@ class RegisteredOverlay(EmergeSyncRepository):
             ("rsync", "rsync", None),
         ]
 
-        buf = None
-        with urllib.request.urlopen("https://api.gentoo.org/overlays/repositories.xml") as resp:
-            buf = resp.read().decode("utf-8")
-
         ret = dict()
-        rootElem = lxml.etree.fromstring(buf).getroot()
-        for nameTag in rootElem.xpath(".//repo/name"):
-            overlayName = nameTag.text
-            if overlayName in ret:
-                raise Exception("duplicate overlay \"%s\"" % (overlayName))
-
-            for vcsType, urlProto, urlDomain in cList:
-                for sourceTag in nameTag.xpath("../source"):
-                    tVcsType = sourceTag.get("type")
-                    tUrl = sourceTag.text
-                    if tUrl.startswith("git://github.com/"):                            # FIXME: github does not support git:// anymore
-                        tUrl = tUrl.replace("git://", "https://")
-                    if tVcsType == vcsType:
-                        if urlDomain is not None:
-                            if tUrl.startswith(urlProto + "://" + urlDomain + "/"):
-                                ret[overlayName] = (tVcsType, tUrl)
-                                break
-                        else:
-                            if tUrl.startswith(urlProto + "://"):
-                                ret[overlayName] = (tVcsType, tUrl)
-                                break
+        with urllib.request.urlopen("https://api.gentoo.org/overlays/repositories.xml") as resp:
+            rootElem = lxml.etree.fromstring(resp.read()).getroot()
+            for nameTag in rootElem.xpath(".//repo/name"):
+                overlayName = nameTag.text
                 if overlayName in ret:
-                    break
+                    raise UpstreamError("duplicate overlay \"%s\"" % (overlayName))
 
-            if overlayName not in ret:
-                raise Exception("no appropriate source for overlay \"%s\"" % (overlayName))
+                for vcsType, urlProto, urlDomain in cList:
+                    for sourceTag in nameTag.xpath("../source"):
+                        tVcsType = sourceTag.get("type")
+                        tUrl = sourceTag.text
+                        if tUrl.startswith("git://github.com/"):                            # FIXME: github does not support git:// anymore
+                            tUrl = tUrl.replace("git://", "https://")
+                        if tVcsType == vcsType:
+                            if urlDomain is not None:
+                                if tUrl.startswith(urlProto + "://" + urlDomain + "/"):
+                                    ret[overlayName] = (tVcsType, tUrl)
+                                    break
+                            else:
+                                if tUrl.startswith(urlProto + "://"):
+                                    ret[overlayName] = (tVcsType, tUrl)
+                                    break
+                    if overlayName in ret:
+                        break
+
+                if overlayName not in ret:
+                    raise UpstreamError("no appropriate source for overlay \"%s\"" % (overlayName))
 
         return ret
 

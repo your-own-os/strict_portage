@@ -25,6 +25,10 @@ class HostInfoError(Exception):
     pass
 
 
+class UpstreamError(Exception):
+    pass
+
+
 class SettingsError(Exception):
     pass
 
