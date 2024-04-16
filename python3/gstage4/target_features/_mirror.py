@@ -34,3 +34,9 @@ class UseHbMirror:
 
     def update_target_settings(self, host_info, target_settings):
         target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "use-mirror-hb"))
+
+
+class UseHuggingFaceMirror:
+
+    def update_target_settings(self, host_info, target_settings):
+        target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "use-mirror-huggingface"))
