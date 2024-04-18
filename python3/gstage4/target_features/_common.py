@@ -190,7 +190,7 @@ x11-base/xorg-server                                                 systemd
 
 # install systemd service files
 media-video/pipewire                                                 systemd
-medis-video/wireplumber                                              systemd
+media-video/wireplumber                                              systemd
 net-wireless/bluez                                                   systemd
 """
 
