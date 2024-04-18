@@ -153,7 +153,7 @@ class TailorSystemd:
             _updateDict({
                 "sys-apps/systemd": [
                     "*network*",
-                    "/lib/systemd/network*",
+                    "/usr/lib/systemd/network*",
                     "/etc/systemd/network",
                 ],
             })
@@ -163,7 +163,7 @@ class TailorSystemd:
             _updateDict({
                 "sys-apps/systemd": [
                     "*portable*",
-                    "/lib/systemd/portable",
+                    "/usr/lib/systemd/portable",
                 ],
             })
             removeItems.remove("systemd-portabled")
@@ -256,7 +256,7 @@ class TailorSystemd:
                 "sys-apps/systemd": [
                     "*timesync*",
                     "*ntp*",
-                    "/lib/systemd/ntp-units.d*",
+                    "/usr/lib/systemd/ntp-units.d*",
                 ],
             })
             removeItems.remove("systemd-timesyncd")
