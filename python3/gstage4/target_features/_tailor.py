@@ -247,6 +247,10 @@ class TailorSystemd:
             _updateDict({
                 "sys-apps/systemd": [
                     "*timedate*",
+                    "/usr/lib/systemd/ntp-units.d*",
+                ],
+                "*/*": [
+                    "/usr/lib/systemd/ntp-units.d",
                 ],
             })
             removeItems.remove("systemd-timedated")
@@ -261,7 +265,6 @@ class TailorSystemd:
                 "sys-apps/systemd": [
                     "*timesync*",
                     "*ntp*",
-                    "/usr/lib/systemd/ntp-units.d*",
                 ],
             })
             removeItems.remove("systemd-timesyncd")
