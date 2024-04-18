@@ -187,6 +187,11 @@ virtual/tmpfiles                                                     systemd
 
 # so that it does not depends on gui-libs/display-manager-init
 x11-base/xorg-server                                                 systemd
+
+# install systemd service files
+media-video/pipewire                                                 systemd
+medis-video/wireplumber                                              systemd
+net-wireless/bluez                                                   systemd
 """
 
     _maskFileContent = """
