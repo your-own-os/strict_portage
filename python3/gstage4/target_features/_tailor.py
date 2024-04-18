@@ -233,7 +233,7 @@ class TailorSystemd:
         if "systemd-sysusers" in removeItems:
             _updateDict({
                 "sys-apps/systemd": [
-                    "*systemd-sysusers*",
+                    "*sysusers*",
                 ],
             })
             removeItems.remove("systemd-sysusers")
