@@ -158,6 +158,9 @@ class TailorSystemd:
                     "/usr/lib/systemd/network*",
                     "/etc/systemd/network",
                 ],
+                "*/*": [
+                    "/usr/lib/systemd/network",
+                ],
             })
             removeItems.remove("systemd-networkd")
 
