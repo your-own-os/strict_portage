@@ -141,6 +141,7 @@ class TailorSystemd:
                     "*detect-virt*",
                     "*exit.target",
                     "*systemd-exit.service",
+                    "/usr/lib/systemd/system/machines.target.wants",
                 ],
             })
             removeItems.remove("systemd-machined")
