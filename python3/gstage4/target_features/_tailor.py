@@ -180,7 +180,7 @@ class TailorSystemd:
                 "sys-apps/systemd": [
                     "*oom1*",
                     "*oomd*",
-                    "*oomctl",
+                    "*oomctl*",
                 ],
             })
             removeItems.remove("systemd-oomd")
