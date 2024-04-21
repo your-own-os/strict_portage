@@ -98,6 +98,12 @@ class TailorSystemd:
                 "sys-apps/systemd": [
                     "*firstboot*",
                 ],
+                "app-i18n/man-pages-l10n": [
+                    "*systemd-firstboot*",      # weird: why i18n man pages not in systemd pakage it self?
+                ],
+                "app-i18n/man-pages-zh_CN": [
+                    "*systemd-firstboot*",      # weird: why i18n man pages not in systemd pakage it self?
+                ],
             })
             removeItems.remove("systemd-firstboot")
 
