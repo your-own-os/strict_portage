@@ -26,7 +26,7 @@ import abc
 
 class SeedStage(abc.ABC):
 
-    @abc.abstractclassmethod
+    @abc.abstractmethod
     def get_arch(self):
         pass
 
