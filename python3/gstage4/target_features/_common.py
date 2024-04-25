@@ -310,6 +310,9 @@ app-laptop/laptop-mode-tools
 # replaced by games-emulation/dosbox-staging
 games-emulation/dosbox
 
+# dev-db/mariadb deprecates dev-db/mysql
+dev-db/mysql
+
 # deprecated by dev-libs/rocm-opencl-runtime
 dev-libs/amdgpu-pro-opencl
 
