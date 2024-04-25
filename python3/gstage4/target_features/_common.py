@@ -304,6 +304,12 @@ net-wireless/wpa_supplicant
 # libstdc++ is integrated in gcc
 sys-libs/libstdc++-v3
 
+# modern laptop uses SSD, so it is deprecated?
+app-laptop/laptop-mode-tools
+
+# replaced by games-emulation/dosbox-staging
+games-emulation/dosbox
+
 # deprecated by dev-libs/rocm-opencl-runtime
 dev-libs/amdgpu-pro-opencl
 
