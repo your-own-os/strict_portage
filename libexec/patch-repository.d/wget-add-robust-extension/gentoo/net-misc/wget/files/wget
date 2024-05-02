@@ -1,6 +1,6 @@
 #!/bin/sh
 while true ; do
-    wget-reference $@
+    wget-reference "$@"
     ret=$?
     if [ $ret == 4 ] ; then
         echo "Failed due to network error, will retry after 10 seconds."        # FIXME: should check --quiet in $@
