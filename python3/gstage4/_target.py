@@ -28,6 +28,7 @@ from ._errors import SettingsError
 class TargetSettings:
 
     def __init__(self):
+        self.arch = None
         self.profile = None
 
         self.package_manager = "portage"              # "portage"
@@ -75,6 +76,9 @@ class TargetSettings:
         try:
             if not isinstance(obj, cls):
                 raise SettingsError("invalid object type")
+
+            if obj.arch not in ["alpha", "amd64", "arm", "arm64", "hppa", "ia64", "m68k", "mips", "ppc", "riscv", "s390", "sh", "sparc", "x86"]:
+                raise SettingsError("invalid value for \"arch\"")
 
             if obj.profile is not None and not isinstance(obj.profile, str):
                 raise SettingsError("invalid value for \"profile\"")
