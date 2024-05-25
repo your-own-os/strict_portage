@@ -617,7 +617,7 @@ class SupportAllVideoFormat:
 
     _useFileContent = """
 # video formats
-*/*                 bluray dv dvb dvd mms mpeg openh264 theora vcd x264 x265 xvid vpx
+*/*                 bluray dv dvb dvd mms mpeg mpeg2 openh264 theora vcd x264 x265 xvid vpx
 """
 
 
