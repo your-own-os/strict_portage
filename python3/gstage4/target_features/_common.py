@@ -507,12 +507,22 @@ class PreferWget2:
 
         target_settings.pkg_mask_files["10-prefer-wget2"] = self._maskFileContent.strip("\n") + "\n"
 
-        # FIXME: keepassxc has no pam integration?
-        assert False
-
     _maskFileContent = """
 # we use net-misc/wget2
 net-misc/wget
+"""
+
+
+class PreferLibtorrentRasterbar:
+
+    def update_target_settings(self, target_settings):
+        assert "10-prefer-libtorrent-rasterbar" not in target_settings.pkg_mask_files
+
+        target_settings.pkg_mask_files["10-prefer-libtorrent-rasterbar"] = self._maskFileContent.strip("\n") + "\n"
+
+    _maskFileContent = """
+# we prefer net-libs/libtorrent-rasterbar
+net-libs/libtorrent
 """
 
 
