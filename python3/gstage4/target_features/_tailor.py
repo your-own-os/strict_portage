@@ -690,6 +690,21 @@ class TailorLmSensors:
             target_settings.install_mask_files["10-tailor-lm-sensors"] = td
 
 
+class TailorQemu:
+
+    def __init__(self, add_items=[]):
+        self._addItems = add_items
+
+    def update_target_settings(self, host_info, target_settings):
+        items = list(self._addItems)
+
+        if "3dfx-patch" in items:
+            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "qemu-add-3dfx-patch"))
+            items.remove("3dfx-patch")
+
+        assert len(items) == 0
+
+
 class TailorPam:
 
     def __init__(self, remove_items=[]):
