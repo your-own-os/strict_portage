@@ -1,21 +1,21 @@
 #!/usr/bin/python3
 # -*- coding: utf-8; tab-width: 4; indent-tabs-mode: t -*-
 
+import os
 import glob
 import pathlib
+import subprocess
+
+os.makedirs("files", exist_ok=True)
+subprocess.check_output(["git", "clone", "https://github.com/kjliew/qemu-3dfx", "files/qemu-3dfx"])
 
 try:
     # what to insert (with blank line in the beginning and the end)
     buf2 = r"""
-# don't use dbus auto-activation
-rm ${D}/usr/share/dbus-1/system-services/org.freedesktop.Avahi.service
-[ -z "$(ls -A ${D}/usr/share/dbus-1/system-services)" ] && rmdir ${D}/usr/share/dbus-1/system-services
-
-# don't use socket-activation
-find "${D}" -name "*.socket" | xargs rm -rf
-sed -i '/avahi-daemon\.socket/d'                      ${D}/usr/lib/systemd/system/avahi-daemon.service
-sed -i 's/Requires=avahi-daemon\.socket /Requires=/g' ${D}/usr/lib/systemd/system/avahi-dnsconfd.service
-sed -i '/avahi-daemon\.socket/d'                      ${D}/usr/lib/systemd/system/avahi-dnsconfd.service
+# apply 3dfx patch
+cp -r ${FILESDIR}/qemu-3dfx/qemu-0/hw/3dfx hw
+cp -r ${FILESDIR}/qemu-3dfx/qemu-1/hw/mesa hw
+patch -p0 -i ${FILESDIR}/qemu-3dfx/00-qemu82x-mesa-glide.patch
 """
     buf2 = buf2.replace("\n", "\n\t")
     buf2 += "\n"
@@ -24,7 +24,7 @@ sed -i '/avahi-daemon\.socket/d'                      ${D}/usr/lib/systemd/syste
         buf = pathlib.Path(fn).read_text()
 
         # insert to the end of src_install()
-        pos = buf.find("multilib_src_install_all() {")
+        pos = buf.find("src_prepare() {")
         if pos == -1:
             raise ValueError()
         pos = buf.find("\n}\n", pos)

@@ -696,13 +696,21 @@ class TailorQemu:
         self._addItems = add_items
 
     def update_target_settings(self, host_info, target_settings):
+        assert "10-tailor-qemu" not in target_settings.install_mask_files
+
         items = list(self._addItems)
 
         if "3dfx-patch" in items:
             target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "qemu-add-3dfx-patch"))
+            target_settings.pkg_mask_files["10-tailor-qemu"] = self._maskFileContent.strip("\n") + "\n"
             items.remove("3dfx-patch")
 
         assert len(items) == 0
+
+    _maskFileContent = """
+<app-emulation/qemu-8.2.0
+>=app-emulation/qemu-9.0.0
+"""
 
 
 class TailorPam:
