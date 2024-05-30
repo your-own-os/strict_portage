@@ -710,7 +710,7 @@ class TailorQemu:
         assert len(items) == 0
 
     _useFileContent = """
-app-emulation/qemu sdl
+app-emulation/qemu          sdl sdl-image
 """
 
     _maskFileContent = """
