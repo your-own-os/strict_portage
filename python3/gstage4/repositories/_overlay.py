@@ -21,12 +21,10 @@
 # THE SOFTWARE.
 
 
-import lxml.etree
-import urllib.request
 from .. import MountRepository
 from .. import EmergeSyncRepository
-from .. import UpstreamError
 from .. import SettingsError
+from ..cloud import CloudOverlayDb
 
 
 class OverlayFromHost(MountRepository):
@@ -68,14 +66,14 @@ class RegisteredOverlay(EmergeSyncRepository):
 
     def __init__(self, overlay_name):
         if self._localData is None:
-            self._localData = self._parse()
+            self._localData = CloudOverlayDb()
 
-        if overlay_name not in self._localData:
+        if not self._localData.has_overlay(overlay_name):
             raise SettingsError("overlay \"%s\" does not exist" % (overlay_name))
 
         self._name = overlay_name
-        self._syncType = self._localData[overlay_name][0]
-        self._syncUrl = self._localData[overlay_name][1]
+        self._syncType = self._localData.get_overlay_vcs_type(overlay_name)
+        self._syncUrl = self._localData.get_overlay_url(overlay_name)
 
     def get_name(self):
         return self._name
@@ -91,52 +89,6 @@ class RegisteredOverlay(EmergeSyncRepository):
         buf += "sync-type = %s\n" % (self._syncType)
         buf += "sync-uri = %s\n" % (self._syncUrl)
         return buf
-
-    @staticmethod
-    def _parse():
-        cList = [
-            ("git", "https", "github.com"),
-            ("git", "https", "gitlab.com"),
-            ("git", "https", None),
-            ("git", "http", None),
-            ("git", "git", None),
-            ("svn", "https", None),
-            ("svn", "http", None),
-            ("mercurial", "https", None),
-            ("mercurial", "http", None),
-            ("rsync", "rsync", None),
-        ]
-
-        ret = dict()
-        with urllib.request.urlopen("https://api.gentoo.org/overlays/repositories.xml") as resp:
-            rootElem = lxml.etree.fromstring(resp.read()).getroot()
-            for nameTag in rootElem.xpath(".//repo/name"):
-                overlayName = nameTag.text
-                if overlayName in ret:
-                    raise UpstreamError("duplicate overlay \"%s\"" % (overlayName))
-
-                for vcsType, urlProto, urlDomain in cList:
-                    for sourceTag in nameTag.xpath("../source"):
-                        tVcsType = sourceTag.get("type")
-                        tUrl = sourceTag.text
-                        if tUrl.startswith("git://github.com/"):                            # FIXME: github does not support git:// anymore
-                            tUrl = tUrl.replace("git://", "https://")
-                        if tVcsType == vcsType:
-                            if urlDomain is not None:
-                                if tUrl.startswith(urlProto + "://" + urlDomain + "/"):
-                                    ret[overlayName] = (tVcsType, tUrl)
-                                    break
-                            else:
-                                if tUrl.startswith(urlProto + "://"):
-                                    ret[overlayName] = (tVcsType, tUrl)
-                                    break
-                    if overlayName in ret:
-                        break
-
-                if overlayName not in ret:
-                    raise UpstreamError("no appropriate source for overlay \"%s\"" % (overlayName))
-
-        return ret
 
 
 class UserDefinedOverlay(EmergeSyncRepository):
