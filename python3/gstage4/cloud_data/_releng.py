@@ -21,7 +21,10 @@
 # THE SOFTWARE.
 
 
-class CloudCacheGentooReleng:
+import re
+
+
+class GentooReleng:
 
     class Stage1Spec:
         def __init__(self):
