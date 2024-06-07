@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 
-from .. import cloud
+from .. import cloud_data
 from .. import MountRepository
 from .. import EmergeSyncRepository
 from .. import SettingsError
@@ -66,7 +66,7 @@ class RegisteredOverlay(EmergeSyncRepository):
 
     def __init__(self, overlay_name):
         if self._localData is None:
-            self._localData = cloud.OverlayDb()
+            self._localData = cloud_data.OverlayDb()
 
         if not self._localData.has_overlay(overlay_name):
             raise SettingsError("overlay \"%s\" does not exist" % (overlay_name))
