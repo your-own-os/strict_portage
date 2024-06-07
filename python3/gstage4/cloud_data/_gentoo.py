@@ -73,42 +73,37 @@ class Gentoo:
 
         return self._snapshotList
 
-    def gen_stage3_url(self, arch, subarch, stage3_release_variant, release_version):
+    def gen_stage3_fn(self, arch, subarch, stage3_release_variant, stage3_release_version):
         releaseVariant = self.__stage3GetReleaseVariant(subarch, stage3_release_variant)
+        return self.__getFn(releaseVariant, stage3_release_version)
 
-        fn, fnDigest = self.__getFn(releaseVariant, release_version)
-
-        url = os.path.join(self.__getAutoBuildsUrl(self._baseUrl, arch), release_version, fn)
-        urlDigest = os.path.join(self.__getAutoBuildsUrl(self._baseUrl, arch), release_version, fnDigest)
-
+    def gen_stage3_url(self, arch, subarch, stage3_release_variant, stage3_release_version):
+        fn, fnDigest = self.gen_stage3_fn(arch, subarch, stage3_release_variant, stage3_release_version)
+        url = os.path.join(self.__getAutoBuildsUrl(self._baseUrl, arch), stage3_release_version, fn)
+        urlDigest = os.path.join(self.__getAutoBuildsUrl(self._baseUrl, arch), stage3_release_version, fnDigest)
         return (url, urlDigest)
 
-    def get_latest_stage3_url(self, arch, subarch, stage3_release_variant):
+    def get_latest_stage3_release_version(self, arch):
         self._ensureArchList()
         self._ensureVariantDictAndVersionDict(arch)
 
-        releaseVariant = self.__stage3GetReleaseVariant(subarch, stage3_release_variant)
-        releaseVersion = sorted(self._versionDict[arch], reverse=True)[0]
+        return sorted(self._versionDict[arch], reverse=True)[0]
 
-        fn, fnDigest = self.__getFn(releaseVariant, releaseVersion)
+    def get_latest_stage3_url(self, arch, subarch, stage3_release_variant):
+        releaseVersion = self.get_latest_stage3_release_version(arch)
+        return self.gen_stage3_url(arch, subarch, stage3_release_variant, releaseVersion)
 
-        url = os.path.join(self.__getAutoBuildsUrl(self._baseUrl, arch), releaseVersion, fn)
-        urlDigest = os.path.join(self.__getAutoBuildsUrl(self._baseUrl, arch), releaseVersion, fnDigest)
-
-        return (url, urlDigest)
+    def gen_snapshot_fn(self, snapshot_version):
+        return "gentoo-%s.xz.sqfs" % (snapshot_version)
 
     def gen_snapshot_url(self, snapshot_version):
-        fn = "gentoo-%s.xz.sqfs" % (snapshot_version)
-        url = os.path.join(self._baseUrl, "snapshots", "squashfs", fn)
-        return url
+        return os.path.join(self._baseUrl, "snapshots", "squashfs", self.gen_snapshot_fn(snapshot_version))
 
     def get_latest_snapshot_url(self):
         self._ensureSnapshotList()
 
         snapshot_version = sorted(self._snapshotList, reverse=True)[0]
-        fn = "gentoo-%s.xz.sqfs" % (snapshot_version)
-        url = os.path.join(self._baseUrl, "snapshots", "squashfs", fn)
-        return url
+        return self.gen_snapshot_url(snapshot_version)
 
     def _ensureArchList(self):
         if self._archList is not None:
