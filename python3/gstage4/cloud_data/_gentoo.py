@@ -28,20 +28,18 @@ import lxml.html
 import urllib.request
 
 
-class Gentoo:
+class GentooReleases:
 
     def __init__(self):
         self._baseUrl = mrget.target_urls("mirror://gentoo", protocols=["http", "https", "ftp"])[0]
         self._releasesUrl = os.path.join(self._baseUrl, "releases")
-        self._snapshotsUrl = os.path.join(self._baseUrl, "snapshots")
 
         self._archList = None
         self._variantDict = dict()
         self._versionDict = dict()
-        self._snapshotList = None
 
     def get_url(self):
-        return self._baseUrl
+        return self._releasesUrl
 
     def get_arch_list(self):
         self._ensureArchList()
@@ -68,11 +66,6 @@ class Gentoo:
 
         return self._versionDict[arch]
 
-    def get_snapshot_version_list(self):
-        self._ensureSnapshotList()
-
-        return self._snapshotList
-
     def gen_stage3_fn(self, arch, release_variant, release_version):
         assert release_variant.startswith("stage3-")
         fn = release_variant + "-" + release_version + ".tar.xz"
@@ -94,18 +87,6 @@ class Gentoo:
     def get_latest_stage3_url(self, arch, subarch, release_variant):
         releaseVersion = self.get_latest_stage3_release_version(arch)
         return self.gen_stage3_url(arch, subarch, release_variant, releaseVersion)
-
-    def gen_snapshot_fn(self, snapshot_version):
-        return "gentoo-%s.xz.sqfs" % (snapshot_version)
-
-    def gen_snapshot_url(self, snapshot_version):
-        return os.path.join(self._baseUrl, "snapshots", "squashfs", self.gen_snapshot_fn(snapshot_version))
-
-    def get_latest_snapshot_url(self):
-        self._ensureSnapshotList()
-
-        snapshot_version = sorted(self._snapshotList, reverse=True)[0]
-        return self.gen_snapshot_url(snapshot_version)
 
     def _ensureArchList(self):
         if self._archList is not None:
@@ -141,6 +122,38 @@ class Gentoo:
         self._variantDict[arch] = variantList
         self._versionDict[arch] = versionList
 
+    @staticmethod
+    def __getAutoBuildsUrl(baseUrl, arch):
+        return os.path.join(baseUrl, "releases", arch, "autobuilds")
+
+
+class GentooSnapshots:
+
+    def __init__(self):
+        self._baseUrl = mrget.target_urls("mirror://gentoo", protocols=["http", "https", "ftp"])[0]
+        self._snapshotsUrl = os.path.join(self._baseUrl, "snapshots")
+        self._snapshotList = None
+
+    def get_url(self):
+        return self._snapshotsUrl
+
+    def get_snapshot_version_list(self):
+        self._ensureSnapshotList()
+
+        return self._snapshotList
+
+    def gen_snapshot_fn(self, snapshot_version):
+        return "gentoo-%s.xz.sqfs" % (snapshot_version)
+
+    def gen_snapshot_url(self, snapshot_version):
+        return os.path.join(self._baseUrl, "snapshots", "squashfs", self.gen_snapshot_fn(snapshot_version))
+
+    def get_latest_snapshot_url(self):
+        self._ensureSnapshotList()
+
+        snapshot_version = sorted(self._snapshotList, reverse=True)[0]
+        return self.gen_snapshot_url(snapshot_version)
+
     def _ensureSnapshotList(self):
         if self._snapshotList is not None:
             return
@@ -152,7 +165,3 @@ class Gentoo:
                     m = re.fullmatch("gentoo-([0-9]+).xz.sqfs", elem.text)
                     if m is not None:
                         self._snapshotList.append(m.group(1))
-
-    @staticmethod
-    def __getAutoBuildsUrl(baseUrl, arch):
-        return os.path.join(baseUrl, "releases", arch, "autobuilds")

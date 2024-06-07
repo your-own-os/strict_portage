@@ -21,6 +21,7 @@
 # THE SOFTWARE.
 
 
-from ._gentoo import Gentoo
+from ._gentoo import GentooReleases
+from ._gentoo import GentooSnapshots
 
 from ._overlay_db import OverlayDb
