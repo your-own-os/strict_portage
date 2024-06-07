@@ -26,6 +26,8 @@ import re
 
 class GentooReleng:
 
+    URL = "https://gitweb.gentoo.org/proj/releng.git"
+
     class Stage1Spec:
         def __init__(self):
             assert False
@@ -77,11 +79,10 @@ class GentooReleng:
                 raise Exception("no key \"boot/kernel/gentoo/config\" in \"%s\"" % (fullfn))
 
     def __init__(self, cacheDir):
-        self._baseUrl = "https://gitweb.gentoo.org/proj/releng.git"
         self._dir = cacheDir
 
     def sync(self):
-        robust_layer.simple_git.pull(self._dir, reclone_on_failure=True, url=self._baseUrl)
+        robust_layer.simple_git.pull(self._dir, reclone_on_failure=True, url=self.URL)
 
     def get_arch_list(self):
         assert self._isSynced()
