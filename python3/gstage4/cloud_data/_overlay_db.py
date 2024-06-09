@@ -88,7 +88,7 @@ class OverlayDb:
         with urllib.request.urlopen(self.URL) as resp:
             ret = dict()
 
-            rootElem = lxml.etree.fromstring(resp.read()).getroot()
+            rootElem = lxml.etree.fromstring(resp.read())
             for nameTag in rootElem.xpath(".//repo/name"):
                 overlayName = nameTag.text
                 if overlayName in ret:
