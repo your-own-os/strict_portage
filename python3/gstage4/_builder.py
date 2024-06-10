@@ -44,15 +44,11 @@ from .scripts import ScriptUpdateWorld
 def Action(after=[], before=[]):
     def decorator(func):
         def wrapper(self, *kargs, **kwargs):
-            curMethod = None
-            for p in self._actionList:
-                if p.__func__ == wrapper:
-                    curMethod = p
-                    break
-            assert self._actionList.index(self._lastAction) < self._actionList.index(curMethod) if self._lastAction is not None else True
+            curAction = next((x for x in self._actionList if x.__func__ == wrapper), None)
+            assert self._actionList.index(self._lastAction) < self._actionList.index(curAction) if self._lastAction is not None else True
             assert not self._finished
             func(self, *kargs, **kwargs)
-            self._lastAction = curMethod
+            self._lastAction = curAction
         wrapper._after = after
         wrapper._before = before
         return wrapper
