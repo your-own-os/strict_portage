@@ -159,7 +159,7 @@ class GentooSnapshots:
             return
 
         self._snapshotList = []
-        with urllib.request.urlopen(os.path.join(self._baseUrl, "snapshots", "squashfs"), timeout=robust_layer.TIMEOUT) as resp:
+        with urllib.request.urlopen(os.path.join(self._baseUrl, "snapshots", "squashfs")) as resp:
             for elem in lxml.html.parse(resp).xpath(".//a"):
                 if elem.text is not None:
                     m = re.fullmatch("gentoo-([0-9]+).xz.sqfs", elem.text)
