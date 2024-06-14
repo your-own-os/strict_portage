@@ -44,11 +44,12 @@ from .scripts import ScriptUpdateWorld
 def Action(after=[], before=[]):
     def decorator(func):
         def wrapper(self, *kargs, **kwargs):
-            curAction = next((x for x in self._actionList if x.__func__ == wrapper))
-            assert self._actionList.index(self._lastAction) < self._actionList.index(curAction) if self._lastAction is not None else True
+            curActionIndex = self._getActionIndex(func.__name__)
+            assert self._lastActionIndex < curActionIndex if self._lastActionIndex is not None else True
             assert not self._finished
             func(self, *kargs, **kwargs)
-            self._lastAction = curAction
+            self._lastActionIndex = curActionIndex
+        wrapper._func = func
         wrapper._after = after
         wrapper._before = before
         return wrapper
@@ -92,8 +93,7 @@ class Builder:
             self.action_enable_services,
             self.action_cleanup,
         ]
-        for i in range(0, len(self._actionList)):
-            self._checkAction(self._actionList[i], i)
+        self._checkActions()
 
         self._actionStorage = {
             "arch": None,                   # target arch
@@ -101,8 +101,8 @@ class Builder:
             "overlays": {},                 # overlay information
         }
 
-        self._lastAction = None
-        self._finished = False
+        self._lastActionIndex = None        # init value must be None
+        self._finished = None               # init value must be None
 
     @property
     def verbose_level(self):
@@ -375,25 +375,42 @@ class Builder:
 
     def finish(self):
         assert not self._finished
-        assert self._lastAction == self.action_cleanup
+        assert self._lastActionIndex >= self._actionList.index(self.action_cleanup)
         self._finished = True
 
     def add_custom_action(self, action_name, action, insert_after=None, insert_before=None):
         assert re.fullmatch("[0-9a-z_]+", action_name) and "action_" + action_name not in dir(self)
         assert CustomAction.check_object(action, raise_exception=False)
 
+        # convert action object or action name to action index
+        if insert_before is not None:
+            if insert_before.__class__.__name__ == "method":                        # FIXME
+                insert_before = self._actionList.index(insert_before)
+            else:
+                insert_before = self._getActionIndex("action_" + insert_before)
+        if insert_after is not None:
+            if insert_after.__class__.__name__ == "method":                         # FIXME
+                insert_after = self._actionList.index(insert_after)
+            else:
+                insert_after = self._getActionIndex("action_" + insert_after)
+
+        # convert to use insert_before only
         if insert_before is not None and insert_after is None:
-            insert_before = self._actionList.index(insert_before)
-            assert insert_before <= len(self._actionList) - 1      # action_cleanup must be the last action
+            pass
         elif insert_before is None and insert_after is not None:
-            insert_before = self._actionList.index(insert_after) + 1
-            assert insert_before <= len(self._actionList) - 1      # action_cleanup must be the last action
+            insert_before = insert_after + 1
         elif insert_before is None and insert_after is None:
-            insert_before = len(self._actionList) - 1              # action_cleanup must be the last action
+            insert_before = len(self._actionList)
         else:
             assert False
-        if self._lastAction is not None:
-            assert self._actionList.index(self._lastAction) < insert_before
+
+        if self._lastActionIndex is not None:
+            assert self._lastActionIndex < insert_before
+        else:
+            # two cases:
+            # 1. no action has been executed: can add custom action freely
+            # 2. history actions has not been loaded: will do check in self._ensureLastActionAndFinished() when next action is executed
+            pass
 
         # create new action
         @Action(after=action.after, before=action.before)
@@ -408,47 +425,54 @@ class Builder:
         self._actionList.insert(insert_before, x)
 
         # do check
-        for i in range(0, len(self._actionList)):
-            self._checkAction(self._actionList[i], i)
+        self._checkActions()
 
     def add_and_run_custom_action(self, action_name, action):
-        self.add_custom_action(action_name, action, insert_after=self._lastAction)
+        if self._lastActionIndex is not None:
+            self.add_custom_action(action_name, action, insert_after=self._actionList[self._lastActionIndex])
+        else:
+            self.add_custom_action(action_name, action, insert_before=self._actionList[0])
         exec("self.action_%s()" % (action_name))
 
     def remove_action(self, action_name):
-        idx = self._actionList.index(eval("self.action_%s" % (action_name)))
+        idx = self._getActionIndex("action_" + action_name)
 
-        if self._lastAction is not None:
-            assert self._actionList.index(self._lastAction) < idx
+        if self._lastActionIndex is not None:
+            assert self._lastActionIndex < idx
+        else:
+            # two cases:
+            # 1. no action has been executed: can remove custom action freely
+            # 2. history actions has not been loaded: will do check in self._ensureLastActionAndFinished() when next action is executed
+            pass
 
         # removes action from self._actionList
         # FIXME: no way to remove action method
         self._actionList.pop(idx)
 
         # do check
-        for i in range(0, len(self._actionList)):
-            self._checkAction(self._actionList[i], i)
+        self._checkActions()
 
     def get_progress(self):
-        if self._lastAction is None:
+        if self._lastActionIndex is None:
             return 0
-        else:
-            return (self._actionList.index(self._lastAction) + 1) * 100 // len(self._actionList)
 
-    def _checkAction(self, action, actionIndex):
-        if len(action._after) > 0:
-            bFound = False
-            for pstr in action._after:
-                p = getattr(self, "action_" + pstr)
-                if p in self._actionList:
-                    assert self._actionList.index(p) < actionIndex
-                    bFound = True
-            assert bFound
+        if self._finished:
+            return 100
 
-        for pstr in action._before:
-            p = getattr(self, "action_" + pstr)
-            if p in self._actionList:
-                assert actionIndex < self._actionList.index(p)
+        ret = (self._lastActionIndex + 1) * 100 // len(self._actionList)
+        return min(ret, 99)
+
+    def _getActionIndex(self, action_func_name):
+        for i, action in enumerate(self._actionList):
+            if action._func.__name__ == action_func_name:
+                return i
+        assert False
+
+    def _checkActions(self):
+        actionFuncNameList = [x._func.__name__ for x in self._actionList]
+        for i, action in enumerate(self._actionList):
+            assert all(["action_" + x in actionFuncNameList[:i] for x in action._after])
+            assert all(["action_" + x in actionFuncNameList[i+1:] for x in action._before])
 
     def _getQuiet(self):
         return (self._s.verbose_level == 0)
