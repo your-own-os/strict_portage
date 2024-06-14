@@ -476,8 +476,8 @@ class Builder:
     def _checkActions(self):
         actionFuncNameList = [x._func.__name__ for x in self._actionList]
         for i, action in enumerate(self._actionList):
-            assert all(["action_" + x in actionFuncNameList[:i] for x in action._after])
-            assert all(["action_" + x in actionFuncNameList[i+1:] for x in action._before])
+            assert all(["action_" + x not in actionFuncNameList[:i] for x in action._after])
+            assert all(["action_" + x not in actionFuncNameList[i+1:] for x in action._before])
 
     def _getQuiet(self):
         return (self._s.verbose_level == 0)
