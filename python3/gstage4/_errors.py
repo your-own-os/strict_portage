@@ -41,5 +41,9 @@ class WorkDirError(Exception):
     pass
 
 
+class BuildError(Exception):
+    pass
+
+
 class CustomActionError(Exception):
     pass

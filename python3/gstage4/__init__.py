@@ -51,4 +51,5 @@ from ._errors import UpstreamError
 from ._errors import SettingsError
 from ._errors import SeedStageError
 from ._errors import WorkDirError
+from ._errors import BuildError
 from ._errors import CustomActionError

@@ -32,6 +32,7 @@ from ._prototype import MountRepository
 from ._prototype import EmergeSyncRepository
 from ._prototype import ScriptInChroot
 from ._errors import SettingsError
+from ._errors import BuildError
 from ._errors import CustomActionError
 from ._host import HostInfo
 from ._target import TargetSettings
@@ -44,11 +45,25 @@ from .scripts import ScriptUpdateWorld
 def Action(after=[], before=[]):
     def decorator(func):
         def wrapper(self, *kargs, **kwargs):
+            if self._finished is not None:
+                if self._finished == "":
+                    raise BuildError("build already finished")
+                else:
+                    raise BuildError("build already failed, %s" % (self._finished))
             curActionIndex = self._getActionIndex(func.__name__)
-            assert self._lastActionIndex < curActionIndex if self._lastActionIndex is not None else True
-            assert not self._finished
-            func(self, *kargs, **kwargs)
-            self._lastActionIndex = curActionIndex
+            if curActionIndex != self._lastActionIndex + 1:
+                lastActionFuncName = self._actionList[self._lastActionIndex] if self._lastActionIndex >= 0 else "None"
+                raise BuildError("action must be executed in order (last: %s, current: %s)" % (lastActionFuncName, func.__name__))
+            try:
+                func(self, *kargs, **kwargs)
+            except BaseException as e:
+                # we don't know in which step the error happens
+                self._finished = e.message
+                self._workDirObj.save_builder_finished(e.message)
+                raise
+            finally:
+                self._lastActionIndex = curActionIndex
+                self._workDirObj.save_builder_action_to_history_actions(func.__name__)
         wrapper._func = func
         wrapper._after = after
         wrapper._before = before
@@ -101,8 +116,13 @@ class Builder:
             "overlays": {},                 # overlay information
         }
 
-        self._lastActionIndex = None        # init value must be None
-        self._finished = None               # init value must be None
+        # self._lastActionIndex == -1 if no action has been executed
+        self._lastActionIndex = -1
+
+        # not finished:          self._finished is None
+        # successfully finished: self._finished == ""
+        # abnormally finished:   self._finished == error-message
+        self._finished = None
 
     @property
     def verbose_level(self):
@@ -374,9 +394,9 @@ class Builder:
             Util.forceDelete(t.binpkgdir_hostpath)
 
     def finish(self):
-        assert not self._finished
+        assert self._finished is None
         assert self._lastActionIndex >= self._actionList.index(self.action_cleanup)
-        self._finished = True
+        self._finished = ""
 
     def add_custom_action(self, action_name, action, insert_after=None, insert_before=None):
         assert re.fullmatch("[0-9a-z_]+", action_name) and "action_" + action_name not in dir(self)
@@ -404,11 +424,7 @@ class Builder:
         else:
             assert False
 
-        if self._lastActionIndex is not None:
-            assert self._lastActionIndex < insert_before
-        else:
-            # no action has been executed: can add custom action freely
-            pass
+        assert self._lastActionIndex < insert_before
 
         # create new action
         @Action(after=action.after, before=action.before)
@@ -426,20 +442,16 @@ class Builder:
         self._checkActions()
 
     def add_and_run_custom_action(self, action_name, action):
-        if self._lastActionIndex is not None:
-            self.add_custom_action(action_name, action, insert_after=self._actionList[self._lastActionIndex])
-        else:
+        if self._lastActionIndex == -1:
             self.add_custom_action(action_name, action, insert_before=self._actionList[0])
+        else:
+            self.add_custom_action(action_name, action, insert_after=self._actionList[self._lastActionIndex])
         exec("self.action_%s()" % (action_name))
 
     def remove_action(self, action_name):
         idx = self._getActionIndex("action_" + action_name)
 
-        if self._lastActionIndex is not None:
-            assert self._lastActionIndex < idx
-        else:
-            # no action has been executed: can remove action freely
-            pass
+        assert self._lastActionIndex < idx
 
         # removes action from self._actionList
         # FIXME: no way to remove action method
@@ -449,14 +461,11 @@ class Builder:
         self._checkActions()
 
     def get_progress(self):
-        if self._lastActionIndex is None:
-            return 0
-
-        if self._finished:
+        if self._finished is None:
+            ret = (self._lastActionIndex + 1) * 100 // len(self._actionList)
+            return min(ret, 99)
+        else:
             return 100
-
-        ret = (self._lastActionIndex + 1) * 100 // len(self._actionList)
-        return min(ret, 99)
 
     def _getActionIndex(self, action_func_name):
         for i, action in enumerate(self._actionList):
