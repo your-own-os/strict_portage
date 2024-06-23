@@ -697,6 +697,8 @@ class SupportAllGraphicsApi:
 # we prefer gles, but we also enable opengl when it doesn't conflict with gles
 */*                                                                                  -opengl
 app-emulation/qemu                                                                   opengl
+app-emulation/wine-vanilla                                                           opengl
+app-emulation/wine-staging                                                           opengl
 dev-lang/fbc                                                                         opengl
 games-emulation/dosbox-staging                                                       opengl
 games-engines/scummvm                                                                opengl
