@@ -70,7 +70,7 @@ class OverlayDb:
 
     def _ensureData(self):
         if self._data is not None:
-            return 
+            return
 
         cList = [
             ("git", "https", "github.com"),
