@@ -109,7 +109,7 @@ class Runner:
         env = "LANG=C.utf8 PATH=/bin:/usr/bin:/sbin:/usr/sbin " + env
         assert self._detectArch() == platform.machine()
 
-        if not quiet:
+        if quiet:
             subprocess.check_call("%s chroot \"%s\" %s" % (env, self._dir, cmd), shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         else:
             subprocess.check_call("%s chroot \"%s\" %s" % (env, self._dir, cmd), shell=True)
