@@ -42,17 +42,17 @@ from .scripts import ScriptInstallPackages
 from .scripts import ScriptUpdateWorld
 
 
-def Action(after=[], before=[]):
+def Action(after=[], before=[], _custom_action_name=None, _custom_action=None):
     def decorator(func):
         def wrapper(self, *kargs, **kwargs):
+            curActionIndex = self._getActionIndex(wrapper._action_func_name)
             if self._finished is not None:
                 if self._finished == "":
                     raise BuildError("build already finished")
                 else:
                     raise BuildError("build already failed, %s" % (self._finished))
-            curActionIndex = self._getActionIndex(func.__name__)
             if curActionIndex != self._lastActionIndex + 1:
-                lastActionFuncName = self._actionList[self._lastActionIndex] if self._lastActionIndex >= 0 else "None"
+                lastActionFuncName = self._actionList[self._lastActionIndex]._action_func_name if self._lastActionIndex >= 0 else "None"
                 raise BuildError("action must be executed in order (last: %s, current: %s)" % (lastActionFuncName, func.__name__))
             try:
                 func(self, *kargs, **kwargs)
@@ -62,9 +62,10 @@ def Action(after=[], before=[]):
                 raise
             finally:
                 self._lastActionIndex = curActionIndex
-        wrapper._func = func
-        wrapper._after = after
-        wrapper._before = before
+        wrapper._action_func_name = (func.__name__ if _custom_action_name is None else "action_" + _custom_action_name)
+        wrapper._action = _custom_action
+        wrapper._after = (after if _custom_action is None else _custom_action.get_after())
+        wrapper._before = (before if _custom_action is None else _custom_action.get_before())
         return wrapper
     return decorator
 
@@ -418,17 +419,14 @@ class Builder:
 
         assert self._lastActionIndex < insert_before
 
-        # create new action
-        @Action(after=action.after, before=action.before)
+        # create new action and add it to self._actionList
+        @Action(_custom_action_name=action_name, _custom_action=action)
         def x(self):
             with _MyChrooter(self) as m:
                 for s in action.custom_scripts:
                     m.script_exec(s, quiet=self._getQuiet())
-        x = x.__get__(self)
-        exec("self.action_%s = x" % (action_name))
-
-        # add new action to self._actionList
-        self._actionList.insert(insert_before, x)
+        exec("self.action_%s = x.__get__(self)" % (action_name))
+        self._actionList.insert(insert_before, eval("self.action_%s" % (action_name)))
 
         # do check
         self._checkActions()
@@ -461,12 +459,12 @@ class Builder:
 
     def _getActionIndex(self, action_func_name):
         for i, action in enumerate(self._actionList):
-            if action._func.__name__ == action_func_name:
+            if action._action_func_name == action_func_name:
                 return i
         assert False
 
     def _checkActions(self):
-        actionFuncNameList = [x._func.__name__ for x in self._actionList]
+        actionFuncNameList = [x._action_func_name for x in self._actionList]
         for i, action in enumerate(self._actionList):
             assert all(["action_" + x not in actionFuncNameList[:i] for x in action._before])
             assert all(["action_" + x not in actionFuncNameList[i+1:] for x in action._after])
