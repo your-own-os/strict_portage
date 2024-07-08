@@ -131,6 +131,8 @@ class Builder:
         t.make_dir_by_hostpath("logdir", exist_ok=True)
         t.make_dir_by_hostpath("distdir", exist_ok=True)
         t.make_dir_by_hostpath("binpkgdir", exist_ok=True)
+        if self._ts.build_opts.ccache:
+            t.make_dir_by_hostpath("ccachedir")
         with t.open_file_for_write_by_hostpath("world_file") as f:
             f.write("")
 
@@ -158,14 +160,14 @@ class Builder:
 
     @Action(after=["create_gentoo_repository"])
     def action_init_confdir(self):
-        t = TargetConfDirParser(self._workDirObj.path)
+        tp = TargetConfDirParser(self._workDirObj.path)
         tw = TargetConfDirWriter(self._s, self._ts, self._workDirObj.path)
 
         # set profile
         if self._ts.profile is not None:                                            # using profile specified by caller
             with _MyChrooter(self) as m:
                 m.shell_call("", "eselect profile set %s" % (self._ts.profile))
-        elif t.get_profile() is not None:                                           # profile already exists
+        elif tp.get_profile() is not None:                                          # profile already exists
             pass
         else:                                                                       # select first stable profile in list as the default profile
             with _MyChrooter(self) as m:
@@ -182,10 +184,6 @@ class Builder:
         tw.write_package_license()
         tw.write_package_env()
         tw.write_use_mask()
-
-        # create ccache directory
-        if self._ts.build_opts.ccache:
-            os.mkdir(tw.ccachedir_hostpath)
 
     @Action(after=["init_confdir"])
     def action_create_overlays(self, overlay_list):
