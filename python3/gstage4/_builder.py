@@ -36,7 +36,6 @@ from ._errors import BuildError
 from ._errors import CustomActionError
 from ._host import HostInfo
 from ._settings import Settings
-from ._settings import ComputingPower
 from ._settings import TargetSettings
 from ._runner import Runner
 from .scripts import ScriptFromBuffer
@@ -87,7 +86,9 @@ class Builder:
             self._s.program_name = program_name
             self._s.log_dir = log_dir
             self._s.verbose_level = verbose_level
-            self._s.host_computing_power = ComputingPower(host_info.cpu_core_count, host_info.memory_size, host_info.cooling_level)
+            self._s.host_cpu_core_count = host_info.cpu_core_count
+            self._s.host_memory_size = host_info.memory_size
+            self._s.host_cooling_level = host_info.cooling_level
             self._s.host_distfiles_dir = host_info.distfiles_dir
             self._s.host_packages_dir = host_info.packages_dir
             self._s.host_ccache_dir = host_info.ccache_dir
@@ -929,19 +930,19 @@ class TargetConfDirWriter:
         paraMakeOpts = None
         paraEmergeOpts = None
         if True:
-            if self._s.host_computing_power.cooling_level <= 1:
+            if self._s.host_cooling_level <= 1:
                 jobcountMake = 1
                 jobcountEmerge = 1
                 loadavg = 1
             else:
-                if self._s.host_computing_power.memory_size >= 24 * 1024 * 1024 * 1024:       # >=24G
-                    jobcountMake = self._s.host_computing_power.cpu_core_count + 2
-                    jobcountEmerge = self._s.host_computing_power.cpu_core_count
-                    loadavg = self._s.host_computing_power.cpu_core_count
+                if self._s.host_memory_size >= 24 * 1024 * 1024 * 1024:       # >=24G
+                    jobcountMake = self._s.host_cpu_core_count + 2
+                    jobcountEmerge = self._s.host_cpu_core_count
+                    loadavg = self._s.host_cpu_core_count
                 else:
-                    jobcountMake = self._s.host_computing_power.cpu_core_count
-                    jobcountEmerge = self._s.host_computing_power.cpu_core_count
-                    loadavg = max(1, self._s.host_computing_power.cpu_core_count - 1)
+                    jobcountMake = self._s.host_cpu_core_count
+                    jobcountEmerge = self._s.host_cpu_core_count
+                    loadavg = max(1, self._s.host_cpu_core_count - 1)
 
             paraMakeOpts = ["--jobs=%d" % (jobcountMake), "--load-average=%d" % (loadavg), "-j%d" % (jobcountMake), "-l%d" % (loadavg)]     # for bug 559064 and 592660, we need to add -j and -l, it sucks
             paraEmergeOpts = ["--jobs=%d" % (jobcountEmerge), "--load-average=%d" % (loadavg)]
