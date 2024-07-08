@@ -25,6 +25,39 @@ import re
 from ._errors import SettingsError
 
 
+class Settings:
+
+    def __init__(self):
+        self.program_name = None
+
+        self.log_dir = None
+
+        self.verbose_level = 1
+
+        self.host_computing_power = None
+
+        # repo.postsync.d patch framework
+        self.host_repo_postsync_patch_script = "/usr/libexec/gstage4/patch-repository"
+        self.host_repo_postsync_patch_source_dir = "/usr/libexec/gstage4/patch-repository.d"
+
+        # distfiles directory in host system, will be bind mounted in target system
+        self.host_distfiles_dir = None
+
+        # packages directory in host system
+        self.host_packages_dir = None
+
+        # ccache directory in host system
+        self.host_ccache_dir = None
+
+
+class ComputingPower:
+
+    def __init__(self, cpu_core_count, memory_size, cooling_level):
+        self.cpu_core_count = cpu_core_count
+        self.memory_size = memory_size               # in byte
+        self.cooling_level = cooling_level           # 1-10, less is weaker
+
+
 class TargetSettings:
 
     def __init__(self):
