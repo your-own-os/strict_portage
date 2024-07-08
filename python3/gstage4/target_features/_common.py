@@ -29,8 +29,8 @@ from ..scripts import PlacingFilesScript
 
 class FixBugs:
 
-    def update_target_settings(self, host_info, target_settings):
-        target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "bugfix"))
+    def update_target_settings(self, settings, target_settings):
+        target_settings.repo_postsync_patch_directories.append(os.path.join(settings.host_repo_postsync_patch_source_dir, "bugfix"))
 
 
 class UsePortage:
@@ -79,7 +79,7 @@ class UseBinaryKernel:
 
 class UseBbki:
 
-    def update_target_settings(self, host_info, target_settings):
+    def update_target_settings(self, settings, target_settings):
         assert "10-bbki" not in target_settings.pkg_use_files
         assert "10-bbki" not in target_settings.pkg_mask_files
 
@@ -88,7 +88,7 @@ class UseBbki:
 
         target_settings.pkg_use_files["10-bbki"] = self._useFileContent.strip("\n") + "\n"
         target_settings.pkg_mask_files["10-bbki"] = self._maskFileContent.strip("\n") + "\n"
-        target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "use-bbki"))
+        target_settings.repo_postsync_patch_directories.append(os.path.join(settings.host_repo_postsync_patch_source_dir, "use-bbki"))
 
     def remove_actions(self, builder):
         if builder.has_action("install_kernel"):
@@ -224,7 +224,7 @@ class UseVT:
 class NotUseVT:
     # makes userspace be ready for CONFIG_VT=n, we don't manipulate kernel config file
 
-    def update_target_settings(self, host_info, target_settings):
+    def update_target_settings(self, settings, target_settings):
         assert "10-no-vt" not in target_settings.install_mask_files
 
         target_settings.install_mask_files["10-no-vt"] = {
@@ -236,7 +236,7 @@ class NotUseVT:
             ],
         }
 
-        target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "kill-config-vt"))
+        target_settings.repo_postsync_patch_directories.append(os.path.join(settings.host_repo_postsync_patch_source_dir, "kill-config-vt"))
 
 
 class NotUseDeprecatedPackagesAndFunctions:
@@ -650,8 +650,8 @@ echo "blacklist pcspkr" > /etc/modprobe.d/disable-pc-speaker.conf
 
 class DisableFstab:
 
-    def update_target_settings(self, host_info, target_settings):
-        target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "remove-fstab"))
+    def update_target_settings(self, settings, target_settings):
+        target_settings.repo_postsync_patch_directories.append(os.path.join(settings.host_repo_postsync_patch_source_dir, "remove-fstab"))
 
 
 class RemoveDoc:
@@ -681,7 +681,7 @@ class PreferWayland:
     def __init__(self, xwayland=True):
         self._xwayland = xwayland
 
-    def update_target_settings(self, host_info, target_settings):
+    def update_target_settings(self, settings, target_settings):
         assert "10-prefer-wayland" not in target_settings.pkg_use_files
         assert "10-prefer-wayland" not in target_settings.pkg_mask_files
 
@@ -692,9 +692,9 @@ class PreferWayland:
 
         target_settings.pkg_mask_files["10-prefer-wayland"] = self._maskFileContent.strip("\n") + "\n"
 
-        target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "use-wayland"))
+        target_settings.repo_postsync_patch_directories.append(os.path.join(settings.host_repo_postsync_patch_source_dir, "use-wayland"))
         if not self._xwayland:
-            target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "remove-x11"))
+            target_settings.repo_postsync_patch_directories.append(os.path.join(settings.host_repo_postsync_patch_source_dir, "remove-x11"))
 
     _useFileContent = """
 # we use wayland
@@ -827,14 +827,14 @@ media-sound/vkeybd                                          # sound route 7
 
 class PreferBlockDeviceUAccess:
 
-    def update_target_settings(self, host_info, target_settings):
+    def update_target_settings(self, settings, target_settings):
         assert "10-prefer-block-device-uaccess" not in target_settings.pkg_use_files
         assert "10-prefer-block-device-uaccess" not in target_settings.pkg_mask_files
 
         target_settings.pkg_use_files["10-prefer-block-device-uaccess"] = self._useFileContent.strip("\n") + "\n"
         target_settings.pkg_mask_files["10-prefer-block-device-uaccess"] = self._maskFileContent.strip("\n") + "\n"
 
-        target_settings.repo_postsync_patch_directories.append(os.path.join(host_info.repo_postsync_patch_source_dir, "block-device-uaccess"))
+        target_settings.repo_postsync_patch_directories.append(os.path.join(settings.host_repo_postsync_patch_source_dir, "block-device-uaccess"))
 
     _useFileContent = """
 */*     -udisks

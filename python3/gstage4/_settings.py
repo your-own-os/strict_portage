@@ -23,6 +23,7 @@
 
 import os
 import re
+import multiprocessing
 from ._errors import SettingsError
 
 
