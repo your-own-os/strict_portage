@@ -284,7 +284,7 @@ class Builder:
             "dev-vcs/subversion",
         ]
         for i in reversed(range(0, len(preInstallList))):
-            if preInstallList[i] in world_set and not Util.portageIsPkgInstalled(self._workDirObj.path, preInstallList[i]):
+            if preInstallList[i] in world_set and Util.portageIsPkgInstalled(self._workDirObj.path, preInstallList[i]):
                 preInstallList.pop(i)
 
         # install packages & update world
