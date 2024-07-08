@@ -64,8 +64,8 @@ def Action(after=[], before=[], _custom_action_name=None, _custom_action=None):
                 self._lastActionIndex = curActionIndex
         wrapper._action_func_name = (func.__name__ if _custom_action_name is None else "action_" + _custom_action_name)
         wrapper._action = _custom_action
-        wrapper._after = (after if _custom_action is None else _custom_action.get_after())
-        wrapper._before = (before if _custom_action is None else _custom_action.get_before())
+        wrapper._after = (after if _custom_action is None else _custom_action.after)
+        wrapper._before = (before if _custom_action is None else _custom_action.before)
         return wrapper
     return decorator
 
