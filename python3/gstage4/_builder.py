@@ -85,7 +85,8 @@ class Builder:
             os.makedirs(self._s.log_dir, mode=0o750, exist_ok=True)
 
         self._ts = target_settings
-        assert (self._ts.build_opts.ccache and self._s.host_ccache_dir is not None) or (not self._ts.build_opts.ccache and self._s.host_ccache_dir is None)
+        if self._ts.build_opts.ccache:
+            assert self._s.host_ccache_dir is not None
 
         self._workDirObj = work_dir
 
