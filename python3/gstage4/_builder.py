@@ -283,8 +283,8 @@ class Builder:
             "dev-vcs/git",
             "dev-vcs/subversion",
         ]
-        for i, pkg in reversed(enumerate(preInstallList)):
-            if pkg not in world_set or Util.portageIsPkgInstalled(self._workDirObj.path, pkg):
+        for i in reversed(range(0, len(preInstallList))):
+            if preInstallList[i] not in world_set or Util.portageIsPkgInstalled(self._workDirObj.path, preInstallList[i]):
                 preInstallList.pop(i)
 
         # install packages & update world
