@@ -192,6 +192,7 @@ x11-base/xorg-server                                                 systemd
 # install systemd service files
 media-video/pipewire                                                 systemd
 media-video/wireplumber                                              systemd
+net-print/cups                                                       systemd
 net-wireless/bluez                                                   systemd
 """
 
