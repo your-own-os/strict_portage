@@ -25,15 +25,11 @@ if __name__ == "__main__":
     syncUrl = sys.argv[2]                   # not used, only to fulfill gentoo postsync.d script spec
     targetDir = sys.argv[3]
 
-    patchDirList = []
-    for patchName in os.listdir(sourceDir):
-        patchDir = os.path.join(sourceDir, patchName, targetDirRepoName)
-        if os.path.isdir(patchDir):
-            patchDirList.append(patchDir)
-
+    patcher = RepoPatcher()
+    patchDirList = [os.path.join(sourceDir, x) for x in os.listdir(sourceDir)]
+    patchDirList = patcher.filter_and_convert_patch_dir_list(patchDirList, targetDirRepoName)
     if len(patchDirList) > 0:
         print("Patching...")
-        patcher = RepoPatcher()
         patcher.run(targetDir, patchDirList)
         for x in patcher.warn_or_err_list:
             if x.warn_or_err:

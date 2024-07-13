@@ -608,6 +608,10 @@ class _MyRepo:
         with open(self.repos_conf_file_hostpath, "w") as f:
             f.write(buf)
 
+    def get_repo_name(self):
+        m = re.search("^\\[(.*)\\]$", pathlib.Path(self.repos_conf_file_hostpath).read_text(), re.M)
+        return m.group(1)
+
     def get_sync_type(self):
         m = re.search(r'sync-type = (\S+)', pathlib.Path(self.repos_conf_file_hostpath).read_text(), re.M)
         return m.group(1) if m is not None else None
@@ -618,12 +622,14 @@ class _MyRepo:
 
     def patch(self, patchDirList):
         patcher = RepoPatcher()
-        patcher.run(self.datadir_hostpath, patchDirList)
-        for x in patcher.warn_or_err_list:
-            if x.warn_or_err:
-                print("Warning: %s" % (x.msg))
-            else:
-                raise BuildError(x.msg)
+        patchDirList = patcher.filter_and_convert_patch_dir_list(patchDirList, self.get_repo_name())
+        if len(patchDirList) > 0:
+            patcher.run(self.datadir_hostpath, patchDirList)
+            for x in patcher.warn_or_err_list:
+                if x.warn_or_err:
+                    print("Warning: %s" % (x.msg))
+                else:
+                    raise BuildError(x.msg)
 
 
 class _MyChrooter(Runner):

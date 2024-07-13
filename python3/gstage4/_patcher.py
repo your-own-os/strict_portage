@@ -47,6 +47,14 @@ class RepoPatcher:
         # this is a clumsy exception mechanism
         return self._warnOrErrList
 
+    def filter_and_convert_patch_dir_list(self, patchDirList, targetDirRepoName):
+        ret = []
+        for patchDir in patchDirList:
+            patchDir = os.path.join(patchDir, targetDirRepoName)
+            if os.path.isdir(patchDir):
+                ret.append(patchDir)
+        return ret
+
     def run(self, targetDir, patchDirList):
         pendingDstDirSet = set()
         for patchDir in patchDirList:
