@@ -178,7 +178,7 @@ class UseSystemd:
         return SimpleCustomAction(OneLinerScript('echo "%s" > /etc/machine-id'), after=["unpack"])
 
     def get_custom_action_set_random_machine_id(self):
-        assert False
+        return SimpleCustomAction(OneLinerScript('echo $(cat /dev/urandom | tr -dc "a-f0-9" | fold -w 32 | head -n 1) > /etc/machine-id'), after=["unpack"])
 
     _useFileContent = """
 # system component should use systemd
