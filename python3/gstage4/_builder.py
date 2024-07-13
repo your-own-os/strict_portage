@@ -215,7 +215,7 @@ class Builder:
                 overlayRecord[overlay.get_name()] = syncType
             else:
                 assert False
-            myRepoDict[overlay] = myRepoDict
+            myRepoDict[overlay.get_name()] = myRepoDict
 
         # install sync tools + sync some overlays
         if any([isinstance(repo, EmergeSyncRepository) for repo in overlay_list]):
@@ -234,7 +234,7 @@ class Builder:
         # patch using host patch-repository.d
         if len(self._ts.repo_postsync_patch_directories) > 0:
             for overlay in overlay_list:
-                myRepoDict[overlay].patch([os.path.join(self._s.host_repo_postsync_patch_source_dir, x) for x in self._ts.repo_postsync_patch_directories])
+                myRepoDict[overlay.get_name()].patch([os.path.join(self._s.host_repo_postsync_patch_source_dir, x) for x in self._ts.repo_postsync_patch_directories])
 
         self._actionStorage["overlays"] = overlayRecord
 
