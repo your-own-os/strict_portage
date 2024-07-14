@@ -110,12 +110,14 @@ class PlacingFilesScript(ScriptInChroot):
 
         self._infoList.append(("f", target_filepath, owner, group, mode, buf, None))
 
-    def append_host_file(self, target_filepath, hostpath, owner=0, group=0, mode=0o644):
+    def append_host_file(self, target_filepath, hostpath=None, owner=0, group=0, mode=0o644):
         assert target_filepath.startswith("/")
-        assert hostpath is not None
         assert isinstance(owner, int)
         assert isinstance(group, int)
         assert 0o000 <= mode <= 0o777
+
+        if hostpath is None:
+            hostpath = target_filepath
 
         self._infoList.append(("f", target_filepath, owner, group, mode, None, hostpath))
 
@@ -127,13 +129,15 @@ class PlacingFilesScript(ScriptInChroot):
 
         self._infoList.append(("d", target_dirpath, owner, group, mode, None, None))
 
-    def append_host_dir(self, target_dirpath, hostpath, owner=0, group=0, dmode=0o755, fmode=0o644):
+    def append_host_dir(self, target_dirpath, hostpath=None, owner=0, group=0, dmode=0o755, fmode=0o644):
         assert target_dirpath.startswith("/")
-        assert hostpath is not None
         assert isinstance(owner, int)
         assert isinstance(group, int)
         assert 0o000 <= dmode <= 0o777
         assert 0o000 <= fmode <= 0o777
+
+        if hostpath is None:
+            hostpath = target_dirpath
 
         self._infoList.append(("d", target_dirpath, owner, group, dmode, fmode, hostpath))
 
@@ -145,11 +149,13 @@ class PlacingFilesScript(ScriptInChroot):
 
         self._infoList.append(("s", target_linkpath, owner, group, target, None))
 
-    def append_host_symlink(self, target_linkpath, hostpath, owner=0, group=0):
+    def append_host_symlink(self, target_linkpath, hostpath=None, owner=0, group=0):
         assert target_linkpath.startswith("/")
         assert isinstance(owner, int)
         assert isinstance(group, int)
-        assert hostpath is not None
+
+        if hostpath is None:
+            hostpath = target_linkpath
 
         self._infoList.append(("s", target_linkpath, owner, group, None, hostpath))
 
