@@ -160,15 +160,12 @@ class PlacingFilesScript(ScriptInChroot):
         self._infoList.append(("s", target_linkpath, owner, group, None, hostpath))
 
     def fill_script_dir(self, script_dir_hostpath):
-        dataDir = os.path.join(script_dir_hostpath, "data")
-        os.mkdir(dataDir)
-
-        sbuf = self._scriptContent
+        sbuf = "#!/bin/bash\n\n"
         itemId = 1
         for info in self._infoList:
             if info[0] == "f":
                 _, target_filepath, owner, group, mode, buf, hostpath = info
-                fn, fullfn, itemId = self._fn(dataDir, itemId)
+                fn, fullfn, itemId = self._fn(script_dir_hostpath, itemId)
                 if buf is not None:
                     assert hostpath is None
                     if isinstance(buf, str):
@@ -187,7 +184,7 @@ class PlacingFilesScript(ScriptInChroot):
                 sbuf += "mv %s %s\n" % (fn, target_filepath)
             elif info[0] == "d":
                 _, target_dirpath, owner, group, dmode, fmode, hostpath = info
-                fn, fullfn, itemId = self._fn(dataDir, itemId)
+                fn, fullfn, itemId = self._fn(script_dir_hostpath, itemId)
                 if hostpath is not None:
                     assert fmode is not None
                     self._copytree(hostpath, fullfn, owner, group, dmode, fmode)
@@ -209,7 +206,7 @@ class PlacingFilesScript(ScriptInChroot):
         # create script file
         fullfn = os.path.join(script_dir_hostpath, _SCRIPT_FILE_NAME)
         with open(fullfn, "w") as f:
-            f.write(self._scriptContent.strip("\n") + "\n")  # remove all redundant carrage returns
+            f.write(sbuf)
         os.chmod(fullfn, 0o0755)
 
     def get_script(self):
@@ -235,15 +232,6 @@ class PlacingFilesScript(ScriptInChroot):
                 shutil.copy(srcname, dstname)
                 os.chown(dstname, owner, group)
                 os.chmod(dstname, fmode)
-
-    _scriptContent = r"""
-#!/bin/bash
-
-DATA_DIR=$(dirname $(realpath $0))/data
-
-# copy directories and files
-cd $DATA_DIR
-"""
 
 
 _SCRIPT_FILE_NAME = "main.script"
