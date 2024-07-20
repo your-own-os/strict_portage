@@ -52,6 +52,7 @@ from ._common import PreferPipewire
 from ._common import PreferBlockDeviceUAccess
 from ._common import PreferWget2
 from ._common import PreferLibtorrentRasterbar
+from ._common import PreferPythonMagic
 
 from ._common import DisablePcSpeaker
 from ._common import DisableFstab
