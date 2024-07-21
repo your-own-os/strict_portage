@@ -22,6 +22,8 @@
 
 
 import os
+import re
+import pathlib
 from ._util import Util
 
 
@@ -30,7 +32,7 @@ class WorkDir:
     This class manipulates gstage4's working directory.
     """
 
-    def __init__(self, path, chroot_uid_map=None, chroot_gid_map=None):
+    def __init__(self, path, chroot_uid_map=None, chroot_gid_map=None, rollback=False):
         assert path is not None
 
         self._path = path
@@ -51,12 +53,57 @@ class WorkDir:
             assert chroot_gid_map[0] == os.getgid()
             self._gidMap = chroot_gid_map
 
+        self._rollback = rollback
+
+        actionDirFullfnList = [x for x in [os.path.join(self._path, x) for x in os.listdir(self._path)] if os.path.isdir(x)]
+        self._lastActionIndex = len(actionDirFullfnList) - 1
+        if len(actionDirFullfnList) == 0:
+            self._lastActionDirFullfn = None
+        else:
+            assert actionDirFullfnList[-1].startswith("%02d" % (self._lastActionIndex))
+            self._lastActionDirFullfn = actionDirFullfnList[-1]
+
+        self._finishFile = os.path.join(self._path, "builder-finished.save")
+
     @property
     def path(self):
         return self._path
 
     def has_uid_gid_map(self):
         return self._uidMap is not None
+
+    def can_rollback(self):
+        return self._rollback
+
+    def is_finished(self):
+        return self._readBuilderFinished() == ""
+
+    def _newBuilderAction(self, action_index, action_name):
+        assert action_index == self._lastActionIndex + 1
+
+        fullfn = os.path.join(self._path, "%02d-%s" % (action_index, action_name))
+        if self._lastActionIndex == -1:
+            os.mkdir(fullfn)
+        else:
+            os.rename(self._lastActionDirFullfn, fullfn)
+            os.mkdir(self._lastActionDirFullfn)
+
+    def _readBuilderHistoryActions(self):
+        ret = [x for x in os.listdir(self._path) if os.path.isdir(os.path.join(self._path, x))]
+        ret.sort()
+        ret = [re.fullmatch("[0-9]+-(.*)").group(1) for x in ret]
+        return ret
+
+    def _saveBuilderFinished(self, err):
+        assert not os.path.exists(self._finishFile)
+        with open(self._finishFile, "w") as f:
+            f.write(err)
+
+    def _readBuilderFinished(self):
+        if os.path.exists(self._finishFile):
+            return pathlib.Path(self._finishFile).read_text()
+        else:
+            return None
 
     # @property
     # def chroot_uid_map(self):
