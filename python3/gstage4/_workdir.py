@@ -33,12 +33,12 @@ class WorkDir:
     This class manipulates gstage4's working directory.
     """
 
-    def __init__(self, path, chroot_uid_map=None, chroot_gid_map=None, rollback=False):
+    def __init__(self, path, chroot_uid_map=None, chroot_gid_map=None, reset=False):
         assert path is not None
 
+        self._MODE = 0o40700
+
         self._path = path
-        Util.forceDelete(self._path)
-        os.mkdir(self._path, mode=0o40700)
 
         if chroot_uid_map is None:
             self._uidMap = None
@@ -55,6 +55,25 @@ class WorkDir:
             self._gidMap = chroot_gid_map
 
         self._persistentStorage = WorkDirPersisentStorage(self._path)
+ 
+        if not os.path.exists(self._path):
+            os.mkdir(self._path, mode=self._MODE)
+        else:
+            # work directory can be a directory or directory symlink
+            # so here we use os.stat() instead of os.lstat()
+            s = os.stat(self._path)
+            if not stat.S_ISDIR(s.st_mode):
+                raise WorkDirError("\"%s\" is not a directory" % (self._path))
+            if s.st_mode != self._MODE:
+                raise WorkDirError("invalid mode for \"%s\"" % (self._path))
+            if s.st_uid != os.getuid():
+                raise WorkDirError("invalid uid for \"%s\"" % (self._path))
+            if s.st_gid != os.getgid():
+                raise WorkDirError("invalid gid for \"%s\"" % (self._path))
+
+            # clear directory content if needed
+            if reset:
+                Util.removeDirContentExclude(self._path, [])
 
     @property
     def path(self):

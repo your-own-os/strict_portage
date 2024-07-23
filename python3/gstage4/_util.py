@@ -48,6 +48,12 @@ class Util:
             pass                        # path does not exist, do nothing
 
     @staticmethod
+    def removeDirContentExclude(dirPath, excludeList):
+        for fn in os.listdir(dirPath):
+            if fn not in excludeList:
+                Util.forceDelete(os.path.join(dirPath, fn))
+
+    @staticmethod
     def pathCompare(path1, path2):
         # Change double slashes to slash
         path1 = re.sub(r"//", r"/", path1)
