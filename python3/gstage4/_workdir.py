@@ -110,10 +110,10 @@ class WorkDir:
     #     return (self.chroot_conv_uid(uid), self.chroot_conv_gid(gid))
 
 
-class WorkDirPersisentStorage(ActionRunner.PersistStorage, ActionRunner.PersistStorageWithFinishedFlagFile):
+class WorkDirPersisentStorage(ActionRunner.PersistStorageWithFinishedFlagFile, ActionRunner.PersistStorage):
 
     def __init__(self, path):
-        super(ActionRunner.PersistStorageWithFinishedFlagFile, self).__init__(os.path.join(path, "builder-finished.flag"))
+        ActionRunner.PersistStorageWithFinishedFlagFile.__init__(self, os.path.join(path, "builder-finished.flag"))
 
         self._path = path
         self._errFile = os.path.join(self._path, "error.save")
