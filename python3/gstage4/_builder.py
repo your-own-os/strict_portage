@@ -98,9 +98,13 @@ class Builder(ActionRunner):
         assert isinstance(seed_stage, SeedStage)
         assert seed_stage.get_arch() == self._ts.arch
 
-        seed_stage.unpack(self._workDirObj.path)
+        self._workDirObj._saveTargetSettings(self._ts)
 
-        t = TargetFilesAndDirs(self._workDirObj.path)
+        curPath = self._workDirObj.getCurActionPath()
+
+        seed_stage.unpack(curPath)
+
+        t = TargetFilesAndDirs(curPath)
         t.make_dir_by_hostpath("logdir", exist_ok=True)
         t.make_dir_by_hostpath("distdir", exist_ok=True)
         t.make_dir_by_hostpath("binpkgdir", exist_ok=True)
@@ -115,12 +119,14 @@ class Builder(ActionRunner):
     def action_create_gentoo_repository(self, repo):
         assert repo.get_name() == "gentoo"
 
+        curPath = self._workDirObj.getCurActionPath()
+
         # create repository
         if isinstance(repo, ManualSyncRepository):
-            myRepo = _MyRepoUtil.createFromManuSyncRepo(repo, True, self._workDirObj.path)
-            repo.sync(os.path.join(self._workDirObj.path, repo.get_datadir_path()[1:]))
+            myRepo = _MyRepoUtil.createFromManuSyncRepo(repo, True, curPath)
+            repo.sync(os.path.join(curPath, repo.get_datadir_path()[1:]))
         elif isinstance(repo, EmergeSyncRepository):
-            myRepo = _MyRepoUtil.createFromEmergeSyncRepo(repo, True, self._workDirObj.path)
+            myRepo = _MyRepoUtil.createFromEmergeSyncRepo(repo, True, curPath)
             assert myRepo.get_sync_type() == "rsync"
             with _MyChrooter(self) as m:
                 m.script_exec(ScriptSync(), quiet=self._getQuiet())
@@ -135,8 +141,10 @@ class Builder(ActionRunner):
 
     @ActionRunner.Action(after=["create_gentoo_repository"])
     def action_init_confdir(self):
-        tp = TargetConfDirParser(self._workDirObj.path)
-        tw = TargetConfDirWriter(self._s, self._ts, self._workDirObj.path)
+        curPath = self._workDirObj.getCurActionPath()
+
+        tp = TargetConfDirParser(curPath)
+        tw = TargetConfDirWriter(self._s, self._ts, curPath)
 
         # set profile
         if self._ts.profile is not None:                                            # using profile specified by caller
@@ -168,6 +176,7 @@ class Builder(ActionRunner):
         assert not any([x.get_name() == "gentoo" for x in overlay_list])
         assert len([x.get_name() for x in overlay_list]) == len(set([x.get_name() for x in overlay_list]))        # no duplication
 
+        curPath = self._workDirObj.getCurActionPath()
         overlayRecord = dict()
 
         # create overlays
@@ -175,9 +184,9 @@ class Builder(ActionRunner):
         pkgSet = set()
         for overlay in overlay_list:
             if isinstance(overlay, ManualSyncRepository):
-                myRepo = _MyRepoUtil.createFromManuSyncRepo(overlay, False, self._workDirObj.path)
+                myRepo = _MyRepoUtil.createFromManuSyncRepo(overlay, False, curPath)
             elif isinstance(overlay, EmergeSyncRepository):
-                myRepo = _MyRepoUtil.createFromEmergeSyncRepo(overlay, False, self._workDirObj.path)
+                myRepo = _MyRepoUtil.createFromEmergeSyncRepo(overlay, False, curPath)
                 syncType = myRepo.get_sync_type()
                 if syncType == "rsync":
                     pass
@@ -193,7 +202,7 @@ class Builder(ActionRunner):
         # install sync tools + sync some overlays
         if any([isinstance(repo, EmergeSyncRepository) for repo in overlay_list]):
             with _MyChrooter(self) as m:
-                installList = [x for x in pkgSet if not Util.portageIsPkgInstalled(self._workDirObj.path, x)]
+                installList = [x for x in pkgSet if not Util.portageIsPkgInstalled(curPath, x)]
                 m.script_exec(ScriptInstallPackages(installList, False, self._s.verbose_level), quiet=self._getQuiet())
 
                 if any([isinstance(repo, EmergeSyncRepository) for repo in overlay_list]):
@@ -202,7 +211,7 @@ class Builder(ActionRunner):
         # sync other overlays
         for overlay in overlay_list:
             if isinstance(overlay, ManualSyncRepository):
-                overlay.sync(os.path.join(self._workDirObj.path, overlay.get_datadir_path()[1:]))
+                overlay.sync(os.path.join(curPath, overlay.get_datadir_path()[1:]))
 
         # patch using host patch-repository.d
         if len(self._ts.repo_postsync_patch_directories) > 0:
@@ -213,7 +222,7 @@ class Builder(ActionRunner):
 
     @ActionRunner.Action(after=["init_confdir", "create_overlays"])
     def action_update_world(self, world_set):
-        ts = self._ts
+        curPath = self._workDirObj.getCurActionPath()
 
         def __worldNeeded(pkg):
             if pkg not in world_set:
@@ -221,33 +230,33 @@ class Builder(ActionRunner):
 
         # check
         if True:
-            if ts.package_manager == "portage":
+            if self._ts.package_manager == "portage":
                 __worldNeeded("sys-apps/portage")
             else:
                 assert False
         if True:
-            if ts.kernel_manager == "none":
+            if self._ts.kernel_manager == "none":
                 pass
-            elif ts.kernel_manager == "genkernel":
+            elif self._ts.kernel_manager == "genkernel":
                 __worldNeeded("sys-kernel/genkernel")
-            elif ts.kernel_manager == "binary-kernel":
+            elif self._ts.kernel_manager == "binary-kernel":
                 __worldNeeded("sys-kernel/gentoo-kernel-bin")
-            elif ts.kernel_manager == "fake":
+            elif self._ts.kernel_manager == "fake":
                 pass
             else:
                 assert False
         if True:
-            if ts.service_manager == "none":
+            if self._ts.service_manager == "none":
                 pass
-            elif ts.service_manager == "openrc":
+            elif self._ts.service_manager == "openrc":
                 __worldNeeded("sys-apps/sysvinit")
                 __worldNeeded("sys-apps/openrc")
-            elif ts.service_manager == "systemd":
+            elif self._ts.service_manager == "systemd":
                 __worldNeeded("sys-apps/systemd")
             else:
                 assert False
         if True:
-            if ts.build_opts.ccache:
+            if self._ts.build_opts.ccache:
                 __worldNeeded("dev-util/ccache")
         if True:
             if "git" in self._actionStorage.get("overlays", {}).values():
@@ -258,7 +267,7 @@ class Builder(ActionRunner):
             __worldNeeded("dev-vcs/subversion")
 
         # write world file
-        t = TargetFilesAndDirs(self._workDirObj.path)
+        t = TargetFilesAndDirs(curPath)
         with t.open_file_for_write_by_hostpath("world_file") as f:
             for pkg in sorted(list(world_set)):
                 f.write("%s\n" % (pkg))
@@ -270,7 +279,7 @@ class Builder(ActionRunner):
             "dev-vcs/subversion",
         ]
         for i in reversed(range(0, len(preInstallList))):
-            if preInstallList[i] not in world_set or Util.portageIsPkgInstalled(self._workDirObj.path, preInstallList[i]):
+            if preInstallList[i] not in world_set or Util.portageIsPkgInstalled(curPath, preInstallList[i]):
                 preInstallList.pop(i)
 
         # install packages & update world
@@ -284,32 +293,32 @@ class Builder(ActionRunner):
 
     @ActionRunner.Action(after=["init_confdir", "update_world"])
     def action_install_kernel(self):
-        ts = self._ts
+        curPath = self._workDirObj.getCurActionPath()
 
-        if ts.kernel_manager == "genkernel":
-            t = TargetConfDirParser(self._workDirObj.path)
+        if self._ts.kernel_manager == "genkernel":
+            t = TargetConfDirParser(curPath)
             tj = t.get_make_conf_make_opts_jobs()
             tl = t.get_make_conf_load_average()
 
             with _MyChrooter(self) as m:
                 m.shell_call("", "eselect kernel set 1")
 
-                if ts.kernel_manager_genkernel["kernel_config"] is not None:
+                if self._ts.kernel_manager_genkernel["kernel_config"] is not None:
                     customDotConfigFile = "/usr/src/custom-kernel-config"
-                    with open(os.path.join(self._workDirObj.path, customDotConfigFile[1:]), "w") as f:
-                        f.write(ts.kernel_manager_genkernel["kernel_config"])
+                    with open(os.path.join(curPath, customDotConfigFile[1:]), "w") as f:
+                        f.write(self._ts.kernel_manager_genkernel["kernel_config"])
                 else:
                     customDotConfigFile = None
-                m.script_exec(ScriptGenkernel(self._s.verbose_level, tj, tl, ts.build_opts.ccache, customDotConfigFile), quiet=self._getQuiet())
+                m.script_exec(ScriptGenkernel(self._s.verbose_level, tj, tl, self._ts.build_opts.ccache, customDotConfigFile), quiet=self._getQuiet())
 
             return
 
-        if ts.kernel_manager == "binary-kernel":
+        if self._ts.kernel_manager == "binary-kernel":
             # FIXME
             return
 
-        if ts.kernel_manager == "fake":
-            bootDir = os.path.join(self._workDirObj.path, "boot")
+        if self._ts.kernel_manager == "fake":
+            bootDir = os.path.join(curPath, "boot")
             os.makedirs(bootDir, exist_ok=True)
             with open(os.path.join(bootDir, "vmlinuz"), "w") as f:
                 f.write("fake kernel")
@@ -324,13 +333,11 @@ class Builder(ActionRunner):
         if len(service_list) == 0:
             return
 
-        ts = self._ts
-
-        if ts.service_manager == "openrc":
+        if self._ts.service_manager == "openrc":
             with _MyChrooter(self) as m:
                 for s in service_list:
                     m.shell_exec("", "rc-update add %s default > /dev/null" % (s))
-        elif ts.service_manager == "systemd":
+        elif self._ts.service_manager == "systemd":
             with _MyChrooter(self) as m:
                 for s in service_list:
                     m.shell_exec("", "systemctl enable %s -q" % (s))
@@ -339,6 +346,8 @@ class Builder(ActionRunner):
 
     @ActionRunner.Action(after=["init_confdir", "update_world", "install_kernel", "enable_services"])
     def action_cleanup(self, degentoo=False):
+        curPath = self._workDirObj.getCurActionPath()
+
         with _MyChrooter(self) as m:
             m.shell_call("", "eselect news read all")
             m.script_exec(ScriptDepClean(self._s.verbose_level), quiet=self._getQuiet())
@@ -349,7 +358,7 @@ class Builder(ActionRunner):
                 # m.shell_exec("", "%s/run-merge.sh -C sys-apps/portage" % (scriptDirPath))
                 pass
 
-        t = TargetConfDirCleaner(self._workDirObj.path)
+        t = TargetConfDirCleaner(curPath)
         t.cleanup_repos_conf_dir()
         t.cleanup_make_conf()
 
@@ -525,15 +534,15 @@ class _MyRepo:
 class _MyChrooter(Runner):
 
     def __init__(self, parent):
-        super().__init__(parent._workDirObj.path)
         self._p = parent
         self._w = parent._workDirObj
+        super().__init__(self._w.getCurActionPath())
         self._bindMountList = []
 
     def bind(self):
         super().bind()
         try:
-            t = TargetFilesAndDirs(self._w.path)
+            t = TargetFilesAndDirs(self._w.getCurActionPath())
 
             # log directory mount point
             if self._p._s.log_dir is not None:

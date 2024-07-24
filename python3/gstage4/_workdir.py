@@ -22,8 +22,8 @@
 
 
 import os
-import stat
 import re
+import stat
 import pathlib
 from ._util import Util
 from ._util import ActionRunner
@@ -55,6 +55,8 @@ class WorkDir:
             assert self._uidMap is not None
             assert chroot_gid_map[0] == os.getgid()
             self._gidMap = chroot_gid_map
+
+        self._tsFile = os.path.join(self._path, "target-settings.save")
 
         self._persistentStorage = WorkDirPersisentStorage(self._path)
 
@@ -97,6 +99,13 @@ class WorkDir:
     def is_build_finished(self):
         self._persistentStorage.isFinished()
 
+    def _getCurActionPath(self):
+        return self.getLastActionDirIndexName()[0]
+
+    def _saveTargetSettings(self, ts):
+        with open(self._tsFile, "w") as f:
+            f.write(ts.arch + "\n")
+
     # @property
     # def chroot_uid_map(self):
     #     assert self._uidMap is not None
@@ -138,7 +147,7 @@ class WorkDirPersisentStorage(ActionRunner.PersistStorage):
         self._inUse = False
 
     def initGetCurrentActionInfo(self):
-        actionDir, _, actionName = self._getLastActionDirIndexName()
+        actionDir, _, actionName = self.getLastActionDirIndexName()
 
         error = None
         try:
@@ -151,6 +160,14 @@ class WorkDirPersisentStorage(ActionRunner.PersistStorage):
                 error = "crashed"
 
         return (actionName, error)
+
+    def getLastActionDirIndexName(self):
+        fnList = os.listdir(self._parent.path).sort()
+        if len(fnList) == 0:
+            return (None, None, None)
+        else:
+            m = re.fullmatch("([0-9])+-(.*)", fnList[-1])
+            return (m.group(0), int(m.group(1)), m.group(2))
 
     def getHistoryActionNames(self):
         ret = []
@@ -173,7 +190,7 @@ class WorkDirPersisentStorage(ActionRunner.PersistStorage):
         assert self._inUse
         assert not os.path.exists(self._errFile)
 
-        oldActionDir, oldActionIndex, _ = self._getLastActionDirIndexName()
+        oldActionDir, oldActionIndex, _ = self.getLastActionDirIndexName()
         if oldActionDir is None:
             os.mkdir("00-" + actionName)
         else:
@@ -202,11 +219,3 @@ class WorkDirPersisentStorage(ActionRunner.PersistStorage):
     def unUse(self):
         assert self._inUse
         self._inUse = False
-
-    def _getLastActionDirIndexName(self):
-        fnList = os.listdir(self._parent.path).sort()
-        if len(fnList) == 0:
-            return (None, None, None)
-        else:
-            m = re.fullmatch("([0-9])+-(.*)", fnList[-1])
-            return (m.group(0), int(m.group(1)), m.group(2))
