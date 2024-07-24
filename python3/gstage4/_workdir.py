@@ -58,7 +58,7 @@ class WorkDir:
 
         self._tsFile = os.path.join(self._path, "target-settings.save")
 
-        self._persistentStorage = WorkDirPersisentStorage(self._path)
+        self._persistentStorage = WorkDirPersisentStorage(self)
 
         if not os.path.exists(self._path):
             os.mkdir(self._path, mode=self._MODE)
