@@ -366,6 +366,12 @@ class Builder(ActionRunner):
     def _getQuiet(self):
         return (self._s.verbose_level == 0)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.dispose()
+
 
 class CustomAction(abc.ABC):
 

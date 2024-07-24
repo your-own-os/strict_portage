@@ -22,10 +22,12 @@
 
 
 import os
+import stat
 import re
 import pathlib
 from ._util import Util
 from ._util import ActionRunner
+from ._errors import WorkDirError
 
 
 class WorkDir:
@@ -55,7 +57,7 @@ class WorkDir:
             self._gidMap = chroot_gid_map
 
         self._persistentStorage = WorkDirPersisentStorage(self._path)
- 
+
         if not os.path.exists(self._path):
             os.mkdir(self._path, mode=self._MODE)
         else:
@@ -82,20 +84,18 @@ class WorkDir:
     def has_uid_gid_map(self):
         return self._uidMap is not None
 
-    def is_build_finished(self):
-        self._persistentStorage.isFinished()
-
     def has_error(self):
-        actionName, _ = self._persistentStorage.getCurrentActionInfo()
-        if actionName is not None:
-            return True
-        return False
+        assert not self._persistentStorage.isInUse()
+        _, err = self._persistentStorage.initGetCurrentActionInfo()
+        return err is not None
 
     def get_error_message(self):
-        actionName, err = self._persistentStorage.getCurrentActionInfo()
-        if actionName is not None:
-            return "action %s failed (%s) for \"%s\"" % (actionName, err, self._path)
-        assert False
+        assert not self._persistentStorage.isInUse()
+        actionName, err = self._persistentStorage.initGetCurrentActionInfo()
+        return "action %s failed (%s) for \"%s\"" % (actionName, err, self._path)
+
+    def is_build_finished(self):
+        self._persistentStorage.isFinished()
 
     # @property
     # def chroot_uid_map(self):
@@ -129,57 +129,82 @@ class WorkDir:
     #     return (self.chroot_conv_uid(uid), self.chroot_conv_gid(gid))
 
 
-class WorkDirPersisentStorage(ActionRunner.PersistStorageWithFinishedFlagFile, ActionRunner.PersistStorage):
+class WorkDirPersisentStorage(ActionRunner.PersistStorage):
 
-    def __init__(self, path):
-        ActionRunner.PersistStorageWithFinishedFlagFile.__init__(self, os.path.join(path, "builder-finished.flag"))
+    def __init__(self, parent):
+        self._parent = parent
+        self._errFile = os.path.join(self._parent.path, "error.save")
+        self._finishFile = os.path.join(self._parent.path, "finished.flag")
+        self._inUse = False
 
-        self._path = path
-        self._errFile = os.path.join(self._path, "error.save")
-        self._runFlag = False      # FIXME: should be changed to a lock
+    def initGetCurrentActionInfo(self):
+        actionDir, _, actionName = self._getLastActionDirIndexName()
 
-    def getCurrentActionInfo(self):
-        oldDir, _, oldActionName = self._getLastActionDirIndexName()
-        if oldDir is not None:
-            if os.path.exists(self._errFile):
-                assert not self.__runFlag
-                return (oldActionName, pathlib.Path(self._errFile).read_text())
-            elif not self.__runFlag:
-                return (oldActionName, "crashed")
-            else:
-                return (oldActionName, None)     # action is running
-        else:
-            return (None, None)
+        error = None
+        try:
+            error = pathlib.Path(self._errFile).read_text().rstrip("\n")
+        except FileNotFoundError:
+            pass
 
-    def getHistoryActions(self):
+        if actionName is not None:
+            if error == "":
+                error = "crashed"
+
+        return (actionName, error)
+
+    def getHistoryActionNames(self):
         ret = []
-        for fn in os.listdir(self.__path).sort():
+        for fn in os.listdir(self._parent.path).sort():
             m = re.fullmatch("[0-9]+-(.*)", fn)
             ret.append(m.group(1))
         return ret
 
+    def isFinished(self):
+        return os.path.exists(self._finishFile)
+
+    def isInUse(self):
+        return self._inUse
+
+    def use(self):
+        assert not self._inUse
+        self._inUse = True
+
     def saveActionStart(self, actionName):
+        assert self._inUse
         assert not os.path.exists(self._errFile)
-        oldDir, oldIndex, _ = self._getLastActionDirIndexName()
-        if oldDir is None:
+
+        oldActionDir, oldActionIndex, _ = self._getLastActionDirIndexName()
+        if oldActionDir is None:
             os.mkdir("00-" + actionName)
         else:
-            os.rename(oldDir, "%d-%s" % (oldIndex + 1, actionName))
-            os.mkdir(oldDir)
-        self._runFlag = True
+            os.rename(oldActionDir, "%d-%s" % (oldActionIndex + 1, actionName))
+            os.mkdir(oldActionDir)
+
+        with open(self._errFile, "w") as f:
+            f.write("")
 
     def saveActionEnd(self, error=None):
-        assert not os.path.exists(self._errFile)
-        if error is not None:
+        assert self._inUse
+        assert os.path.exists(self._errFile)
+
+        if error is None:
+            os.unlink(self._errFile)
+        else:
             with open(self._errFile, "w") as f:
                 f.write(error + "\n")
-        self._runFlag = False
 
-    def saveNewHistoryAction(self, actionName):
-        assert actionName == self._getLastActionDirIndexName()[2]
+    def saveFinished(self):
+        assert self._inUse
+        assert not os.path.exists(self._finishFile)
+        with open(self._finishFile, "w") as f:
+            f.write("")
+
+    def unUse(self):
+        assert self._inUse
+        self._inUse = False
 
     def _getLastActionDirIndexName(self):
-        fnList = os.listdir(self.__path).sort()
+        fnList = os.listdir(self._parent.path).sort()
         if len(fnList) == 0:
             return (None, None, None)
         else:

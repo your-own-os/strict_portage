@@ -27,7 +27,6 @@ import abc
 import time
 import types
 import shutil
-import pathlib
 import subprocess
 import PySquashfsImage
 
@@ -154,15 +153,23 @@ class ActionRunner:
     class PersistStorage(abc.ABC):
 
         @abc.abstractmethod
+        def initGetCurrentActionInfo(self):
+            pass
+
+        @abc.abstractmethod
+        def getHistoryActionNames(self):
+            pass
+
+        @abc.abstractmethod
         def isFinished(self):
             pass
 
         @abc.abstractmethod
-        def getCurrentActionInfo(self):
+        def isInUse(self):
             pass
 
         @abc.abstractmethod
-        def getHistoryActions(self):
+        def use(self):
             pass
 
         @abc.abstractmethod
@@ -174,77 +181,12 @@ class ActionRunner:
             pass
 
         @abc.abstractmethod
-        def saveNewHistoryAction(self, actionName):
+        def saveFinished(self):
             pass
 
         @abc.abstractmethod
-        def saveFinished(self):
+        def unUse(self):
             pass
-
-    class PersistStorageWithCurrentActionLockFile:
-
-        def __init__(self, path):
-            # contains current running action information
-            self.__runFile = path
-            self.__runFlag = False      # FIXME: should be changed to a lock
-
-        def getCurrentActionInfo(self):
-            try:
-                tlist = pathlib.Path(self.__runFile).read_text().rstrip("\n").split("\n")
-                if len(tlist) > 1:
-                    assert not self.__runFlag
-                    return (tlist[0], tlist[1])
-                elif not self.__runFlag:
-                    return (tlist[0], "crashed")
-                else:
-                    # action is running
-                    return (None, None)
-            except FileNotFoundError:
-                return (None, None)
-
-        def saveActionStart(self, actionName):
-            assert not os.path.exists(self.__runFile)
-            self.__runFlag = True
-            with open(self.__runFile, "w") as f:
-                f.write(actionName + "\n")
-
-        def saveActionEnd(self, error=None):
-            assert os.path.exists(self.__runFile)
-            if error is None:
-                os.unlink(self.__runFile)
-            else:
-                with open(self.__runFile, "a") as f:
-                    f.write(error + "\n")
-            self.__runFlag = False
-
-    class PersistStorageWithHistoryActionsSaveFile:
-
-        def __init__(self, path):
-            # contains all completed actions, does not contain current action
-            self.__actionFile = path
-
-        def getHistoryActions(self):
-            if not os.path.exists(self.__actionFile):
-                return []
-            else:
-                return pathlib.Path(self.__actionFile).read_text().rstrip("\n").split("\n")
-
-        def saveNewHistoryAction(self, actionName):
-            with open(self.__actionFile, "a") as f:
-                f.write(actionName + "\n")
-
-    class PersistStorageWithFinishedFlagFile:
-
-        def __init__(self, path):
-            self.__finishFile = path
-
-        def isFinished(self):
-            return os.path.exists(self.__finishFile)
-
-        def saveFinished(self):
-            assert not os.path.exists(self.__finishFile)
-            with open(self.__finishFile, "w") as f:
-                f.write("")
 
     def Action(after=[], before=[], _custom_action_name=None, _custom_action=None):
         def decorator(func):
@@ -271,7 +213,6 @@ class ActionRunner:
                 else:
                     self._lastActionIndex = curActionIndex
                     self._persistStorage.saveActionEnd()
-                    self._persistStorage.saveNewHistoryAction(wrapper._action_func_name[len("action_"):])
             wrapper._action_func_name = (func.__name__ if _custom_action_name is None else "action_" + _custom_action_name)
             wrapper._action = _custom_action
             wrapper._after = (after if _custom_action is None else _custom_action.get_after())
@@ -290,7 +231,7 @@ class ActionRunner:
         self._assertActions()
 
         # check history actions
-        historyActionFuncNameList = ["action_" + x for x in self._persistStorage.getHistoryActions()]
+        historyActionFuncNameList = ["action_" + x for x in self._persistStorage.getHistoryActionNames()]
         actionFuncNameList = [x._action_func_name for x in self._actionList]
         if not Util.listStartswith(actionFuncNameList, historyActionFuncNameList):
             raise self._errClass("invalid history actions")
@@ -301,11 +242,16 @@ class ActionRunner:
         # not finished:          self._finished is None
         # successfully finished: self._finished == ""
         # abnormally finished:   self._finished == error-message
-        actionName, err = self._persistStorage.getCurrentActionInfo()
-        if actionName is not None:
+        actionName, err = self._persistStorage.initGetCurrentActionInfo()
+        if err is not None:
             self._finished = err
         else:
             self._finished = "" if self._persistStorage.isFinished() else None
+
+        self._persistStorage.use()
+
+    def dispose(self):
+        self._persistStorage.unUse()
 
     def finish(self):
         assert self._finished is None
