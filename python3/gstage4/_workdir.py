@@ -100,7 +100,7 @@ class WorkDir:
         return pathlib.Path(self._tsFile).read_text().rstrip("\n")
 
     def get_latest_action_dirpath(self):
-        # note: can return None
+        # note: may return None
         return self._persistentStorage.getLastActionDirIndexName()[0]
 
     def is_build_finished(self):
