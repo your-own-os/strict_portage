@@ -101,7 +101,7 @@ class WorkDir:
 
     def get_latest_action_dirpath(self):
         # note: may return None
-        return self._persistentStorage.getLastActionDirIndexName()[0]
+        return os.path.join(self._path, self._persistentStorage.getLastActionDirIndexName()[0])
 
     def is_build_finished(self):
         self._persistentStorage.isFinished()
@@ -198,9 +198,10 @@ class WorkDirPersisentStorage(ActionRunner.PersistStorage):
 
         oldActionDir, oldActionIndex, _ = self.getLastActionDirIndexName()
         if oldActionDir is None:
-            os.mkdir("00-" + actionName)
+            os.mkdir(os.path.join(self._parent.path, "00-" + actionName))
         else:
-            os.rename(oldActionDir, "%d-%s" % (oldActionIndex + 1, actionName))
+            oldActionDir = os.path.join(self._parent.path, oldActionDir)
+            os.rename(oldActionDir, os.path.join(self._parent.path, "%02d-%s" % (oldActionIndex + 1, actionName)))
             os.mkdir(oldActionDir)
 
         with open(self._errFile, "w") as f:
