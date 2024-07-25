@@ -151,7 +151,7 @@ class WorkDirPersisentStorage(ActionRunner.PersistStorage):
         self._inUse = False
 
     def initGetCurrentActionInfo(self):
-        actionDir, _, actionName = self.getLastActionDirIndexName()
+        _, _, actionName = self.getLastActionDirIndexName()
 
         error = None
         try:
