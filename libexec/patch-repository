@@ -31,7 +31,6 @@ if __name__ == "__main__":
     if len(patchDirList) > 0:
         print("Patching...")
         pendingDstDirSet = patcher.patch(targetDir, patchDirList)
-        patcher.generateManifest(targetDir, pendingDstDirSet)
         for x in patcher.warn_or_err_list:
             if x.warn_or_err:
                 print("Warning: %s" % (x.msg))
@@ -39,4 +38,5 @@ if __name__ == "__main__":
                 print("Error: %s" % (x.msg), file=sys.stderr)
         if any([not x.warn_or_err for x in patcher.warn_or_err_list]):
             sys.exit(1)
+        patcher.generateManifest(targetDir, pendingDstDirSet)
         print("Done.")
