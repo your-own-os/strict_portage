@@ -425,18 +425,6 @@ class CustomAction(ActionRunner.CustomAction):
             else:
                 return False
 
-        if any([not re.fullmatch("[0-9a-z_]+", x) for x in obj.after]):
-            if raise_exception:
-                raise CustomActionError("invalid value for key \"after\"")
-            else:
-                return False
-
-        if any([not re.fullmatch("[0-9a-z_]+", x) for x in obj.before]):
-            if raise_exception:
-                raise CustomActionError("invalid value for key \"before\"")
-            else:
-                return False
-
         return True
 
 
