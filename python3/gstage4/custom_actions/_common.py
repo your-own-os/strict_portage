@@ -38,12 +38,10 @@ class SimpleCustomAction(CustomAction):                         # FIXME: should 
     def custom_scripts(self):
         return self._custom_scripts
 
-    @property
-    def after(self):
+    def get_after(self):
         return self._after
 
-    @property
-    def before(self):
+    def get_before(self):
         return self._before
 
 
@@ -56,12 +54,10 @@ class SetRootPassword(CustomAction):
     def custom_scripts(self):
         return [OneLinerScript("sed -i 's#^root:[^:]*:#root:%s:#' /etc/shadow" % (self._hash))]
 
-    @property
-    def after(self):
+    def get_after(self):
         return ["init_confdir", "create_overlays", "update_world", "install_kernel", "enable_services"]
 
-    @property
-    def before(self):
+    def get_before(self):
         return []
 
 
@@ -76,12 +72,10 @@ class AddUser(CustomAction):
     def custom_scripts(self):
         return []
 
-    @property
-    def after(self):
+    def get_after(self):
         return []
 
-    @property
-    def before(self):
+    def get_before(self):
         return []
 
 
@@ -94,12 +88,10 @@ class InstallPackages(CustomAction):
     def custom_scripts(self):
         return [self._script]
 
-    @property
-    def after(self):
+    def get_after(self):
         return ["init_confdir", "create_overlays"]
 
-    @property
-    def before(self):
+    def get_before(self):
         return ["update_world", "install_kernel", "enable_services"]
 
 
@@ -112,12 +104,10 @@ class RemovePackagesFromWorld(CustomAction):
     def custom_scripts(self):
         return []
 
-    @property
-    def after(self):
+    def get_after(self):
         return []
 
-    @property
-    def before(self):
+    def get_before(self):
         return []
 
 
@@ -127,10 +117,8 @@ class RemoveUsrSrcDirectoryContent(CustomAction):
     def custom_scripts(self):
         return [OneLinerScript("rm -rf /usr/src/*")]
 
-    @property
-    def after(self):
+    def get_after(self):
         return ["init_confdir", "create_overlays", "update_world", "install_kernel"]
 
-    @property
-    def before(self):
+    def get_before(self):
         return []
