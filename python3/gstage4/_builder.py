@@ -390,7 +390,7 @@ class Builder(ActionRunner):
     def add_custom_actions(self, action_dict, insert_after=None, insert_before=None):
         for action in action_dict.values():
             assert action.check_object(action, raise_exception=False)
-        super().add_and_run_custom_action(action_dict, insert_after, insert_before)
+        super().add_custom_actions(action_dict, insert_after, insert_before)
 
     def _getQuiet(self):
         return (self._s.verbose_level == 0)
