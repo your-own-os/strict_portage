@@ -192,6 +192,16 @@ class ActionRunner:
         def unUse(self):
             pass
 
+    class CustomAction(abc.ABC):
+
+        @abc.abstractmethod
+        def get_after(self):
+            pass
+
+        @abc.abstractmethod
+        def get_before(self):
+            pass
+
     def Action(after=[], before=[], _custom_action_name=None, _custom_action=None):
         def decorator(func):
             def wrapper(self, *kargs, **kwargs):
@@ -269,7 +279,7 @@ class ActionRunner:
     def add_custom_actions(self, action_dict, insert_after=None, insert_before=None):
         for action_name, action in action_dict.items():
             assert re.fullmatch("[0-9a-z_]+", action_name) and "action_" + action_name not in dir(self)
-            assert action.check_object(action, raise_exception=False)
+            assert isinstance(action, self.CustomAction)
 
         # convert action object or action name to action index
         if insert_before is not None:
