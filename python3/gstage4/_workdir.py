@@ -104,7 +104,7 @@ class WorkDir:
         return os.path.join(self._path, self._persistentStorage.getLastActionDirIndexName()[0])
 
     def is_build_finished(self):
-        self._persistentStorage.isFinished()
+        return self._persistentStorage.isFinished()
 
     def _saveTargetSettings(self, ts):
         with open(self._tsFile, "w") as f:
