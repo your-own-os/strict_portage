@@ -137,6 +137,7 @@ class Builder(ActionRunner):
         if len(self._ts.repo_postsync_patch_directories) > 0:
             pendingDstDirSet = myRepo.patch([os.path.join(self._s.host_repo_postsync_patch_source_dir, x) for x in self._ts.repo_postsync_patch_directories])
             with _MyChrooter(self) as m:
+                # FIXME: it a bit hard to parallelize the following code
                 for dstDir in pendingDstDirSet:
                     ebuildDir = os.path.join(myRepo.datadir_hostpath, dstDir)
                     fn = glob.glob(os.path.join(ebuildDir, "*.ebuild"))[0]
@@ -225,6 +226,7 @@ class Builder(ActionRunner):
                 patchDirList = [os.path.join(self._s.host_repo_postsync_patch_source_dir, x) for x in self._ts.repo_postsync_patch_directories]
                 pendingDstDirSet = myRepo.patch(patchDirList)
                 with _MyChrooter(self) as m:
+                    # FIXME: it a bit hard to parallelize the following code
                     for dstDir in pendingDstDirSet:
                         ebuildDir = os.path.join(myRepo.datadir_hostpath, dstDir)
                         fn = glob.glob(os.path.join(ebuildDir, "*.ebuild"))[0]
