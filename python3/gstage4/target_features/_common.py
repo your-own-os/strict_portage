@@ -474,8 +474,10 @@ class UseFcitx:
         target_settings.pkg_mask_files["10-fcitx"] = self._maskFileContent.strip("\n") + "\n"
 
     _useFileContent = """
-# no need to use functions other than wayland integration
+# no need to use functions other than wayland integration?
 app-i18n/fcitx                                                     -X
+app-i18n/fcitx-qt                                                  -qt5 qt6
+app-i18n/fcitx-gtk                                                 -gtk2 gtk3 gtk4
 """
 
     _maskFileContent = """
