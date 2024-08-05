@@ -649,6 +649,8 @@ app-emulation/qemu                                                              
 app-emulation/wine-vanilla                                                           opengl
 app-emulation/wine-staging                                                           opengl
 dev-lang/fbc                                                                         opengl
+dev-qt/qtbase                                                                        opengl
+dev-qt/qtdeclarative                                                                 opengl
 games-emulation/dosbox-staging                                                       opengl
 games-engines/scummvm                                                                opengl
 """
