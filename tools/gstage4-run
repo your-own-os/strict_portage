@@ -30,5 +30,6 @@ if __name__ == '__main__':
         print('Usage: gstage4-run <directory>')
         sys.exit(1)
 
-    with gstage4.Runner(sys.argv[1]) as c:
+    wdir = gstage4.WorkDir(sys.argv[1])
+    with gstage4.Runner(wdir.get_latest_action_dirpath()) as c:
         c.interactive_shell()
