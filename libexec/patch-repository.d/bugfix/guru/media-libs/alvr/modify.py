@@ -10,6 +10,7 @@ try:
     for fullfn in glob.glob(os.path.join(selfDir, "*.ebuild")):
         if os.path.exists(os.path.basename(fullfn)):
             raise ValueError()
-    subprocess.check_call("cp %s ." % (fullfn))
+        subprocess.check_call("cp %s ." % (fullfn))
+    subprocess.check_call("cp %s/files/* ./files" % (selfDir))
 except ValueError:
     print("outdated")
