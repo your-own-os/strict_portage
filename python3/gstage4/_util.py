@@ -42,6 +42,14 @@ class Util:
             return ret
 
     @staticmethod
+    def isArchCompatible(targetArch, curArch):
+        if targetArch == curArch:
+            return True
+        if targetArch == "i386" and curArch == "amd64":
+            return True
+        return False
+
+    @staticmethod
     def listStartswith(theList, subList):
         return len(theList) >= len(subList) and theList[:len(subList)] == subList
 
