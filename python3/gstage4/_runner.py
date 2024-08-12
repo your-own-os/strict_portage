@@ -30,7 +30,8 @@ from ._util import DirListMount
 
 class Runner:
 
-    def __init__(self, chroot_dir_path):
+    def __init__(self, arch, chroot_dir_path):
+        self._arch = arch
         self._dir = chroot_dir_path
         self._mountObj = None
         self._scriptDirList = []
@@ -105,21 +106,21 @@ class Runner:
             self._mountObj = None
 
     def shell_call(self, env, cmd):
-        # "CLEAN_DELAY=0 emerge -C sys-fs/eudev" -> "CLEAN_DELAY=0 chroot emerge -C sys-fs/eudev"
         assert self.is_binded()
+        assert self._arch == platform.machine()
 
         # FIXME
         env = "LANG=C.utf8 PATH=/bin:/usr/bin:/sbin:/usr/sbin " + env
-        assert self._detectArch() == platform.machine()
 
+        # "CLEAN_DELAY=0 emerge -C sys-fs/eudev" -> "CLEAN_DELAY=0 chroot emerge -C sys-fs/eudev"
         return subprocess.check_output("%s chroot \"%s\" %s" % (env, self._dir, cmd), shell=True, stderr=subprocess.STDOUT, universal_newlines=True)
 
     def shell_exec(self, env, cmd, quiet=False):
         assert self.is_binded()
+        assert self._arch == platform.machine()
 
         # FIXME
         env = "LANG=C.utf8 PATH=/bin:/usr/bin:/sbin:/usr/sbin " + env
-        assert self._detectArch() == platform.machine()
 
         if quiet:
             subprocess.check_call("%s chroot \"%s\" %s" % (env, self._dir, cmd), shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -138,7 +139,3 @@ class Runner:
 
         scriptObj.fill_script_dir(hostPath)
         self.shell_exec("", "sh -c \"cd %s ; ./%s\"" % (path, scriptObj.get_script()), quiet)
-
-    def _detectArch(self):
-        # FIXME: use profile function of pkgwh to get arch from CHOST
-        return "x86_64"

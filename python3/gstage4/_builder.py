@@ -536,7 +536,7 @@ class _MyRepo:
 class _MyChrooter(Runner):
 
     def __init__(self, parent):
-        super().__init__(parent._workDirObj.get_latest_action_dirpath())
+        super().__init__(parent._workDirObj.get_arch(), parent._workDirObj.get_latest_action_dirpath())
         self._s = parent._s
         self._extraMountObj = None
 
