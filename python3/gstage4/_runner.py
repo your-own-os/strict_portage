@@ -69,7 +69,7 @@ class Runner:
                     (procDir, "-t proc -o nosuid,noexec,nodev proc %s" % (procDir)),
                     (sysDir, "--rbind /sys %s" % (sysDir), "--make-rslave %s" % (sysDir)),
                     (devDir, "--rbind /dev %s" % (devDir), "--make-rslave %s" % (devDir)),
-                    (runDir, "-t tmpfs -o nosuid,nodev,mode=755,size=32m tmpfs %s" % (runDir)),
+                    (runDir, "-t tmpfs -o nosuid,nodev,mode=755,size=32m none %s" % (runDir)),
                     (runDevDir, "--rbind /run/udev %s" % (runDevDir), "--make-rslave %s" % (runDevDir)),
                     (tmpDir, "-t tmpfs -o nosuid,nodev,strictatime,mode=1777 tmpfs %s" % (tmpDir)),
                 ]
