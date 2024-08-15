@@ -800,29 +800,35 @@ x11-misc/vdpauinfo
 
 class PreferPipewire:
 
-    def __init__(self, with_pulseaudio=True, with_jack=True, with_direct_alsa=True):
+    def __init__(self, with_pulseaudio=True, with_direct_alsa=True):
         assert with_pulseaudio                     # FIXME
-        assert not with_jack                       # FIXME
         assert with_direct_alsa                    # FIXME
 
         self._pulseaudio = with_pulseaudio
-        self._jack = with_jack
         self._alsa = with_direct_alsa
 
     def update_target_settings(self, target_settings):
         assert "10-prefer-pipewire" not in target_settings.pkg_use_files
         assert "10-prefer-pipewire" not in target_settings.pkg_mask_files
+        assert "10-prefer-pipewire" not in target_settings.install_mask_files
 
         target_settings.pkg_use_files["10-prefer-pipewire"] = self._useFileContent.strip("\n") + "\n"
+
         target_settings.pkg_mask_files["10-prefer-pipewire"] = self._maskFileContent.strip("\n") + "\n"
+
+        target_settings.install_mask_files["10-prefer-pipewire"] = {
+            "media-video/pipewire": [
+                "*pw-jack*",
+            ],
+        }
 
     _useFileContent = """
 # prefered sound route: 1. pipewire -> alsa
 #                       2. gstreamer -> pipewire -> alsa
 #                       3. openal -> pipewire -> alsa
 #                       4. fluidsynth -> pipewire -> alsa
-#                       5. pulseaudio -> pipewire -> alsa (bad)
-#                       6. jack -> pipewire -> alsa (forbidden)
+#                       5. jack -> pipewire -> alsa
+#                       6. pulseaudio -> pipewire -> alsa (bad)
 #                       7. alsa -> pipewire -> alsa (forbidden)
 #                       8. alsa (forbidden)
 app-emulation/qemu                                              -alsa pipewire                # sound route 1
@@ -858,7 +864,7 @@ www-client/firefox-bin                                          -alsa pulseaudio
 www-client/chromium                                             pulseaudio                    # sound route 5 (bad), doesn't support alsa, gstreamer and pipewire
 x11-libs/wxGTK                                                  gstreamer                     # sound route 2
 
-# disable sound route 7 (sound route 6 is disabled by default)
+# disable sound route 7
 media-video/pipewire                                            -pipewire-alsa
 
 # keep pulseaudio minimal
@@ -889,12 +895,9 @@ media-plugins/alsa-plugins
 media-sound/alsa-tools
 media-sound/alsa-utils
 
-# packages only support sound route 6, 7, 8
-media-libs/alvr                                             # sound route 6
+# packages only support sound route 7, 8
 media-sound/audacity                                        # sound route 7
 media-sound/moc                                             # sound route 7
-media-sound/musescore                                       # sound route 6
-media-sound/timidity++                                      # sound route 6
 media-sound/vkeybd                                          # sound route 7
 """
 
