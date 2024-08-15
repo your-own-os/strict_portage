@@ -800,12 +800,10 @@ x11-misc/vdpauinfo
 
 class PreferPipewire:
 
-    def __init__(self, with_pulseaudio=True, with_direct_alsa=True):
+    def __init__(self, with_pulseaudio=True):
         assert with_pulseaudio                     # FIXME
-        assert with_direct_alsa                    # FIXME
 
         self._pulseaudio = with_pulseaudio
-        self._alsa = with_direct_alsa
 
     def update_target_settings(self, target_settings):
         assert "10-prefer-pipewire" not in target_settings.pkg_use_files
@@ -816,6 +814,7 @@ class PreferPipewire:
 
         target_settings.pkg_mask_files["10-prefer-pipewire"] = self._maskFileContent.strip("\n") + "\n"
 
+        # we don't need pw-jack binary, pipewire in Gentoo have already replaced jack library globally
         target_settings.install_mask_files["10-prefer-pipewire"] = {
             "media-video/pipewire": [
                 "*pw-jack*",
