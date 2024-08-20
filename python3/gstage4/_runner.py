@@ -50,34 +50,33 @@ class Runner:
 
         try:
             # mount layer 1 directories
-            if True:
-                procDir = os.path.join(self._dir, "proc")
-                sysDir = os.path.join(self._dir, "sys")
-                devDir = os.path.join(self._dir, "dev")
-                runDir = os.path.join(self._dir, "run")
-                runDevDir = os.path.join(self._dir, "run", "udev")
-                tmpDir = os.path.join(self._dir, "tmp")
+            procDir = os.path.join(self._dir, "proc")
+            sysDir = os.path.join(self._dir, "sys")
+            devDir = os.path.join(self._dir, "dev")
+            runDir = os.path.join(self._dir, "run")
+            runDevDir = os.path.join(self._dir, "run", "udev")
+            tmpDir = os.path.join(self._dir, "tmp")
 
-                assert os.path.exists(procDir) and not Util.isMount(procDir)
-                assert os.path.exists(sysDir) and not Util.isMount(sysDir)
-                assert os.path.exists(devDir) and not Util.isMount(devDir)
-                assert os.path.exists(runDir) and not Util.isMount(runDir)
-                assert os.path.exists(tmpDir) and not Util.isMount(tmpDir)
+            assert os.path.exists(procDir) and not Util.isMount(procDir)
+            assert os.path.exists(sysDir) and not Util.isMount(sysDir)
+            assert os.path.exists(devDir) and not Util.isMount(devDir)
+            assert os.path.exists(runDir) and not Util.isMount(runDir)
+            assert os.path.exists(tmpDir) and not Util.isMount(tmpDir)
 
-                mountDirs = [
-                    (procDir, "-t proc -o nosuid,noexec,nodev proc %s" % (procDir)),
-                    (sysDir, "--rbind /sys %s" % (sysDir), "--make-rslave %s" % (sysDir)),
-                    (devDir, "--rbind /dev %s" % (devDir), "--make-rslave %s" % (devDir)),
-                    (runDir, "-t tmpfs -o nosuid,nodev,mode=755,size=32m none %s" % (runDir)),
-                    (runDevDir, "--rbind /run/udev %s" % (runDevDir), "--make-rslave %s" % (runDevDir)),
-                    (tmpDir, "-t tmpfs -o nosuid,nodev,strictatime,mode=1777 tmpfs %s" % (tmpDir)),
-                ]
-                # if os.path.exists("/sys/firmware/efi/efivars"):
-                #     mountList += [
-                #         ("/mnt/gentoo/sys/firmware/efi/efivars", "-t efivarfs -o nosuid,noexec,nodev /mnt/gentoo/sys/firmware/efi/efivars"),
-                #     ]
+            mountDirs = [
+                (procDir, "-t proc -o nosuid,noexec,nodev proc %s" % (procDir)),
+                (sysDir, "--rbind /sys %s" % (sysDir), "--make-rslave %s" % (sysDir)),
+                (devDir, "--rbind /dev %s" % (devDir), "--make-rslave %s" % (devDir)),
+                (runDir, "-t tmpfs -o nosuid,nodev,mode=755,size=32m none %s" % (runDir)),
+                (runDevDir, "--rbind /run/udev %s" % (runDevDir), "--make-rslave %s" % (runDevDir)),
+                (tmpDir, "-t tmpfs -o nosuid,nodev,strictatime,mode=1777 tmpfs %s" % (tmpDir)),
+            ]
+            # if os.path.exists("/sys/firmware/efi/efivars"):
+            #     mountList += [
+            #         ("/mnt/gentoo/sys/firmware/efi/efivars", "-t efivarfs -o nosuid,noexec,nodev /mnt/gentoo/sys/firmware/efi/efivars"),
+            #     ]
 
-                self._mountObj = DirListMount(mountDirs)
+            self._mountObj = DirListMount(mountDirs)
 
             # copy resolv.conf
             # FIMXE: can not adapt the network cfg of host system change
