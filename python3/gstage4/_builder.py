@@ -255,7 +255,7 @@ class Builder(ActionRunner):
                 pass
             elif self._ts.kernel_manager == "genkernel":
                 __worldNeeded("sys-kernel/genkernel")
-            elif self._ts.kernel_manager == "binary-kernel":
+            elif self._ts.kernel_manager == "dist-kernel":
                 __worldNeeded("sys-kernel/gentoo-kernel-bin")
             elif self._ts.kernel_manager == "fake":
                 pass
@@ -329,7 +329,7 @@ class Builder(ActionRunner):
 
             return
 
-        if self._ts.kernel_manager == "binary-kernel":
+        if self._ts.kernel_manager == "dist-kernel":
             # FIXME
             return
 

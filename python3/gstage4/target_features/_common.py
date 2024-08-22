@@ -64,13 +64,13 @@ class UseGenkernel:
         world_set.add(self._kernelPkg)
 
 
-class UseBinaryKernel:
+class UseDistKernel:
 
     def __init__(self, kernel_pkg_atom="sys-kernel/gentoo-kernel-bin"):
         self._kernelPkg = kernel_pkg_atom
 
     def update_target_settings(self, target_settings):
-        target_settings.kernel_manager = "binary-kernel"
+        target_settings.kernel_manager = "dist-kernel"
 
     def update_world_set(self, world_set):
         world_set.add(self._kernelPkg)
