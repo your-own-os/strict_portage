@@ -88,7 +88,6 @@ class ScriptUpdateWorld(ScriptFromBuffer):
             buf += self._scriptContentSecondHalfVerboseLv2
         else:
             assert False
-        buf += self._scriptContentThirdHalf
 
         super().__init__(buf)
 
@@ -108,7 +107,8 @@ export CONFIG_PROTECT="-* .x"
 """
 
     _scriptContentSecondHalfVerboseLv0 = """
-emerge --color=y -uDN --with-bdeps=y @world > /var/log/portage/run-update.log 2>&1 || exit 1
+emerge --color=y -uDN --with-bdeps=y @world > /var/log/portage/run-update-world.log 2>&1 || exit 1
+perl-cleaner --pretend --all >/dev/null 2>&1 || die "perl cleaning is needed, your seed stage is too old"
 """
 
     _scriptContentSecondHalfVerboseLv1 = """
@@ -117,15 +117,21 @@ emerge --color=y -uDN --with-bdeps=y @world > /var/log/portage/run-update.log 2>
 #   >>> Installing ...
 #   >>> Uninstalling ...
 #   >>> No outdated packages were found on your system.
-emerge --color=y -uDN --with-bdeps=y @world 2>&1 | tee /var/log/portage/run-update.log | grep -E --color=never "^>>> (.*\\(.*[0-9]+.*of.*[0-9]+.*\\)|No outdated packages .*)"
-test ${PIPESTATUS[0]} -eq 0 || exit 1
+emerge --color=y -uDN --with-bdeps=y @world 2>&1 | tee /var/log/portage/run-update-world.log | grep -E --color=never "^>>> (.*\\(.*[0-9]+.*of.*[0-9]+.*\\)|No outdated packages .*)"
+ret=${PIPESTATUS[0]}
+
+# updating dev-lang/perl may cause some packages fail to emerge, so we check and report perl-cleaner error first
+perl-cleaner --pretend --all >/dev/null 2>&1 || die "perl cleaning is needed, your seed stage is too old"
+
+test $ret -eq 0 || exit 1
 """
 
     _scriptContentSecondHalfVerboseLv2 = """
-emerge --color=y -uDN --with-bdeps=y @world 2>&1 | tee /var/log/portage/run-update.log
-test ${PIPESTATUS[0]} -eq 0 || exit 1
-"""
+emerge --color=y -uDN --with-bdeps=y @world 2>&1 | tee /var/log/portage/run-update-world.log
+ret=${PIPESTATUS[0]}
 
-    _scriptContentThirdHalf = """
+# updating dev-lang/perl may cause some packages fail to emerge, so we check and report perl-cleaner error first
 perl-cleaner --pretend --all >/dev/null 2>&1 || die "perl cleaning is needed, your seed stage is too old"
+
+test $ret -eq 0 || exit 1
 """
