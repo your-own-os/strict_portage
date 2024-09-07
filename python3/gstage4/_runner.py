@@ -22,6 +22,7 @@
 
 
 import os
+import shlex
 import subprocess
 from ._util import Util
 from ._util import DirListMount
@@ -29,9 +30,10 @@ from ._util import DirListMount
 
 class Runner:
 
-    def __init__(self, arch, chroot_dir_path):
+    def __init__(self, arch, chroot_dir_path, shell="/bin/sh"):
         self._arch = arch
         self._dir = chroot_dir_path
+        self._shellCmd = shell
         self._mountObj = None
         self._scriptDirList = []
 
@@ -108,34 +110,43 @@ class Runner:
         assert self.is_binded()
         assert Util.isArchCompatible(self._arch, Util.getCpuArch())
 
-        # FIXME
-        env = "LANG=C.utf8 PATH=/bin:/usr/bin:/sbin:/usr/sbin " + env
+        # env should be set in /bin/sh process, not in chroot process itself
+        # this affects nothing, but it should be like this
+        cmdList = ["chroot", self._dir]
+        if env != "":
+            cmdList += shlex.split("/bin/env %s" % (env))
+        cmdList += shlex.split(self._shellCmd)
 
-        subprocess.check_call("%s chroot \"%s\" sh" % (env, self._dir), shell=True)
+        subprocess.check_call(cmdList)
 
     def shell_call(self, env, cmd):
         assert self.is_binded()
         assert Util.isArchCompatible(self._arch, Util.getCpuArch())
 
-        # FIXME
-        env = "LANG=C.utf8 PATH=/bin:/usr/bin:/sbin:/usr/sbin " + env
+        cmdList = ["chroot", self._dir]
+        if env != "":
+            cmdList += shlex.split("/bin/env %s" % (env))
+        cmdList += shlex.split(self._shellCmd)
+        cmdList += ["-c", cmd]
 
-        # "CLEAN_DELAY=0 emerge -C sys-fs/eudev" -> "CLEAN_DELAY=0 chroot emerge -C sys-fs/eudev"
-        return subprocess.check_output("%s chroot \"%s\" sh -c \"%s\"" % (env, self._dir, cmd), shell=True, stderr=subprocess.STDOUT, text=True)
+        return subprocess.check_output(cmdList, stderr=subprocess.STDOUT, text=True)
 
     def shell_exec(self, env, cmd, quiet=False):
         assert self.is_binded()
         assert Util.isArchCompatible(self._arch, Util.getCpuArch())
 
-        # FIXME
-        env = "LANG=C.utf8 PATH=/bin:/usr/bin:/sbin:/usr/sbin " + env
+        cmdList = ["chroot", self._dir]
+        if env != "":
+            cmdList += shlex.split("/bin/env %s" % (env))
+        cmdList += shlex.split(self._shellCmd)
+        cmdList += ["-c", cmd]
 
         if quiet:
-            subprocess.check_call("%s chroot \"%s\" sh -c \"%s\"" % (env, self._dir, cmd), shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.check_call(cmdList, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         else:
-            subprocess.check_call("%s chroot \"%s\" sh -c \"%s\"" % (env, self._dir, cmd), shell=True)
+            subprocess.check_call(cmdList)
 
-    def script_exec(self, scriptObj, quiet=False):
+    def script_exec(self, env, script_obj, quiet=False):
         assert self.is_binded()
 
         path = os.path.join("/var", "tmp", "script_%d" % (len(self._scriptDirList)))
@@ -145,5 +156,5 @@ class Runner:
         os.makedirs(hostPath, mode=0o755)
         self._scriptDirList.append(hostPath)
 
-        scriptObj.fill_script_dir(hostPath)
-        self.shell_exec("", "cd %s ; ./%s" % (path, scriptObj.get_script()), quiet)
+        script_obj.fill_script_dir(hostPath)
+        self.shell_exec(env, "cd %s ; ./%s" % (path, script_obj.get_script()), quiet)
