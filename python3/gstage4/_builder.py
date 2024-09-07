@@ -256,9 +256,9 @@ class Builder(ActionRunner):
             elif self._ts.kernel_manager == "genkernel":
                 __worldNeeded("sys-kernel/gentoo-sources")
                 __worldNeeded("sys-kernel/genkernel")
+                __worldNeeded("sys-devel/bc")                   # kernel build script needs it
             elif self._ts.kernel_manager == "dist-kernel":
-                __worldNeeded("sys-kernel/gentoo-kernel")
-                __worldNeeded("sys-kernel/dracut")
+                __worldNeeded("sys-kernel/gentoo-kernel-bin")
             elif self._ts.kernel_manager == "fake":
                 pass
             else:
@@ -332,49 +332,8 @@ class Builder(ActionRunner):
             return
 
         if self._ts.kernel_manager == "dist-kernel":
-            with _MyChrooter(self) as m:
-                m.shell_call("", "dracut --force --kernel-image=")
-
-
-distkmerge_get_image_path() {
-    case ${clst_basearch} in
-        amd64|x86)
-            echo arch/x86/boot/bzImage
-            ;;
-        arm64)
-            echo arch/arm64/boot/Image.gz
-            ;;
-        arm)
-            echo arch/arm/boot/zImage
-            ;;
-        hppa|ppc|ppc64)
-            echo ./vmlinux
-            ;;
-        riscv)
-            echo arch/riscv/boot/Image.gz
-            ;;
-        *)
-            die "unsupported ARCH=${clst_basearch}"
-            ;;
-    esac
-}
-
-
-  dracut "${DRACUT_ARGS[@]}" || exit 1
-
-
-            # USE="-initramfs" run_merge --update "${ksource}"
-
-  # Kernel already built, let's run dracut to make initramfs
-  distkernel_source_path=$(equery -Cq f ${ksource} | grep "/usr/src/linux-" -m1)
-  distkernel_image_path=$(distkmerge_get_image_path)
-  distkernel_version=${distkernel_source_path##"/usr/src/linux-"}
-
-  DRACUT_ARGS=(
-    --force
-    --kernel-image="${distkernel_source_path}/${distkernel_image_path}"
-    --kver="${distkernel_version}"
-  )
+            assert os.path.exists("/boot/vmlinuz")
+            assert os.path.exists("/boot/initramfs.img")
             return
 
         if self._ts.kernel_manager == "fake":

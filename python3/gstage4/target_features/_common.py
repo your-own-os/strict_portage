@@ -69,8 +69,7 @@ class UseDistKernel:
         target_settings.kernel_manager = "dist-kernel"
 
     def update_world_set(self, world_set):
-        world_set.add("sys-kernel/gentoo-kernel")
-        world_set.add("sys-kernel/dracut")
+        world_set.add("sys-kernel/gentoo-kernel-bin")
 
 
 class UseBbki:

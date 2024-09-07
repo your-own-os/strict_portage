@@ -222,6 +222,7 @@ get_encoding() {
 }
 
 for var in "LANG $(env | grep -oP '^LC_\w+')"; do
+    var=$(printenv $var)
     if [ -n "$var" ] && [ "$(get_encoding $var)" != "@@langEnc@@" ]; then
         echo -n "stage4 uses different language encoding" > ./error.log
         exit 1
