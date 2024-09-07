@@ -34,6 +34,11 @@ import PySquashfsImage
 class Util:
 
     @staticmethod
+    def hasTermInfo(rootDir, termType):
+        fullfn = os.path.join(rootDir, "usr", "share", "terminfo", termType[0], termType)
+        return os.path.exists(fullfn)
+
+    @staticmethod
     def getCpuArch():
         ret = platform.machine()
         if ret == "x86_64":

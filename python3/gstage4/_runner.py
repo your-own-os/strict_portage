@@ -26,6 +26,7 @@ import shlex
 import subprocess
 from ._util import Util
 from ._util import DirListMount
+from ._errors import WorkDirError
 from .scripts import ScriptInChroot
 
 
@@ -160,8 +161,9 @@ class Runner:
         #   LC_*
         envDict = {}
         for k, v in os.environ.items():
-            if k in ["TERM", "LANG"]:
-                envDict[k] = v
+            if k == "TERM":
+                envDict[k] = self._processTermInfo(v)
+                continue
 
         # do work
         if bNeedOutput:
@@ -173,3 +175,8 @@ class Runner:
             else:
                 subprocess.check_call(cmdList, env=envDict)
             return None
+
+    def _processTermInfo(self, termType):
+        if not Util.hasTermInfo(self._dir, termType):
+            raise WorkDirError("stage4 does not suppport terminal type %s" % (termType))
+        return termType
