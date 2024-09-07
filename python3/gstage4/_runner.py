@@ -212,7 +212,7 @@ class ScriptChrootInit(ScriptFromBuffer):
         buf = buf.replace("@@cmd@@", cmd)
         super().__init__(buf)
 
-    _scriptTemplate = """
+    _scriptTemplate = r"""
 #!/bin/sh
 
 get_encoding() {
