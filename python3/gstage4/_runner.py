@@ -23,19 +23,20 @@
 
 import os
 import shlex
+import pathlib
 import subprocess
 from ._util import Util
 from ._util import DirListMount
 from ._errors import WorkDirError
 from .scripts import ScriptInChroot
+from .scripts import ScriptFromBuffer
 
 
 class Runner:
 
-    def __init__(self, arch, chroot_dir_path, shell="/bin/sh"):
+    def __init__(self, arch, chroot_dir_path):
         self._arch = arch
         self._dir = chroot_dir_path
-        self._shellCmd = shell
         self._mountObj = None
         self._scriptDirList = []
 
@@ -134,31 +135,40 @@ class Runner:
         assert Util.isArchCompatible(self._arch, Util.getCpuArch())
         assert isinstance(env, str) and isinstance(script_obj, ScriptInChroot)
 
-        path = os.path.join("/var", "tmp", "script_%d" % (len(self._scriptDirList)))
-        hostPath = os.path.join(self._dir, path[1:])
+        scriptDir, scriptName = self._addScript(script_obj)
+        self._shellExec(env, "cd %s ; ./%s" % (scriptDir, scriptName), quiet, False)
+
+    def _addScript(self, scriptObj):
+        scriptDir = os.path.join("/var", "tmp", "script_%d" % (len(self._scriptDirList)))
+        hostPath = os.path.join(self._dir, scriptDir[1:])
         self._scriptDirList.append(hostPath)
 
         assert not os.path.exists(hostPath)
         os.makedirs(hostPath, mode=0o755)
-        script_obj.fill_script_dir(hostPath)
+        scriptObj.fill_script_dir(hostPath)
 
-        cmd = "cd %s ; ./%s" % (path, script_obj.get_script())
-        self._shellExec(env, cmd, quiet, False)
+        return (scriptDir, scriptObj.get_script())
 
     def _shellExec(self, env, cmd, bQuiet, bNeedOutput):
-        # env should be set in /bin/sh process, not in chroot process itself
-        # this affects nothing, but it should be like this
+        langEnc = Util.getLangEncoding()
+        if langEnc is None:
+            raise OSError("environment variables LANG and LC_* have invalid values")
+
+        scriptObj = ScriptChrootInit(langEnc, cmd)
+        scriptDir, scriptName = self._addScript(scriptObj)
+
         cmdList = ["chroot", self._dir]
         if env != "":
+            # env should be set in /bin/sh process, not in chroot process itself
+            # this affects nothing, but it should be like this
             cmdList += shlex.split("/bin/env %s" % (env))
-        cmdList += shlex.split(self._shellCmd)
-        if cmd is not None:
-            cmdList += ["-c", cmd]
+        if True:
+            # let /bin/sh executes a predefined script that do some checks
+            # chroot would be terminated if check fails
+            # failure message would be returned through error.log file in script directory
+            cmdList += ["/bin/sh", "-l", "-c", "cd %s ; ./%s" % (scriptDir, scriptName)]
 
         # we must use an empty environment except some specific environment variables
-        # we think the following environment variables are deprecated (is it true?):
-        #   LANGUAGE
-        #   LC_*
         envDict = {}
         for k, v in os.environ.items():
             if k == "TERM":
@@ -166,17 +176,57 @@ class Runner:
                 continue
 
         # do work
-        if bNeedOutput:
-            assert not bQuiet
-            return subprocess.check_output(cmdList, stderr=subprocess.STDOUT, text=True, env=envDict)
-        else:
-            if bQuiet:
-                subprocess.check_call(cmdList, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=envDict)
+        try:
+            if bNeedOutput:
+                assert not bQuiet
+                return subprocess.check_output(cmdList, stderr=subprocess.STDOUT, text=True, env=envDict)
             else:
-                subprocess.check_call(cmdList, env=envDict)
-            return None
+                if bQuiet:
+                    subprocess.check_call(cmdList, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=envDict)
+                else:
+                    subprocess.check_call(cmdList, env=envDict)
+                return None
+        except subprocess.CalledProcessError as e:
+            try:
+                errMsg = pathlib.Path(os.path.join(scriptDir, "error.log")).read_text()
+                raise WorkDirError(errMsg)
+            except FileNotFoundError:
+                raise e
 
     def _processTermInfo(self, termType):
         if not Util.hasTermInfo(self._dir, termType):
             raise WorkDirError("stage4 does not suppport terminal type %s" % (termType))
         return termType
+
+
+class ScriptChrootInit(ScriptFromBuffer):
+
+    def __init__(self, langEnc, cmd):
+        if cmd is None:
+            cmd = "exec sh"
+        else:
+            cmd = "exec sh -c \"%s\"" % (cmd)
+
+        buf = self._scriptTemplate
+        buf = buf.replace("@@langEnc@@", langEnc)
+        buf = buf.replace("@@cmd@@", cmd)
+        super().__init__(buf)
+
+    _scriptTemplate = """
+#!/bin/sh
+
+get_encoding() {
+    if [[ "$1" =~ \.([^ ]*) ]]; then
+        echo "${BASH_REMATCH[1]}"
+    fi
+}
+
+for var in "LANG $(env | grep -oP '^LC_\w+')"; do
+    if [ -n "$var" ] && [ "$(get_encoding $var)" != "@@langEnc@@" ]; then
+        echo -n "stage4 uses different language encoding" > ./error.log
+        exit 1
+    fi
+done
+
+@@cmd@@
+"""

@@ -34,6 +34,31 @@ import PySquashfsImage
 class Util:
 
     @staticmethod
+    def getLangEncoding():
+        ret = None
+
+        # extract encoding part from LANG、LC_* environment variables
+        # 1. ensures that encoding part exists
+        # 2. ensures that encoding parts are same
+        for k, v in os.environ.items():
+            if k != "LANG" and not k.startswith("LC_"):
+                continue
+
+            # en_US.UTF-8 -> UTF-8
+            m = re.fullmatch(r'.*\.(.*)')
+            if m is None:
+                return None
+
+            if ret is None:
+                ret = m.group(1)
+                continue
+
+            if m.group(1) != ret:
+                return None
+
+        return ret
+
+    @staticmethod
     def hasTermInfo(rootDir, termType):
         fullfn = os.path.join(rootDir, "usr", "share", "terminfo", termType[0], termType)
         return os.path.exists(fullfn)
