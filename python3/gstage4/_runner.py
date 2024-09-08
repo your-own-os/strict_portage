@@ -272,6 +272,8 @@ if [ -z "$usershell" ] ; then
     username=$(echo "$userinfo" | cut -d: -f1)
     die "stage4 has no shell for user \"$username\""
 fi
+
+cd /
 exec $usershell
 """
 
