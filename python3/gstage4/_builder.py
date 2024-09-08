@@ -334,8 +334,6 @@ class Builder(ActionRunner):
             return
 
         if self._ts.kernel_manager == "distkernel":
-            assert os.path.exists(os.path.join(self._workDirObj.path, "boot", "vmlinuz"))
-
             if self._ts.kernel_manager_distkernel["dracut_args"] is not None:
                 with _MyChrooter(self) as m:
                     cmd = "dracut"
@@ -343,9 +341,6 @@ class Builder(ActionRunner):
                     cmd += " --force"
                     cmd += ' --kver=${$(equery -Cq f sys-kernel/gentoo-kernel-bin | grep "/usr/src/linux-" -m1)##"/usr/src/linux-"}'
                     m.shell_call("", cmd)
-
-            assert os.path.exists(os.path.join(self._workDirObj.path, "boot", "initramfs.img"))
-
             return
 
         if self._ts.kernel_manager == "fake":
