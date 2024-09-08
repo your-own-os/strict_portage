@@ -140,7 +140,7 @@ class Runner:
         assert Util.isArchCompatible(self._arch, Util.getCpuArch())
         assert isinstance(env, str) and isinstance(script_obj, ScriptInChroot)
 
-        scriptDir, scriptName = self._addScript(script_obj)
+        hostPath, scriptDir, scriptName = self._addScript(script_obj)
         self._shellExec(env, "cd %s ; ./%s" % (scriptDir, scriptName), quiet, False)
 
     def _addScript(self, scriptObj):
@@ -152,11 +152,11 @@ class Runner:
         os.makedirs(hostPath, mode=0o755)
         scriptObj.fill_script_dir(hostPath)
 
-        return (scriptDir, scriptObj.get_script())
+        return (hostPath, scriptDir, scriptObj.get_script())
 
     def _shellExec(self, env, cmd, bQuiet, bNeedOutput):
         scriptObj = ScriptChrootInit(Util.getTermType(), Util.getLangEncoding(), cmd)
-        scriptDir, scriptName = self._addScript(scriptObj)
+        hostPath, scriptDir, scriptName = self._addScript(scriptObj)
 
         cmdList = ["chroot", self._dir]
         if env != "":
@@ -188,7 +188,7 @@ class Runner:
                     subprocess.check_call(cmdList, env=envDict)
                 return None
         except subprocess.CalledProcessError:
-            errFn = os.path.join(scriptDir, "error.log")
+            errFn = os.path.join(hostPath, "error.log")
             if os.path.exists(errFn):
                 raise WorkDirError(pathlib.Path(errFn).read_text())
             else:
