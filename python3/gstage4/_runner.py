@@ -247,7 +247,7 @@ get_encoding() {
         echo "${BASH_REMATCH[1]}"
     fi
 }
-for var in "LANG $(env | grep -oP '^LC_\w+')"; do
+for var in LANG $(env | grep -oP '^LC_\w+'); do
     value=$(printenv $var)
     if [ -n "$value" ] && [ "$(get_encoding $value)" != "@@langEnc@@" ]; then
         die "stage4 uses another language encoding in environment variable \"$var\""
