@@ -168,10 +168,7 @@ class Runner:
         envDict = {}
         for k, v in os.environ.items():
             if k == "TERM":
-                if not bQuiet:
-                    envDict[k] = self._processTermInfo(v)
-                else:
-                    envDict[k] = "dumb"
+                envDict[k] = self._processTermInfo(v)
                 continue
 
         # do work
@@ -214,7 +211,7 @@ class ScriptChrootInit(ScriptFromBuffer):
             buf += self._scriptTemplateCheckTermType.replace("@@termType@@", termType)
 
         if languageEncoding is not None:
-            buf += self._scriptTemplateCheckLanguageEncoding.replace("@@langEnc@@", languageEncoding)
+            buf += self._scriptTemplateCheckLanguageEncoding.replace("@@languageEncoding@@", languageEncoding)
 
         if cmd is None:
             buf += self._scriptTemplateShell
