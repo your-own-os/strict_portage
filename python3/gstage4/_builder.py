@@ -259,6 +259,8 @@ class Builder(ActionRunner):
                 __worldNeeded("sys-devel/bc")                   # kernel build script needs it
             elif self._ts.kernel_manager == "distkernel":
                 __worldNeeded("sys-kernel/gentoo-kernel-bin")
+                __worldNeeded("sys-kernel/dracut")
+                __worldNeeded("app-portage/gentoolkit")         # dracut operation needs it
             elif self._ts.kernel_manager == "fake":
                 pass
             else:
@@ -332,12 +334,17 @@ class Builder(ActionRunner):
             return
 
         if self._ts.kernel_manager == "distkernel":
-            assert os.path.exists("/boot/vmlinuz")
+            assert os.path.exists(os.path.join(self._workDirObj.path, "boot", "vmlinuz"))
 
             if self._ts.kernel_manager_distkernel["dracut_args"] is not None:
                 with _MyChrooter(self) as m:
-                    m.shell_call("", "dracut %s" % (self._ts.kernel_manager_distkernel["dracut_args"]))
-            assert os.path.exists("/boot/initramfs.img")
+                    cmd = "dracut"
+                    cmd += " %s" % (self._ts.kernel_manager_distkernel["dracut_args"])
+                    cmd += " --force"
+                    cmd += ' --kver=${$(equery -Cq f sys-kernel/gentoo-kernel-bin | grep "/usr/src/linux-" -m1)##"/usr/src/linux-"}'
+                    m.shell_call("", cmd)
+
+            assert os.path.exists(os.path.join(self._workDirObj.path, "boot", "initramfs.img"))
 
             return
 

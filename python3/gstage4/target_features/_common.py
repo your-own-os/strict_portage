@@ -76,6 +76,8 @@ class UseDistKernel:
 
     def update_world_set(self, world_set):
         world_set.add("sys-kernel/gentoo-kernel-bin")
+        world_set.add("sys-kernel/dracut")
+        world_set.add("app-portage/gentoolkit")
 
 
 class UseBbki:
