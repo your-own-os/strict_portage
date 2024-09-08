@@ -21,6 +21,7 @@
 # THE SOFTWARE.
 
 
+import os
 import sys
 import gstage4
 
