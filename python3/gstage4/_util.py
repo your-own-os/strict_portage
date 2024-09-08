@@ -213,7 +213,7 @@ class TempChdir:
     def __enter__(self):
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, exc_value, traceback):
         os.chdir(self.olddir)
 
 
@@ -240,7 +240,7 @@ class DirListMount:
     def __enter__(self):
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, exc_value, traceback):
         self.dispose()
 
 

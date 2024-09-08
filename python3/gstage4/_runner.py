@@ -44,8 +44,8 @@ class Runner:
         self.bind()
         return self
 
-    def __exit__(self, type, value, traceback):
-        self.unbind()
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.unbind(remove_scripts=(exc_type is None))
 
     def is_binded(self):
         return self._mountObj is not None
