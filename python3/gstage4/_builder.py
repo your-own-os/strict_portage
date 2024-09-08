@@ -342,6 +342,13 @@ class Builder(ActionRunner):
                     cmd += " --force"
                     cmd += " --kver=$(equery -Cq f sys-kernel/gentoo-kernel-bin | grep '/usr/src/linux-' -m1 | sed 's|/usr/src/linux-||')"
                     m.shell_exec("", cmd)
+
+                    for fn in ["System.map", "config", "initramfs.img", "vmlinuz"]:
+                        if fn.endswith(".img"):
+                            fn, ext = fn.replace(".img", ""), "img"
+                            m.shell_exec("", "mv /boot/%s-*.%s /boot/%s.%s" % (fn, ext, fn, ext))
+                        else:
+                            m.shell_exec("", "mv /boot/%s-* /boot/%s" % (fn, fn))
             return
 
         if self._ts.kernel_manager == "fake":
