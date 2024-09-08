@@ -182,12 +182,12 @@ class Runner:
                 else:
                     subprocess.check_call(cmdList, env=envDict)
                 return None
-        except subprocess.CalledProcessError as e:
-            try:
-                errMsg = pathlib.Path(os.path.join(scriptDir, "error.log")).read_text()
-                raise WorkDirError(errMsg)
-            except FileNotFoundError:
-                raise e
+        except subprocess.CalledProcessError:
+            errFn = os.path.join(scriptDir, "error.log")
+            if os.path.exists(errFn):
+                raise WorkDirError(pathlib.Path(errFn).read_text())
+            else:
+                raise
         finally:
             self._cleanupTermInfo()
 
