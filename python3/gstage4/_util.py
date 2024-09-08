@@ -59,9 +59,20 @@ class Util:
         return ret
 
     @staticmethod
-    def hasTermInfo(rootDir, termType):
-        fullfn = os.path.join(rootDir, "usr", "share", "terminfo", termType[0], termType)
+    def getTermType():
+        return os.environ.get("TERM", None)
+
+    @staticmethod
+    def hasTermInfoFile(termType, targetRootDir):
+        fullfn = os.path.join(targetRootDir, "usr", "share", "terminfo", termType[0], termType)
         return os.path.exists(fullfn)
+
+    @staticmethod
+    def copyTermInfoFile(termType, sourceRootDir, targetRootDir):
+        srcFullfn = os.path.join(sourceRootDir, "usr", "share", "terminfo", termType[0], termType)
+        dstFullfn = os.path.join(targetRootDir, "usr", "share", "terminfo", termType[0], termType)
+        os.makedirs(os.path.dirname(dstFullfn), exist_ok=True)
+        shutil.copy(srcFullfn, dstFullfn)
 
     @staticmethod
     def getCpuArch():

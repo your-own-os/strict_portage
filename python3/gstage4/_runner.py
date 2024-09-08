@@ -150,11 +150,7 @@ class Runner:
         return (scriptDir, scriptObj.get_script())
 
     def _shellExec(self, env, cmd, bQuiet, bNeedOutput):
-        langEnc = Util.getLangEncoding()
-        if langEnc is None:
-            raise OSError("environment variables LANG and LC_* have invalid values")
-
-        scriptObj = ScriptChrootInit(os.environ.get("TERM", None), langEnc, cmd)
+        scriptObj = ScriptChrootInit(Util.getTermType(), Util.getLangEncoding(), cmd)
         scriptDir, scriptName = self._addScript(scriptObj)
 
         cmdList = ["chroot", self._dir]
@@ -195,26 +191,36 @@ class Runner:
                 raise WorkDirError(errMsg)
             except FileNotFoundError:
                 raise e
+        finally:
+            self._cleanupTermInfo()
 
     def _processTermInfo(self, termType):
-        if not Util.hasTermInfo(self._dir, termType):
-            raise WorkDirError("stage4 does not suppport terminal type %s" % (termType))
+        # FIXME: terminfo file should be put in /etc
+        if not Util.hasTermInfoFile(termType, self._dir):
+            Util.copyTermInfoFile(termType, "/", self._dir)
         return termType
+
+    def _cleanupTermInfo(self, termType):
+        # FIXME: should remove terminfo file in /etc
+        pass
 
 
 class ScriptChrootInit(ScriptFromBuffer):
 
     def __init__(self, termType, languageEncoding, cmd):
-        if cmd is None:
-            cmd = "exec sh"
-        else:
-            cmd = "exec sh -c \"%s\"" % (cmd)
-
         buf = self._scriptTemplate
+
         if termType is not None:
             buf += self._scriptTemplateCheckTermType.replace("@@termType@@", termType)
-        buf += self._scriptTemplateCheckLanguageEncoding.replace("@@langEnc@@", languageEncoding)
-        buf += self._scriptTemplateExec.replace("@@cmd@@", cmd)
+
+        if languageEncoding is not None:
+            buf += self._scriptTemplateCheckLanguageEncoding.replace("@@langEnc@@", languageEncoding)
+
+        if cmd is None:
+            buf += self._scriptTemplateShell
+        else:
+            buf += self._scriptTemplateExec.replace("@@cmd@@", cmd)
+
         super().__init__(buf)
 
     _scriptTemplate = """
@@ -252,6 +258,16 @@ for var in "LANG $(env | grep -oP '^LC_\w+')"; do
 done
 """
 
+    _scriptTemplateShell = """
+userinfo=$(grep "^[^:]*:[^:]*:$uid:" /etc/passwd | cut -d: -f1,7)
+usershell=$(echo "$userinfo" | cut -d: -f2)
+if [ -z "$usershell" ]; then
+    username=$(echo "$userinfo" | cut -d: -f1)
+    die "stage4 has no shell for user \"$username\""
+fi
+exec $usershell
+"""
+
     _scriptTemplateExec = """
-@@cmd@@
+exec sh -c "@@cmd@@"
 """
