@@ -65,8 +65,14 @@ class UseGenkernel:
 
 class UseDistKernel:
 
+    def __init__(self, dracut_args=None):
+        self._dracutArgs = dracut_args
+
     def update_target_settings(self, target_settings):
-        target_settings.kernel_manager = "dist-kernel"
+        target_settings.kernel_manager = "distkernel"
+        target_settings.kernel_manager_distkernel = {
+            "dracut_args": self._dracutArgs,
+        }
 
     def update_world_set(self, world_set):
         world_set.add("sys-kernel/gentoo-kernel-bin")

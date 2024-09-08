@@ -129,7 +129,7 @@ class Builder(ActionRunner):
             myRepo = _MyRepoUtil.createFromEmergeSyncRepo(repo, True, curPath)
             assert myRepo.get_sync_type() == "rsync"
             with _MyChrooter(self) as m:
-                m.script_exec(ScriptSync(), quiet=self._getQuiet())
+                m.script_exec("", ScriptSync(), quiet=self._getQuiet())
         else:
             assert False
 
@@ -210,10 +210,10 @@ class Builder(ActionRunner):
         if any([isinstance(repo, EmergeSyncRepository) for repo in overlay_list]):
             with _MyChrooter(self) as m:
                 installList = [x for x in pkgSet if not Util.portageIsPkgInstalled(curPath, x)]
-                m.script_exec(ScriptInstallPackages(installList, False, self._s.verbose_level), quiet=self._getQuiet())
+                m.script_exec("", ScriptInstallPackages(installList, False, self._s.verbose_level), quiet=self._getQuiet())
 
                 if any([isinstance(repo, EmergeSyncRepository) for repo in overlay_list]):
-                    m.script_exec(ScriptSync(), quiet=self._getQuiet())
+                    m.script_exec("", ScriptSync(), quiet=self._getQuiet())
 
         # sync other overlays
         for overlay in overlay_list:
@@ -257,7 +257,7 @@ class Builder(ActionRunner):
                 __worldNeeded("sys-kernel/gentoo-sources")
                 __worldNeeded("sys-kernel/genkernel")
                 __worldNeeded("sys-devel/bc")                   # kernel build script needs it
-            elif self._ts.kernel_manager == "dist-kernel":
+            elif self._ts.kernel_manager == "distkernel":
                 __worldNeeded("sys-kernel/gentoo-kernel-bin")
             elif self._ts.kernel_manager == "fake":
                 pass
@@ -303,11 +303,11 @@ class Builder(ActionRunner):
         # install packages & update world
         with _MyChrooter(self) as m:
             if len(preInstallList) > 0:
-                m.script_exec(ScriptInstallPackages(preInstallList, False, self._s.verbose_level), quiet=self._getQuiet())
+                m.script_exec("", ScriptInstallPackages(preInstallList, False, self._s.verbose_level), quiet=self._getQuiet())
 
             # we don't install packages seperately
             # many packages change global USE flag when installing, such as python_targets_XXX, so it needs to be combined with updating world to solve conflicts
-            m.script_exec(ScriptUpdateWorld(self._s.verbose_level), quiet=self._getQuiet())
+            m.script_exec("", ScriptUpdateWorld(self._s.verbose_level), quiet=self._getQuiet())
 
     @ActionRunner.Action(after=["init_confdir", "update_world"])
     def action_install_kernel(self):
@@ -327,13 +327,18 @@ class Builder(ActionRunner):
                         f.write(self._ts.kernel_manager_genkernel["kernel_config"])
                 else:
                     customDotConfigFile = None
-                m.script_exec(ScriptGenkernel(self._s.verbose_level, tj, tl, self._ts.build_opts.ccache, customDotConfigFile), quiet=self._getQuiet())
+                m.script_exec("", ScriptGenkernel(self._s.verbose_level, tj, tl, self._ts.build_opts.ccache, customDotConfigFile), quiet=self._getQuiet())
 
             return
 
-        if self._ts.kernel_manager == "dist-kernel":
+        if self._ts.kernel_manager == "distkernel":
             assert os.path.exists("/boot/vmlinuz")
+
+            if self._ts.kernel_manager_distkernel["dracut_args"] is not None:
+                with _MyChrooter(self) as m:
+                    m.shell_call("", "dracut %s" % (self._ts.kernel_manager_distkernel["dracut_args"]))
             assert os.path.exists("/boot/initramfs.img")
+
             return
 
         if self._ts.kernel_manager == "fake":
@@ -369,7 +374,7 @@ class Builder(ActionRunner):
 
         with _MyChrooter(self) as m:
             m.shell_call("", "eselect news read all")
-            m.script_exec(ScriptDepClean(self._s.verbose_level), quiet=self._getQuiet())
+            m.script_exec("", ScriptDepClean(self._s.verbose_level), quiet=self._getQuiet())
 
             if degentoo:
                 # FIXME
