@@ -30,6 +30,10 @@ if __name__ == '__main__':
         print('Usage: gstage4-chroot <directory>')
         sys.exit(1)
 
+    if not os.path.exists(sys.argv[1]):
+        print('Error: Directory \"%s\" does not exist.')
+        sys.exit(1)
+
     wdir = gstage4.WorkDir(sys.argv[1])
     with gstage4.Runner(wdir.get_arch(), wdir.get_latest_action_dirpath()) as c:
         c.shell("")
