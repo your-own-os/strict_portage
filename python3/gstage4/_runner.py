@@ -237,7 +237,7 @@ die() {
     _scriptTemplateCheckTermType = """
 if [ -n "$TERM" ]; then
     if [ "$TERM" != "@@termType@@" ]; then
-        die "stage4 uses another terminal type"
+        die "stage4 uses another terminal type (TERM=$TERM)"
     fi
 fi
 """
@@ -255,7 +255,7 @@ get_encoding() {
 for var in LANG $(env | grep -oP '^LC_\w+'); do
     value=$(printenv $var)
     if [ -n "$value" ] && [ "$(get_encoding $value)" != "@@langEnc@@" ]; then
-        die "stage4 uses another language encoding in environment variable \"$var\""
+        die "stage4 uses another language encoding ($var=$value)"
     fi
 done
 """
