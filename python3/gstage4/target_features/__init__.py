@@ -82,6 +82,8 @@ from ._tailor import TailorRsync
 from ._tailor import TailorLmSensors
 from ._tailor import TailorQemu
 
+from ._pam import PamSuWheelOk
+
 from ._mirror import UseGogMirror
 from ._mirror import UseHbMirror
 from ._mirror import UseHuggingFaceMirror
