@@ -733,6 +733,33 @@ class TailorPam:
                     td[k] = []
                 td[k] += v
 
+        if "pam_access" in items:
+            _updateDict({
+                "sys-libs/pam": [
+                    "*pam_access*",
+                    "*access.conf*",
+                ],
+            })
+            items.remove("pam_access")
+
+        if "pam_env" in items:
+            _updateDict({
+                "sys-libs/pam": [
+                    "*pam_env.so",
+                    "/etc/security/pam_env.conf",
+                ],
+            })
+            items.remove("pam_env")
+        # FIXME: "/etc/environments"?
+
+        if "pam_faillock" in items:
+            _updateDict({
+                "sys-libs/pam": [
+                    "*faillock*",
+                ],
+            })
+            items.remove("pam_faillock")
+
         if "pam_group" in items:
             _updateDict({
                 "sys-libs/pam": [
@@ -752,24 +779,21 @@ class TailorPam:
             })
             items.remove("pam_limits")
 
-        if "pam_env" in items:
+        if "pam_namespace" in items:
             _updateDict({
                 "sys-libs/pam": [
-                    "*pam_env.so",
-                    "/etc/security/pam_env.conf",
+                    "*namespace*",
                 ],
             })
-            items.remove("pam_env")
-        # FIXME: "/etc/environments"?
+            items.remove("pam_namespace")
 
-        if "pam_access" in items:
+        if "pam_pwhistory" in items:
             _updateDict({
                 "sys-libs/pam": [
-                    "*pam_access*",
-                    "*access.conf*",
+                    "*pwhistory*",
                 ],
             })
-            items.remove("pam_access")
+            items.remove("pam_pwhistory")
 
         if "pam_time" in items:
             _updateDict({
@@ -780,15 +804,6 @@ class TailorPam:
             })
             items.remove("pam_time")
 
-        if "pam_namespace" in items:
-            _updateDict({
-                "sys-libs/pam": [
-                    "*namespace*",
-                ],
-            })
-            items.remove("pam_namespace")
-
-        # faillock.conf
         # passwdqc.conf
 
         assert len(items) == 0
