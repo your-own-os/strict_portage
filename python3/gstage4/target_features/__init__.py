@@ -74,6 +74,7 @@ from ._common import GettyAutoLogin
 from ._tailor import TailorBaselayout
 from ._tailor import TailorSystemd
 from ._tailor import TailorShadow
+from ._tailor import TailorPam
 from ._tailor import TailorAvahi
 from ._tailor import TailorEselect
 from ._tailor import TailorGit
