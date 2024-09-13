@@ -804,6 +804,14 @@ class TailorPam:
             })
             items.remove("pam_time")
 
+        if "pam_xauth" in items:
+            _updateDict({
+                "sys-libs/pam": [
+                    "*xauth*",
+                ],
+            })
+            items.remove("pam_xauth")
+
         # passwdqc.conf
 
         assert len(items) == 0
