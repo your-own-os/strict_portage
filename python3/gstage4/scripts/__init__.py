@@ -29,3 +29,13 @@ from ._template import PlacingFilesScript
 
 from ._common import ScriptInstallPackages
 from ._common import ScriptUpdateWorld
+
+__all__ = [
+    "ScriptFromHostFile",
+    "ScriptFromHostDir",
+    "ScriptFromBuffer",
+    "OneLinerScript",
+    "PlacingFilesScript",
+    "ScriptInstallPackages",
+    "ScriptUpdateWorld",
+]

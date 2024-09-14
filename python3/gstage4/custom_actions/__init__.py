@@ -27,3 +27,11 @@ from ._common import SetRootPassword
 from ._common import AddUser
 from ._common import RemovePackagesFromWorld
 from ._common import RemoveUsrSrcDirectoryContent
+
+__all__ = [
+    "SimpleCustomAction",
+    "SetRootPassword",
+    "AddUser",
+    "RemovePackagesFromWorld",
+    "RemoveUsrSrcDirectoryContent",
+]

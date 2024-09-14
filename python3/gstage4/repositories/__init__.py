@@ -28,3 +28,12 @@ from ._gentoo import GentooSnapshot
 from ._overlay import OverlayFromHostLayman
 from ._overlay import RegisteredOverlay
 from ._overlay import UserDefinedOverlay
+
+__all__ = [
+    "CloudGentoo",
+    "CloudGentooSnapshot",
+    "GentooSnapshot",
+    "OverlayFromHostLayman",
+    "RegisteredOverlay",
+    "UserDefinedOverlay",
+]

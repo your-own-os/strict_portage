@@ -55,3 +55,25 @@ from ._errors import CustomActionError
 
 REPO_POSTSYNC_PATCH_SCRIPT = "/usr/libexec/gstage4/patch-repository"
 REPO_POSTSYNC_PATCH_SOURCE_DIR = "/usr/libexec/gstage4/patch-repository.d"
+
+__all__ = [
+    "Settings",
+    "TargetSettings",
+    "SeedStage",
+    "ManualSyncRepository",
+    "EmergeSyncRepository",
+    "ScriptInChroot",
+    "WorkDir",
+    "Runner",
+    "Builder",
+    "CustomAction",
+    "HostInfoError",
+    "UpstreamError",
+    "SettingsError",
+    "SeedStageError",
+    "WorkDirError",
+    "BuildError",
+    "CustomActionError",
+    "REPO_POSTSYNC_PATCH_SCRIPT",
+    "REPO_POSTSYNC_PATCH_SOURCE_DIR",
+]

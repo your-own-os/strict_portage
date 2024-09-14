@@ -23,3 +23,8 @@
 
 from ._gentoo import CloudGentooStage3Archive
 from ._gentoo import GentooStage3Archive
+
+__all__ = [
+    "CloudGentooStage3Archive",
+    "GentooStage3Archive",
+]

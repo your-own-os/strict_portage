@@ -21,6 +21,10 @@
 # THE SOFTWARE.
 
 
+from ..scripts import OneLinerScript
+from ..custom_actions import SimpleCustomAction
+
+
 class PamSuWheelOk:
 
     def get_custom_action(self):
