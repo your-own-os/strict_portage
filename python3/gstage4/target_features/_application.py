@@ -79,12 +79,19 @@ net-misc/openntpd
 
 class NetworkManager:
 
-    def __init__(self, exclusive=False):
+    def __init__(self, wifi=False, exclusive=False):
+        self._wifi = wifi
         self._exclusive = exclusive
 
     def update_target_settings(self, target_settings):
+        assert "10-networkmanager" not in target_settings.pkg_use_files
         assert "10-networkmanager" not in target_settings.pkg_mask_files
         assert "10-networkmanager" not in target_settings.install_mask_files
+
+        if self._wifi:
+            target_settings.pkg_use_files["10-networkmanager"] = self._useFileContentWifiEnable.strip("\n") + "\n"
+        else:
+            target_settings.pkg_use_files["10-networkmanager"] = self._useFileContentWifiDisable.strip("\n") + "\n"
 
         if self._exclusive:
             target_settings.pkg_mask_files["10-networkmanager"] = self._maskFileContent.strip("\n") + "\n"
@@ -96,10 +103,27 @@ class NetworkManager:
 
     def update_world_set(self, world_set):
         world_set.add("net-misc/networkmanager")
+        if self._wifi:
+            # net-misc/networkmanager has already pulls in net-wireless/iwd
+            # but we think explicily install it is good
+            world_set.add("net-wireless/iwd")
 
     def update_service_list(self, service_list):
         if "NetworkManager" not in service_list:
             service_list.append("NetworkManager")
+        if self._wifi:
+            if "iwd" not in service_list:
+                service_list.append("iwd")
+
+    _useFileContentWifiDisable = """
+# networkmanager enables wifi by default, we have to disable wifi explicitly
+net-misc/networkmanager                                                     -wext -wifi
+"""
+
+    _useFileContentWifiEnable = """
+# we don't use deprecated wifi features (wext and -iwd)
+net-misc/networkmanager                                                     -wext iwd wifi
+"""
 
     _maskFileContent = """
 # we don't use static network configuration scripts
@@ -117,6 +141,18 @@ class Avahi:
             service_list.append("avahi-daemon")
 
 
+class Bluez:
+    pass
+
+
+class Cups:
+    pass
+
+
+class Iwd:
+    pass
+
+
 class UseAllQemuTargets:
 
     def update_target_settings(self, target_settings):
@@ -125,9 +161,9 @@ class UseAllQemuTargets:
         target_settings.pkg_use_files["10-qemu-all-targets"] = self._useFileContent.strip("\n") + "\n"
 
     _useFileContent = """
-app-emulation/qemu                                                          tci
-app-emulation/qemu                                                          QEMU_SOFTMMU_TARGETS: *
-app-emulation/qemu                                                          QEMU_USER_TARGETS: *
+app-emulation/qemu  tci
+app-emulation/qemu  QEMU_SOFTMMU_TARGETS: *
+app-emulation/qemu  QEMU_USER_TARGETS: *
 """
 
 
