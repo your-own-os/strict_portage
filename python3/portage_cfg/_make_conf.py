@@ -23,6 +23,7 @@
 
 import os
 import re
+import pathlib
 
 
 class MakeConf:
@@ -34,14 +35,16 @@ class MakeConf:
     def path(self):
         return self._path
 
+    def has_var(self, var_name):
+        buf = pathlib.Path(self._path).read_text()
+        m = re.search("^%s=\"(.*)\"$" % (var_name), buf, re.MULTILINE)
+        return m is not None
+
     def get_var(self, var_name):
         # Returns variable value, returns "" when not found
         # Multiline variable definition is not supported yet
 
-        buf = ""
-        with open(self._path, 'r') as f:
-            buf = f.read()
-
+        buf = pathlib.Path(self._path).read_text()
         m = re.search("^%s=\"(.*)\"$" % (var_name), buf, re.MULTILINE)
         if m is None:
             return ""
@@ -64,12 +67,8 @@ class MakeConf:
         # Create or set variable in make.conf
         # Multiline variable definition is not supported yet
 
-        endEnter = False
-        buf = ""
-        with open(self._path, 'r') as f:
-            buf = f.read()
-            if buf[-1] == "\n":
-                endEnter = True
+        buf = pathlib.Path(self._path).read_text()
+        endEnter = (buf[-1] == "\n")
 
         m = re.search("^%s=\"(.*)\"$" % (var_name), buf, re.MULTILINE)
         if m is not None:
