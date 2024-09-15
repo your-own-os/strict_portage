@@ -1,7 +1,0 @@
-#!/bin/sh
-
-if [[ "$@" == *"--daemon"* || "$@" == *"--timeout"* ]] ; then
-    rsync-reference "$@"
-else
-    rsync-reference --timeout=60 "$@"
-fi

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# gstage4 - gentoo stage4 building
+#
 # Copyright (c) 2020-2021 Fpemud <fpemud@sina.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,65 +23,16 @@
 # THE SOFTWARE.
 
 
-import abc
+__package__ = 'portage_cfg'
+
+__version__ = '0.0.1'
+
+__author__ = 'Fpemud <fpemud@sina.com>'
 
 
-class SeedStage(abc.ABC):
-
-    @abc.abstractmethod
-    def get_arch(self):
-        pass
-
-    @abc.abstractmethod
-    def get_digest(self):
-        pass
-
-    @abc.abstractmethod
-    def unpack(self, target_dir):
-        pass
+from ._world import WorldFile
 
 
-class Repository(abc.ABC):
-
-    @abc.abstractmethod
-    def get_name(self):
-        pass
-
-    @abc.abstractmethod
-    def get_datadir_path(self):
-        pass
-
-    def __eq__(self, other):
-        if not isinstance(other, Repository):
-            return False
-        if self.get_name() != other.get_name():
-            return False
-        return True
-
-    def __ne__(self, other):
-        return (not self.__eq__(other))
-
-
-class ManualSyncRepository(Repository):
-
-    @abc.abstractmethod
-    def sync(self, datadir_hostpath):
-        pass
-
-
-class EmergeSyncRepository(Repository):
-
-    @abc.abstractmethod
-    def get_repos_conf_file_content(self):
-        pass
-
-
-class ScriptInChroot(abc.ABC):
-
-    @abc.abstractmethod
-    def fill_script_dir(self, script_dir_hostpath):
-        pass
-
-    @abc.abstractmethod
-    def get_script(self):
-        pass
+__all__ = [
+    "WorldFile",
+]

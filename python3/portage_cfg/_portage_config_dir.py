@@ -21,20 +21,23 @@
 # THE SOFTWARE.
 
 
-import os
-import sys
-import gstage4
+class PortageConfigDir:
+
+    def __init__(self, path: str = "/etc/portage"):
+        self._path = path
 
 
-if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print('Usage: gstage4-chroot <directory>')
-        sys.exit(1)
+        self.world_file = WorldFile(path)
+        self.use_flags = UseFlags(path)
+        self.repos_conf = ReposConf(path)
+        self.package_manager = PackageManager(path)
+        self.make_conf = MakeConf(path)
 
-    if not os.path.exists(sys.argv[1]):
-        print('Error: Directory \"%s\" does not exist.')
-        sys.exit(1)
-
-    wdir = gstage4.WorkDir(sys.argv[1])
-    with gstage4.Runner(wdir.get_arch(), wdir.get_latest_action_dirpath()) as c:
-        c.shell("")
+    def check_portage_cfg(self, full_check: bool = True) -> None:
+        """
+        Check the Portage configuration.
+        
+        :param full_check: Whether to perform a full check or not.
+        """
+        # Implement the check logic here
+        pass

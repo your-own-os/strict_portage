@@ -21,19 +21,38 @@
 # THE SOFTWARE.
 
 
-from ._gentoo import CloudGentoo
-from ._gentoo import CloudGentooSnapshot
-from ._gentoo import GentooSnapshot
+import pathlib
 
-from ._overlay import OverlayFromHostLayman
-from ._overlay import RegisteredOverlay
-from ._overlay import UserDefinedOverlay
 
-__all__ = [
-    "CloudGentoo",
-    "CloudGentooSnapshot",
-    "GentooSnapshot",
-    "OverlayFromHostLayman",
-    "RegisteredOverlay",
-    "UserDefinedOverlay",
-]
+class WorldFile:
+
+    def __init__(self, path="/var/lib/portage/world"):
+        self._path = path
+
+    def get_packages(self):
+        try:
+            pkgList = pathlib.Path(self._path).read_text().split("\n")
+            return [x for x in pkgList if x != ""]
+        except FileNotFoundError:
+            return []
+
+    def add_package(self, *package_names):
+        pkgList2 = self.get_packages(self._path)
+        for pkg in package_names:
+            if pkg not in pkgList2:
+                pkgList2.append(pkg)
+        self._writeWorldFile(pkgList2)
+
+    def remove_package(self, *package_names):
+        pkgList2 = self.get_packages(self._path)
+        for pkg in package_names:
+            i = pkgList2.find(pkg)
+            if i >= 0:
+                pkgList2.pop(i)
+        self._writeWorldFile(pkgList2)
+
+    def _writeWorldFile(self, pkgList):
+        # FIXME: sort
+        with open(self._path, "w") as f:
+            for pkg in pkgList:
+                f.write(pkg + "\n")
