@@ -7,7 +7,7 @@ import distutils.util
 from setuptools import setup, find_packages
 
 # package metadata
-__package__ = 'gstage4'
+__package__ = 'portage_cfg'
 __version__ = '0.0.1'
 __author__ = 'Fpemud <fpemud@sina.com>'
 
