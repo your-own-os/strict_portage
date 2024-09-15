@@ -142,15 +142,41 @@ class Avahi:
 
 
 class Bluez:
-    pass
+
+    def update_target_settings(self, target_settings):
+        assert "10-bluez" not in target_settings.pkg_use_files
+
+        target_settings.pkg_use_files["10-bluez"] = self._useFileContent.strip("\n") + "\n"
+
+    def update_world_set(self, world_set):
+        world_set.add("net-wireless/bluez")
+
+    def update_service_list(self, service_list):
+        if "bluetooth" not in service_list:
+            service_list.append("bluetooth")
+
+    _useFileContent = """
+*/*     bluetooth
+"""
 
 
 class Cups:
-    pass
 
+    def update_target_settings(self, target_settings):
+        assert "10-cups" not in target_settings.pkg_use_files
 
-class Iwd:
-    pass
+        target_settings.pkg_use_files["10-cups"] = self._useFileContent.strip("\n") + "\n"
+
+    def update_world_set(self, world_set):
+        world_set.add("net-print/cups")
+
+    def update_service_list(self, service_list):
+        if "cups" not in service_list:
+            service_list.append("cups")
+
+    _useFileContent = """
+*/*     cups
+"""
 
 
 class UseAllQemuTargets:
