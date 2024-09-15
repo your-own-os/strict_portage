@@ -34,45 +34,24 @@ import PySquashfsImage
 class Util:
 
     @staticmethod
-    def getLangEncoding():
-        ret = None
+    def realPathSplit(path):
+        """os.path.split() only split a path into 2 component, I believe there are reasons, but it is really inconvenient.
+           So I write this function to split a unix path into basic components.
+           Reference: http://stackoverflow.com/questions/3167154/how-to-split-a-dos-path-into-its-components-in-python"""
 
-        # extract encoding part from LANG、LC_* environment variables
-        # 1. ensures that encoding part exists
-        # 2. ensures that encoding parts are same
-        for k, v in os.environ.items():
-            if k != "LANG" and not k.startswith("LC_"):
-                continue
-
-            # en_US.UTF-8 -> UTF-8
-            m = re.fullmatch(r'.*\.(.*)', v)
-            if m is None:
-                return None
-
-            if ret is None:
-                ret = m.group(1)
-                continue
-
-            if m.group(1) != ret:
-                return None
-
-        return ret
-
-    @staticmethod
-    def getTermType():
-        return os.environ.get("TERM", None)
-
-    @staticmethod
-    def hasTermInfoFile(termType, targetRootDir):
-        fullfn = os.path.join(targetRootDir, "usr", "share", "terminfo", termType[0], termType)
-        return os.path.exists(fullfn)
-
-    @staticmethod
-    def copyTermInfoFile(termType, sourceRootDir, targetRootDir):
-        srcFullfn = os.path.join(sourceRootDir, "usr", "share", "terminfo", termType[0], termType)
-        dstFullfn = os.path.join(targetRootDir, "usr", "share", "terminfo", termType[0], termType)
-        os.makedirs(os.path.dirname(dstFullfn), exist_ok=True)
-        shutil.copy(srcFullfn, dstFullfn)
+        folders = []
+        while True:
+            path, folder = os.path.split(path)
+            if folder != "":
+                folders.append(folder)
+            else:
+                if path != "":
+                    folders.append(path)
+                break
+        if path.startswith("/"):
+            folders.append("")
+        folders.reverse()
+        return folders
 
     @staticmethod
     def getCpuArch():
