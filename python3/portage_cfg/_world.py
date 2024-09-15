@@ -41,14 +41,14 @@ class World:
             return []
 
     def add_package(self, *package_names):
-        pkgList2 = self.get_packages(self._path)
+        pkgList2 = self.get_packages()
         for pkg in package_names:
             if pkg not in pkgList2:
                 pkgList2.append(pkg)
         self._writeWorldFile(pkgList2)
 
     def remove_package(self, *package_names):
-        pkgList2 = self.get_packages(self._path)
+        pkgList2 = self.get_packages()
         for pkg in package_names:
             i = pkgList2.find(pkg)
             if i >= 0:
