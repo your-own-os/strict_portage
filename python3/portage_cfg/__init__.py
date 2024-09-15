@@ -30,9 +30,12 @@ __version__ = '0.0.1'
 __author__ = 'Fpemud <fpemud@sina.com>'
 
 
-from ._world import WorldFile
+from ._make_conf import MakeConf
+
+from ._world import World
 
 
 __all__ = [
-    "WorldFile",
+    "MakeConf",
+    "World",
 ]

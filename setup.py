@@ -4,12 +4,7 @@ import os
 import sys
 import email.utils
 import distutils.util
-try:
-    # First try to load most advanced setuptools setup.
-    from setuptools import setup, find_packages
-except:
-    # Fall back if setuptools is not installed.
-    from distutils.core import setup, find_packages
+from setuptools import setup, find_packages
 
 # package metadata
 __package__ = 'gstage4'
@@ -26,10 +21,10 @@ if not platform.startswith('linux'):
 setup(
     name=__package__,
     version=__version__,
-    description="A simple python module for gentoo live disk building.",
+    description="Python module for manipulating portage config files.",
     author=email.utils.parseaddr(__author__)[0],
     author_email=email.utils.parseaddr(__author__)[1],
-    url='https://gitee.com/your-own-os/gstage4',
+    url='https://gitee.com/your-own-os/portage_cfg',
     license='GNU General Public License (GPL)',
     platforms=['Linux'],
     classifiers=[
@@ -46,6 +41,4 @@ setup(
         __package__: os.path.join('python3', __package__),
     },
     packages=find_packages("python3"),
-    include_package_data=True,
-    scripts=['tools/gstage4-chroot'],
 )

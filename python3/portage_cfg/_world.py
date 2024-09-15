@@ -24,10 +24,14 @@
 import pathlib
 
 
-class WorldFile:
+class World:
 
     def __init__(self, path="/var/lib/portage/world"):
         self._path = path
+
+    @property
+    def path(self):
+        return self._path
 
     def get_packages(self):
         try:
