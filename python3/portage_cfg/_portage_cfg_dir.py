@@ -23,6 +23,7 @@
 
 import os
 import re
+from ._util import Util
 
 
 class PortageConfigDir:
