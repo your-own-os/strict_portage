@@ -131,3 +131,14 @@ class MakeConf:
 
         with open(self._path, 'w') as f:
             f.write(buf)
+
+    def check(self, auto_fix=False, error_callback=None):
+        # check CHOST variable
+        if self.has_var("CHOST"):
+            error_callback("variable CHOST should not exist in %s" % (self._path))
+
+        # check/fix DISTDIR variable
+        if self.has_var("DISTDIR"):
+            if not os.path.isdir(self._path):
+                # FIXME
+                pass

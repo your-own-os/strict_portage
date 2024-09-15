@@ -24,6 +24,7 @@
 import os
 import re
 from ._util import Util
+from ._make_conf import MakeConf
 
 
 class PortageConfigDir:
@@ -44,7 +45,10 @@ class PortageConfigDir:
         # check /etc/portage/make.profile
         if not os.path.exists(self._makeProfile):
             error_callback("%s must exist" % (self._makeProfile))
-        else:
-            tlist = Util.realPathSplit(os.path.realpath(self._makeProfile))
-            if not re.fullmatch("[0-9\\.]+", tlist[-1]):
-                error_callback("%s must points to a vanilla profile (eg. default/linux/amd64/17.0)" % (self._makeProfile))
+        if True:
+            # FIXME: ensure it points to a real profile
+            pass
+
+        # check /etc/portage/make.conf
+        makeConf = MakeConf(portage_config_dir_path=self._path)
+        makeConf.check(auto_fix, error_callback)
