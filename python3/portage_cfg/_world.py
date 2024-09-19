@@ -26,28 +26,37 @@ import pathlib
 
 class World:
 
-    def __init__(self, path="/var/lib/portage/world"):
-        self._path = path
+    def __init__(self, prefix="/"):
+        self._path = os.path.join(prefix, "var", "lib", "portage", "world")
+        self._setPath = os.path.join(prefix, "var", "lib", "portage", "world_sets")
 
     @property
-    def path(self):
+    def world_filepath(self):
         return self._path
 
-    def get_packages(self):
+    @property
+    def world_sets_filepath(self):
+        return self._setPath
+
+    def get_packages(self, including_set=False):
+        ret = []
         try:
             pkgList = pathlib.Path(self._path).read_text().split("\n")
-            return [x for x in pkgList if x != ""]
+            ret += [x for x in pkgList if x != ""]
         except FileNotFoundError:
-            return []
+            return ret
 
-    def add_package(self, *package_names):
+    def get_sets(self):
+        pass
+
+    def add_packages(self, *package_names):
         pkgList2 = self.get_packages()
         for pkg in package_names:
             if pkg not in pkgList2:
                 pkgList2.append(pkg)
         self._writeWorldFile(pkgList2)
 
-    def remove_package(self, *package_names):
+    def remove_packages(self, *package_names):
         pkgList2 = self.get_packages()
         for pkg in package_names:
             i = pkgList2.find(pkg)
@@ -55,8 +64,13 @@ class World:
                 pkgList2.pop(i)
         self._writeWorldFile(pkgList2)
 
+    def add_sets(self, *set_names):
+        pass
+
+    def remove_sets(self, *set_names):
+        pass
+
     def _writeWorldFile(self, pkgList):
-        # FIXME: sort
         with open(self._path, "w") as f:
-            for pkg in pkgList:
+            for pkg in sorted(pkgList):
                 f.write(pkg + "\n")
