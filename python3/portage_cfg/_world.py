@@ -27,8 +27,9 @@ import pathlib
 class World:
 
     def __init__(self, prefix="/"):
-        self._path = os.path.join(prefix, "var", "lib", "portage", "world")
-        self._setPath = os.path.join(prefix, "var", "lib", "portage", "world_sets")
+        self._prefix = prefix
+        self._path = os.path.join(self._prefix, "var", "lib", "portage", "world")
+        self._setPath = os.path.join(self._prefix, "var", "lib", "portage", "world_sets")
 
     @property
     def world_filepath(self):
@@ -38,39 +39,77 @@ class World:
     def world_sets_filepath(self):
         return self._setPath
 
-    def get_packages(self, including_set=False):
-        ret = []
+    def get_packages(self, including_subset=False):
+        ret = set()
+
         try:
-            pkgList = pathlib.Path(self._path).read_text().split("\n")
-            ret += [x for x in pkgList if x != ""]
+            ret |= set(self._read(self._path))
         except FileNotFoundError:
-            return ret
+            pass
+
+        if including_subset:
+            for sn in self._read(self._setPath):
+                fullfn = os.path.join(self._prefix, "etc", "portage", "sets", sn)
+                try:
+                    ret |= set(self._read(fullfn))
+                except FileNotFoundError:
+                    pass
+
+        return sorted(list(ret))
 
     def get_sets(self):
-        pass
+        return self._read(self._setPath)
 
-    def add_packages(self, *package_names):
+    def add_package(self, package_name):
+        self.add_packages([package_name])
+
+    def add_packages(self, package_names):
         pkgList2 = self.get_packages()
         for pkg in package_names:
             if pkg not in pkgList2:
                 pkgList2.append(pkg)
-        self._writeWorldFile(pkgList2)
+        self._write(self._path, sorted(pkgList2))
 
-    def remove_packages(self, *package_names):
+    def remove_package(self, package_name):
+        self.remove_packages([package_name])
+
+    def remove_packages(self, package_names, strict=True):
         pkgList2 = self.get_packages()
         for pkg in package_names:
             i = pkgList2.find(pkg)
-            if i >= 0:
-                pkgList2.pop(i)
-        self._writeWorldFile(pkgList2)
+            assert i >= 0
+            pkgList2.pop(i)
+        self._write(self._path, pkgList2)
+
+    def add_set(self, set_name):
+        self.add_set([set_name])
 
     def add_sets(self, *set_names):
-        pass
+        setList2 = self.get_sets()
+        for sn in set_names:
+            if sn not in setList2:
+                setList2.append(sn)
+        self._write(self._setPath, setList2)
+
+    def remove_set(self, set_name):
+        self.remove_set([set_name])
 
     def remove_sets(self, *set_names):
-        pass
+        setList2 = self.get_sets()
+        for sn in set_names:
+            i = setList2.find(sn)
+            if i >= 0:
+                setList2.pop(i)
+        self._write(self._setPath, setList2)
 
-    def _writeWorldFile(self, pkgList):
-        with open(self._path, "w") as f:
-            for pkg in sorted(pkgList):
+    def _read(self, fullfn):
+        try:
+            itemList = pathlib.Path(self._path).read_text().split("\n")
+            return [x for x in itemList if x != ""]
+        except FileNotFoundError:
+            return []
+
+    def _write(self, fullfn, itemList):
+        with open(fullfn, "w") as f:
+            for pkg in sorted(itemList):
                 f.write(pkg + "\n")
