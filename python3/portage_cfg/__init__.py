@@ -32,7 +32,8 @@ __author__ = 'Fpemud <fpemud@sina.com>'
 
 from ._make_conf import MakeConf
 
-from ._world import World
+from ._sets import Sets
+from ._sets import World
 
 
 __all__ = [
