@@ -28,8 +28,8 @@ import pathlib
 
 class MakeConf:
 
-    def __init__(self, portage_config_dir_path="/etc/portage"):
-        self._path = os.path.join(portage_config_dir_path, "make.conf")
+    def __init__(self, config_dir_path="/etc/portage"):
+        self._path = os.path.join(config_dir_path, "make.conf")
 
     @property
     def path(self):
