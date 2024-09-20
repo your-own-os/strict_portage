@@ -134,9 +134,9 @@ class World(SetBase):
 
     def add_sets(self, *set_names):
         setList2 = self.get_sets()
-        for sn in set_names:
-            if sn not in setList2:
-                setList2.append(sn)
+        for x in set_names:
+            if x not in setList2:
+                setList2.append(x)
         _write(self._setPath, sorted(setList2))
 
     def remove_set(self, set_name):
@@ -144,8 +144,8 @@ class World(SetBase):
 
     def remove_sets(self, *set_names):
         setList2 = self.get_sets()
-        for sn in set_names:
-            i = setList2.find(sn)
+        for x in set_names:
+            i = setList2.find(x)
             if i >= 0:
                 setList2.pop(i)
         _write(self._setPath, setList2)
