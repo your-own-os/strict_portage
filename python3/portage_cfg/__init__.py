@@ -33,10 +33,13 @@ __author__ = 'Fpemud <fpemud@sina.com>'
 from ._make_conf import MakeConf
 
 from ._sets import Sets
+from ._sets import CustomSet
 from ._sets import World
 
 
 __all__ = [
     "MakeConf",
+    "Sets",
+    "CustomSet",
     "World",
 ]
