@@ -22,31 +22,47 @@
 
 
 import os
-from ._make_conf import MakeConf
+import abc
 
 
-class PortageConfigDir:
+class SetBase(abc.ABC):
 
-    def __int__(self, prefix="/"):
-        self._path = os.path.join(prefix, "etc", "portage")
+    @abc.abstractmethod
+    def get_package_names(self):
+        pass
 
-        self._makeProfile = os.path.join(self._path, "make.profile")
+    def add_package(self, package_name):
+        self.add_packages([package_name])
 
-    def check(self, auto_fix=False, error_callback=None):
-        # check /etc/portage
-        if not os.path.isdir(self._path):
-            if auto_fix:
-                os.makedirs(self._path, exist_ok=True)
-            else:
-                error_callback("\"%s\" is not a directory" % (self._path))
+    @abc.abstractmethod
+    def add_packages(self, package_names):
+        pass
 
-        # check /etc/portage/make.profile
-        if not os.path.exists(self._makeProfile):
-            error_callback("%s must exist" % (self._makeProfile))
-        if True:
-            # FIXME: ensure it points to a real profile
-            pass
+    def remove_package(self, package_name):
+        self.remove_packages([package_name])
 
-        # check /etc/portage/make.conf
-        makeConf = MakeConf(portage_config_dir_path=self._path)
-        makeConf.check(auto_fix, error_callback)
+    @abc.abstractmethod
+    def remove_packages(self, package_names, check=True):
+        pass
+
+
+class ConfigFileOrDir:
+
+    def __init__(self, path, fileClass):
+        self._path = path
+        self._fileClass = fileClass
+
+    def is_file_or_directory(self):
+        if os.path.isdir(self._path):
+            return False
+        if os.path.isfile(self._path):
+            return True
+        assert False
+
+    def get_file_object(self):
+        assert os.path.isfile(self._path)
+        return self._fileClass(self._path)
+
+    def get_file_objects(self):
+        assert os.path.isdir(self._path)
+        return [self._fileClass(os.path.join(self._path, x)) for x in os.listdir(self._path)]

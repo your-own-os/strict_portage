@@ -22,8 +22,8 @@
 
 
 import os
-import abc
 import pathlib
+from ._prototype import SetBase
 
 
 class Sets:
@@ -49,27 +49,6 @@ class Sets:
 
     def get_custom_set(self, name):
         return CustomSet(name, prefix=self._prefix)
-
-
-class SetBase(abc.ABC):
-
-    @abc.abstractmethod
-    def get_package_names(self):
-        pass
-
-    def add_package(self, package_name):
-        self.add_packages([package_name])
-
-    @abc.abstractmethod
-    def add_packages(self, package_names):
-        pass
-
-    def remove_package(self, package_name):
-        self.remove_packages([package_name])
-
-    @abc.abstractmethod
-    def remove_packages(self, package_names, check=True):
-        pass
 
 
 class CustomSet(SetBase):
@@ -115,7 +94,7 @@ class World(SetBase):
             pass
 
         for sn in _read(self._setPath):
-            ret |= set(CustomSet(name, prefix=self._prefix).get_packages())
+            ret |= set(CustomSet(sn, prefix=self._prefix).get_packages())
 
         return sorted(list(ret))
 
