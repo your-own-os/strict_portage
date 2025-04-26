@@ -23,6 +23,8 @@
 
 import os
 from ._make_conf import MakeConf
+from ._package_accept_keywords import PackageAcceptKeywords
+from ._package_license import PackageLicense
 from ._package_mask import PackageMask
 from ._package_use import PackageUse
 
@@ -119,6 +121,12 @@ class PortageConfigDir:
 
     def get_make_conf_obj(self):
         return MakeConf(prefix=self._prefix)
+
+    def get_package_accept_keywords_obj(self):
+        return PackageAcceptKeywords(prefix=self._prefix)
+
+    def get_package_license_obj(self):
+        return PackageLicense(prefix=self._prefix)
 
     def get_package_mask_obj(self):
         return PackageMask(prefix=self._prefix)

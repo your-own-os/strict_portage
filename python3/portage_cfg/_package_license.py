@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-# gstage4 - gentoo stage4 building
-#
 # Copyright (c) 2020-2021 Fpemud <fpemud@sina.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,34 +21,38 @@
 # THE SOFTWARE.
 
 
-__package__ = 'portage_cfg'
-
-__version__ = '0.0.1'
-
-__author__ = 'Fpemud <fpemud@sina.com>'
+import os
+from ._util import Util
 
 
-from ._portage_cfg_dir import PortageConfigDir
+class PackageAcceptKeywords:
 
-from ._make_conf import MakeConf
-from ._package_accept_keywords import PackageAcceptKeywords
-from ._package_license import PackageLicense
-from ._package_mask import PackageMask
-from ._package_use import PackageUse
+    def __init__(self, prefix="/"):
+        self._path = os.path.join(prefix, "etc", "portage", "package.license")
 
-from ._sets import Sets
-from ._sets import CustomSet
-from ._sets import World
+    @property
+    def path(self):
+        return self._path
 
+    @property
+    def is_file_or_dir(self):
+        return os.path.isfile(self._path)
 
-__all__ = [
-    "PortageConfigDir",
-    "MakeConf",
-    "PackageAcceptKeywords",
-    "PackageLicense",
-    "PackageMask",
-    "PackageUse",
-    "Sets",
-    "CustomSet",
-    "World",
-]
+    def get_entries(self):
+        # entry examples:
+        #   "sys-kernel/gentoo-sources GPLv3 APL"
+        #   "*/* *"
+
+        fullfnList = []
+        if os.path.isfile(self._path):
+            fullfnList.append(self._path)
+        else:
+            for fn in sorted(os.listdir(self._path)):
+                fullfnList.append(os.path.join(self._path, fn))
+
+        ret = []
+        for fullfn in fullfnList:
+            for line in Util.readListFile(fullfn):
+                itemlist = line.split()
+                ret.append((itemlist[0], itemlist[1:]))
+        return ret
