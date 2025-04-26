@@ -23,6 +23,8 @@
 
 import os
 from ._make_conf import MakeConf
+from ._package_mask import PackageMask
+from ._package_use import PackageUse
 
 
 class PortageConfigDir:
@@ -117,6 +119,12 @@ class PortageConfigDir:
 
     def get_make_conf_obj(self):
         return MakeConf(prefix=self._prefix)
+
+    def get_package_mask_obj(self):
+        return PackageMask(prefix=self._prefix)
+
+    def get_package_use_obj(self):
+        return PackageUse(prefix=self._prefix)
 
     def check(self, auto_fix=False, error_callback=None):
         # check /etc/portage
