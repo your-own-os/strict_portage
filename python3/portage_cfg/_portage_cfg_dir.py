@@ -117,7 +117,7 @@ class PortageConfigDir:
         return os.path.join(self._path, "package.use")
 
     @property
-    def sets_dir_path(self):
+    def custom_sets_dir_path(self):
         # /etc/portage/sets
         return os.path.join(self._path, "sets")
 
