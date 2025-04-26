@@ -27,6 +27,7 @@ from ._package_accept_keywords import PackageAcceptKeywords
 from ._package_license import PackageLicense
 from ._package_mask import PackageMask
 from ._package_use import PackageUse
+from ._sets import Sets
 
 
 class PortageConfigDir:
@@ -115,9 +116,13 @@ class PortageConfigDir:
         # same as self.package_use_dir_path
         return os.path.join(self._path, "package.use")
 
+    @property
+    def sets_dir_path(self):
+        # /etc/portage/sets
+        return os.path.join(self._path, "sets")
+
     # portageCfgEnvDir = os.path.join(portageCfgDir, "package.env")
     # portageCfgEnvDataDir = os.path.join(portageCfgDir, "env")
-    # portageCfgSetsDir = os.path.join(portageCfgDir, "sets")
 
     def get_make_conf_obj(self):
         return MakeConf(prefix=self._prefix)
@@ -133,6 +138,9 @@ class PortageConfigDir:
 
     def get_package_use_obj(self):
         return PackageUse(prefix=self._prefix)
+
+    def get_sets_obj(self):
+        return Sets(prefix=self._prefix)
 
     def check(self, auto_fix=False, error_callback=None):
         # check /etc/portage
