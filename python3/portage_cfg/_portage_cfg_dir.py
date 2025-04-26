@@ -30,8 +30,6 @@ class PortageConfigDir:
     def __int__(self, prefix="/"):
         self._path = os.path.join(prefix, "etc", "portage")
 
-        self._makeProfile = os.path.join(self._path, "make.profile")
-
     @property
     def path(self):
         # /etc/portage
@@ -80,8 +78,8 @@ class PortageConfigDir:
                 error_callback("\"%s\" is not a directory" % (self._path))
 
         # check /etc/portage/make.profile
-        if not os.path.exists(self._makeProfile):
-            error_callback("%s must exist" % (self._makeProfile))
+        if not os.path.exists(self.make_profile_link_path):
+            error_callback("%s must exist" % (self.make_profile_link_path))
         if True:
             # FIXME: ensure it points to a real profile
             pass
@@ -89,3 +87,6 @@ class PortageConfigDir:
         # check /etc/portage/make.conf
         makeConf = MakeConf(portage_config_dir_path=self._path)
         makeConf.check(auto_fix, error_callback)
+
+        # check /etc/portage/mirrors
+        pass
