@@ -25,7 +25,7 @@ import os
 from ._util import Util
 
 
-class PackageAcceptKeywords:
+class PackageLicense:
 
     def __init__(self, prefix="/"):
         self._path = os.path.join(prefix, "etc", "portage", "package.license")
