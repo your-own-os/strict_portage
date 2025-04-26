@@ -43,15 +43,8 @@ class PackageAcceptKeywords:
         #   "sys-kernel/gentoo-sources GPLv3 APL"
         #   "*/* *"
 
-        fullfnList = []
-        if os.path.isfile(self._path):
-            fullfnList.append(self._path)
-        else:
-            for fn in sorted(os.listdir(self._path)):
-                fullfnList.append(os.path.join(self._path, fn))
-
         ret = []
-        for fullfn in fullfnList:
+        for fullfn in Util.fileOrDirGetFileList(self._path):
             for line in Util.readListFile(fullfn):
                 itemlist = line.split()
                 ret.append((itemlist[0], itemlist[1:]))

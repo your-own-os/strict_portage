@@ -50,14 +50,7 @@ class PackageMask:
         #   "!sys-kernel/gentoo-sources-2.6.37-r1"
         #   "~sys-kernel/gentoo-sources-2.6.37-r1"
 
-        fullfnList = []
-        if os.path.isfile(self._path):
-            fullfnList.append(self._path)
-        else:
-            for fn in sorted(os.listdir(self._path)):
-                fullfnList.append(os.path.join(self._path, fn))
-
         ret = []
-        for fullfn in fullfnList:
+        for fullfn in Util.fileOrDirGetFileList(self._path):
             ret += Util.readListFile(fullfn)
         return ret

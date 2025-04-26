@@ -32,6 +32,16 @@ import subprocess
 class Util:
 
     @staticmethod
+    def fileOrDirGetFileList(path):
+        fullfnList = []
+        if os.path.isfile(path):
+            fullfnList.append(path)
+        else:
+            for fn in sorted(os.listdir(path)):
+                fullfnList.append(os.path.join(path, fn))
+        return fullfnList
+
+    @staticmethod
     def readListFile(path):
         ret = []
         with open(path, "r") as f:
