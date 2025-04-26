@@ -31,7 +31,7 @@ from ._package_use import PackageUse
 
 class PortageConfigDir:
 
-    def __int__(self, prefix="/"):
+    def __init__(self, prefix="/"):
         self._prefix = prefix
         self._path = os.path.join(self._prefix, "etc", "portage")
 
