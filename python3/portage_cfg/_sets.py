@@ -32,14 +32,14 @@ class Sets:
         self._prefix = prefix
         self._customSetDir = os.path.join(self._prefix, "etc", "portage", "sets")
 
+    def get_world(self):
+        return get_system_set("world")
+
     def get_system_set(self, name):
         if name == "world":
             return World(self._prefix)
         else:
             assert False
-
-    def get_world(self):
-        return World(self._prefix)
 
     def get_custom_set_names(self):
         if os.path.isdir(self._customSetDir):
