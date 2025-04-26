@@ -64,6 +64,26 @@ class PortageConfigDir:
         return os.path.join(self._path, "repo.postsync.d")
 
     @property
+    def package_accept_keywords_dir_path(self):
+        # /etc/portage/package.accept_keywords
+        return os.path.join(self._path, "package.accept_keywords")
+
+    @property
+    def package_accept_keywords_file_path(self):
+        # same as self.package_accept_keywords_dir_path
+        return os.path.join(self._path, "package.accept_keywords")
+
+    @property
+    def package_license_dir_path(self):
+        # /etc/portage/package.license
+        return os.path.join(self._path, "package.license")
+
+    @property
+    def package_license_file_path(self):
+        # same as self.package_license_dir_path
+        return os.path.join(self._path, "package.license")
+
+    @property
     def package_mask_dir_path(self):
         # /etc/portage/package.mask
         return os.path.join(self._path, "package.mask")
@@ -92,26 +112,6 @@ class PortageConfigDir:
     def package_use_file_path(self):
         # same as self.package_use_dir_path
         return os.path.join(self._path, "package.use")
-
-    @property
-    def package_accept_keywords_dir_path(self):
-        # /etc/portage/package.accept_keywords
-        return os.path.join(self._path, "package.accept_keywords")
-
-    @property
-    def package_accept_keywords_file_path(self):
-        # same as self.package_accept_keywords_dir_path
-        return os.path.join(self._path, "package.accept_keywords")
-
-    @property
-    def package_license_dir_path(self):
-        # /etc/portage/package.license
-        return os.path.join(self._path, "package.license")
-
-    @property
-    def package_license_file_path(self):
-        # same as self.package_license_dir_path
-        return os.path.join(self._path, "package.license")
 
     # portageCfgEnvDir = os.path.join(portageCfgDir, "package.env")
     # portageCfgEnvDataDir = os.path.join(portageCfgDir, "env")
