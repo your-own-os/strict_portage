@@ -28,7 +28,8 @@ from ._make_conf import MakeConf
 class PortageConfigDir:
 
     def __int__(self, prefix="/"):
-        self._path = os.path.join(prefix, "etc", "portage")
+        self._prefix = prefix
+        self._path = os.path.join(self._prefix, "etc", "portage")
 
     @property
     def path(self):
@@ -114,6 +115,9 @@ class PortageConfigDir:
     # portageCfgEnvDataDir = os.path.join(portageCfgDir, "env")
     # portageCfgSetsDir = os.path.join(portageCfgDir, "sets")
 
+    def get_make_conf_obj(self):
+        return MakeConf(prefix=self._prefix)
+
     def check(self, auto_fix=False, error_callback=None):
         # check /etc/portage
         if not os.path.isdir(self._path):
@@ -130,8 +134,7 @@ class PortageConfigDir:
             pass
 
         # check /etc/portage/make.conf
-        makeConf = MakeConf(portage_config_dir_path=self._path)
-        makeConf.check(auto_fix, error_callback)
+        self.get_make_conf_obj().check(auto_fix, error_callback)
 
         # check /etc/portage/mirrors
         pass
