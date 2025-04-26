@@ -25,10 +25,10 @@ import os
 from ._util import Util
 
 
-class PackageUse:
+class PackageMask:
 
     def __init__(self, prefix="/"):
-        self._path = os.path.join(prefix, "etc", "portage", "package.use")
+        self._path = os.path.join(prefix, "etc", "portage", "package.mask")
 
     @property
     def path(self):
@@ -40,8 +40,15 @@ class PackageUse:
 
     def get_entries(self):
         # entry examples:
-        #   ("sys-apps/systemd", ["-boot", "kernel-install"])
-        #   (">sys-apps/systemd-256.10", ["-boot", "kernel-install"])
+        #   "sys-kernel/gentoo-sources-2.6.37-r1"
+        #   "sys-kernel/gentoo-sources-2.6.37-r1::guru"
+        #   "=sys-kernel/gentoo-sources-2.6.37-r1"
+        #   ">=sys-kernel/gentoo-sources-2.6.37-r1"
+        #   "<=sys-kernel/gentoo-sources-2.6.37-r1"
+        #   "<sys-kernel/gentoo-sources-2.6.37-r1"
+        #   ">sys-kernel/gentoo-sources-2.6.37-r1"
+        #   "!sys-kernel/gentoo-sources-2.6.37-r1"
+        #   "~sys-kernel/gentoo-sources-2.6.37-r1"
 
         fullfnList = []
         if os.path.isfile(self._path):
@@ -52,7 +59,5 @@ class PackageUse:
 
         ret = []
         for fullfn in fullfnList:
-            for line in Util.readListFile(fullfn):
-                itemlist = line.split()
-                ret.append((itemlist[0], itemlist[1:]))
+            ret += Util.readListFile(fullfn)
         return ret

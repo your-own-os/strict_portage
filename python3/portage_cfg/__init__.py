@@ -30,7 +30,11 @@ __version__ = '0.0.1'
 __author__ = 'Fpemud <fpemud@sina.com>'
 
 
+from ._portage_cfg_dir import PortageConfigDir
+
 from ._make_conf import MakeConf
+from ._package_mask import PackageMask
+from ._package_use import PackageUse
 
 from ._sets import Sets
 from ._sets import CustomSet
@@ -38,7 +42,10 @@ from ._sets import World
 
 
 __all__ = [
+    "PortageConfigDir",
     "MakeConf",
+    "PackageMask",
+    "PackageUse",
     "Sets",
     "CustomSet",
     "World",
