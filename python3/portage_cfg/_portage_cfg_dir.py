@@ -60,12 +60,57 @@ class PortageConfigDir:
         # /etc/portage/repo.postsync.d
         return os.path.join(self._path, "repo.postsync.d")
 
-    # portageCfgMaskDir = os.path.join(portageCfgDir, "package.mask")
-    # portageCfgUnmaskDir = os.path.join(portageCfgDir, "package.unmask")
-    # portageCfgUseDir = os.path.join(portageCfgDir, "package.use")
+    @property
+    def package_mask_dir_path(self):
+        # /etc/portage/package.mask
+        return os.path.join(self._path, "package.mask")
+
+    @property
+    def package_mask_file_path(self):
+        # same as self.package_mask_dir_path
+        return os.path.join(self._path, "package.mask")
+
+    @property
+    def package_unmask_dir_path(self):
+        # /etc/portage/package.unmask
+        return os.path.join(self._path, "package.unmask")
+
+    @property
+    def package_unmask_file_path(self):
+        # same as self.package_unmask_dir_path
+        return os.path.join(self._path, "package.unmask")
+
+    @property
+    def package_use_dir_path(self):
+        # /etc/portage/package.use
+        return os.path.join(self._path, "package.use")
+
+    @property
+    def package_use_file_path(self):
+        # same as self.package_use_dir_path
+        return os.path.join(self._path, "package.use")
+
+    @property
+    def package_accept_keywords_dir_path(self):
+        # /etc/portage/package.accept_keywords
+        return os.path.join(self._path, "package.accept_keywords")
+
+    @property
+    def package_accept_keywords_file_path(self):
+        # same as self.package_accept_keywords_dir_path
+        return os.path.join(self._path, "package.accept_keywords")
+
+    @property
+    def package_license_dir_path(self):
+        # /etc/portage/package.license
+        return os.path.join(self._path, "package.license")
+
+    @property
+    def package_license_file_path(self):
+        # same as self.package_license_dir_path
+        return os.path.join(self._path, "package.license")
+
     # portageCfgEnvDir = os.path.join(portageCfgDir, "package.env")
-    # portageCfgLicFile = os.path.join(portageCfgDir, "package.license")
-    # portageCfgAcceptKeywordsDir = os.path.join(portageCfgDir, "package.accept_keywords")
     # portageCfgEnvDataDir = os.path.join(portageCfgDir, "env")
     # portageCfgSetsDir = os.path.join(portageCfgDir, "sets")
 
