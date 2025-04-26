@@ -32,6 +32,45 @@ class PortageConfigDir:
 
         self._makeProfile = os.path.join(self._path, "make.profile")
 
+    @property
+    def path(self):
+        # /etc/portage
+        return self._path
+
+    @property
+    def mirrors_file_path(self):
+        # /etc/portage/mirrors
+        return os.path.join(self._path, "mirrors")
+
+    @property
+    def make_conf_file_path(self):
+        # /etc/portage/make.conf
+        return os.path.join(self._path, "make.conf")
+
+    @property
+    def make_profile_link_path(self):
+        # /etc/portage/make.profile
+        return os.path.join(self._path, "make.profile")
+
+    @property
+    def repos_conf_dir_path(self):
+        # /etc/portage/repos.conf
+        return os.path.join(self._path, "repos.conf")
+
+    @property
+    def repo_postsync_dir_path(self):
+        # /etc/portage/repo.postsync.d
+        return os.path.join(self._path, "repo.postsync.d")
+
+    # portageCfgMaskDir = os.path.join(portageCfgDir, "package.mask")
+    # portageCfgUnmaskDir = os.path.join(portageCfgDir, "package.unmask")
+    # portageCfgUseDir = os.path.join(portageCfgDir, "package.use")
+    # portageCfgEnvDir = os.path.join(portageCfgDir, "package.env")
+    # portageCfgLicFile = os.path.join(portageCfgDir, "package.license")
+    # portageCfgAcceptKeywordsDir = os.path.join(portageCfgDir, "package.accept_keywords")
+    # portageCfgEnvDataDir = os.path.join(portageCfgDir, "env")
+    # portageCfgSetsDir = os.path.join(portageCfgDir, "sets")
+
     def check(self, auto_fix=False, error_callback=None):
         # check /etc/portage
         if not os.path.isdir(self._path):
