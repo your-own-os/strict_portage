@@ -49,7 +49,7 @@ class MakeConf:
         #     multiline variable definition is not supported yet
 
         if parse:
-            if var_name == "FEATURES":
+            if var_name in ["FEATURES", "ACCEPT_KEYWORDS"]:
                 value = self._get_var(var_name)
                 return value.split(" ") if value != "" else []
 
@@ -60,7 +60,7 @@ class MakeConf:
         # multiline variable definition is not supported yet
 
         if synthesize:
-            if var_name == "FEATURES":
+            if var_name in ["FEATURES", "ACCEPT_KEYWORDS"]:
                 assert len(value) == 1
                 self._set_var(var_name, " ".join(*value))
                 return
