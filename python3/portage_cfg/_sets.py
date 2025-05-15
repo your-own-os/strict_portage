@@ -33,7 +33,7 @@ class Sets:
         self._customSetDir = os.path.join(self._prefix, "etc", "portage", "sets")
 
     def get_world(self):
-        return get_system_set("world")
+        return self.get_system_set("world")
 
     def get_system_set(self, name):
         if name == "world":

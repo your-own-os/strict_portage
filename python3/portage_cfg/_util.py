@@ -109,6 +109,13 @@ class Util:
             pass                        # path does not exist, do nothing
 
     @staticmethod
+    def forceSymlink(target, link_path):
+        if os.path.islink(link_path) and os.readlink(link_path) == target:      # already exist
+            return
+        Util.forceDelete(link_path)                   # os.symlink won't overwrite anything, so we delete it first
+        os.symlink(target, link_path)
+
+    @staticmethod
     def removeDirContentExclude(dirPath, excludeList):
         for fn in os.listdir(dirPath):
             if fn not in excludeList:

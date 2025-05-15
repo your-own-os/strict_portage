@@ -22,6 +22,8 @@
 
 
 import os
+import pathlib
+from ._util import Util
 from ._make_conf import MakeConf
 from ._package_accept_keywords import PackageAcceptKeywords
 from ._package_license import PackageLicense
@@ -142,23 +144,213 @@ class PortageConfigDir:
     def get_sets_obj(self):
         return Sets(prefix=self._prefix)
 
-    def check(self, auto_fix=False, error_callback=None):
+    def create_checker(self):
+        return PortageConfigDirChecker(self, auto_fix=False, error_callback=None)
+
+    def create_files_dir_checker(self, dir_path, auto_fix=False, error_callback=None):
+        return PortageConfigDirFilesDirChecker(self, dir_path, auto_fix=False, error_callback=None)
+
+
+class PortageConfigDirChecker:
+
+    def __init__(self, portage_config_dir, auto_fix=False, error_callback=None):
+        self._obj = portage_config_dir
+        self._bAutoFix = auto_fix
+        self._errorCallback = error_callback
+
+    def check_self(self):
         # check /etc/portage
-        if not os.path.isdir(self._path):
-            if auto_fix:
-                os.makedirs(self._path, exist_ok=True)
+        if not os.path.isdir(self._obj.path):
+            if self._bAutoFix:
+                os.makedirs(self._obj.path, exist_ok=True)
             else:
-                error_callback("\"%s\" is not a directory" % (self._path))
+                self._errorCallback("\"%s\" is not a directory" % (self._obj.path))
+
+    def check_make_profile_link(self, gentoo_repository_dir_path):
+        if self._obj._prefix == "/":
+            assert gentoo_repository_dir_path.startswith(self._obj._prefix)
+        else:
+            assert gentoo_repository_dir_path.startswith(self._obj._prefix + "/")
 
         # check /etc/portage/make.profile
-        if not os.path.exists(self.make_profile_link_path):
-            error_callback("%s must exist" % (self.make_profile_link_path))
-        if True:
-            # FIXME: ensure it points to a real profile
+        if os.path.exists(self.make_profile_link_path):
+            # FIXME: ensure it points to a real profile in gentoo_repository_dir_path
             pass
+        else:
+            self._errorCallback("%s must exist" % (self.make_profile_link_path))
 
-        # check /etc/portage/make.conf
-        self.get_make_conf_obj().check(auto_fix, error_callback)
+    def check_make_conf_file(self):
+        self._obj.get_make_conf_obj().check(auto_fix=self._bAutoFix, error_callback=self._errorCallback)
 
+    def check_mirrors_file(self):
         # check /etc/portage/mirrors
         pass
+
+    def check_custom_dir(self, path):
+        assert path.startswith(self._obj.path + "/")
+
+        if not os.path.exists(path):
+            if self._bAutoFix:
+                os.mkdir(path)
+            else:
+                self._errorCallback("\"%s\" is not a directory" % (path))
+            return
+
+        if not os.path.isdir(path):
+            if self._bAutoFix:
+                etcDir2 = path + ".2"
+                os.mkdir(etcDir2)
+                os.rename(path, os.path.join(etcDir2, _getUnknownFilename(etcDir2)))
+                os.rename(etcDir2, path)
+            else:
+                self._errorCallback("\"%s\" is not a directory" % (path))
+
+    def check_custom_file(self, path, content):
+        assert path.startswith(self._obj.path + "/")
+
+        if not os.path.exists(path):
+            if self._bAutoFix:
+                pathlib.Path(path).write_text(content)
+            else:
+                self._errorCallback("\"%s\" does not exist" % (path))
+            return
+
+        if pathlib.Path(path).read_text() != content:
+            if self._bAutoFix:
+                pathlib.Path(path).write_text(content)
+            else:
+                self._errorCallback("\"%s\" has invalid content" % (path))
+
+    def check_custom_link(self, path, target):
+        assert path.startswith(self._obj.path + "/")
+
+        if not os.path.islink(path) or os.readlink(path) != target:
+            if self._bAutoFix:
+                Util.forceSymlink(target, path)
+            else:
+                self._errorCallback("\"%s\" is an invalid symlink" % (path))
+
+
+class PortageConfigDirFilesDirChecker:
+
+    def __init__(self, path, auto_fix=False, error_callback=None):
+        self._etcDir = path
+        self._etcDirContentIndex = 1
+        self._etcDirContentFileList = []
+        self._bAutoFix = auto_fix
+        self._errorCallback = error_callback
+
+    def check_content_link(self, link_name, target):
+        assert os.path.exists(target)
+
+        if "?" in link_name:
+            link_name = link_name.replace("?", "%02d" % (self._etcDirContentIndex))
+            self._etcDirContentIndex += 1
+
+        linkFile = os.path.join(self._etcDir, link_name)
+
+        # <linkFile> does not exist, fix: create the symlink
+        if not os.path.lexists(linkFile):
+            if self._bAutoFix:
+                os.symlink(target, linkFile)
+            else:
+                self._errorCallback("\"%s\" must be a symlink to \"%s\"" % (linkFile, target))
+                return
+
+        # <linkFile> is not a symlink, fix: keep the original file, create the symlink
+        if not os.path.islink(linkFile):
+            if self._bAutoFix:
+                os.rename(linkFile, os.path.join(self._etcDir, _getUnknownFilename(self._etcDir)))
+                os.symlink(target, linkFile)
+            else:
+                self._errorCallback("\"%s\" must be a symlink to \"%s\"" % (linkFile, target))
+                return
+
+        # <linkFile> is wrong, fix: re-create the symlink
+        if os.readlink(linkFile) != target:
+            if self._bAutoFix:
+                Util.forceSymlink(target, linkFile)
+            else:
+                self._errorCallback("\"%s\" must be a symlink to \"%s\"" % (linkFile, target))
+                return
+
+        self._etcDirContentFileList.append(linkFile)
+
+    def check_content_file(self, file_name, content):
+        if "?" in file_name:
+            file_name = file_name.replace("?", "%02d" % (self._etcDirContentIndex))
+            self._etcDirContentIndex += 1
+
+        fullfn = os.path.join(self._etcDir, file_name)
+
+        if os.path.exists(fullfn):
+            with open(fullfn, "r") as f:
+                if f.read() == content:
+                    self._etcDirContentFileList.append(fullfn)
+                    return
+                else:
+                    if not self._bAutoFix:
+                        self._errorCallback("\"%s\" has invalid content" % (fullfn))
+                        return
+        else:
+            if not self._bAutoFix:
+                self._errorCallback("\"%s\" does not exist" % (fullfn))
+                return
+
+        with open(fullfn, "w") as f:
+            f.write(content)
+
+        self._etcDirContentFileList.append(fullfn)
+
+    def check_content_empty_file(self, file_name):
+        if "?" in file_name:
+            file_name = file_name.replace("?", "%02d" % (self._etcDirContentIndex))
+            self._etcDirContentIndex += 1
+
+        fullfn = os.path.join(self._etcDir, file_name)
+        if not os.path.exists(fullfn):
+            if self._bAutoFix:
+                Util.touchFile(fullfn)
+            else:
+                self._errorCallback("\"%s\" does not exist" % (fullfn))
+                return
+
+        self._etcDirContentFileList.append(fullfn)
+
+    def check_content_dir(self, dir_name):
+        if "?" in dir_name:
+            dir_name = dir_name.replace("?", "%02d" % (self._etcDirContentIndex))
+            self._etcDirContentIndex += 1
+
+        fullfn = os.path.join(self._etcDir, dir_name)
+        if not os.path.exists(fullfn):
+            if self._bAutoFix:
+                os.mkdir(fullfn)
+            else:
+                self._errorCallback("\"%s\" does not exist" % (fullfn))
+                return
+
+        self._etcDirContentFileList.append(fullfn)
+
+    def finialize(self):
+        if self._bAutoFix:
+            for fn in os.listdir(self._etcDir):
+                fullfn = os.path.join(self._etcDir, fn)
+                if os.path.islink(fullfn) and fullfn not in self._etcDirContentFileList:                               # remove symlinks
+                    os.unlink(fullfn)
+                elif os.path.isfile(fullfn) and fn.startswith("10-") and fullfn not in self._etcDirContentFileList:    # remove redundant "10-*" files
+                    os.unlink(fullfn)
+
+        del self._etcDirContentFileList
+        del self._etcDirContentIndex
+        del self._etcDir
+
+
+def _getUnknownFilename(dirpath):
+    if not os.path.exists(os.path.join(dirpath, "90-unknown")):
+        return "90-unknown"
+    i = 2
+    while True:
+        if not os.path.exists(os.path.join(dirpath, "90-unknown-%d" % (i))):
+            return "90-unknown-%d" % (i)
+        i += 1
