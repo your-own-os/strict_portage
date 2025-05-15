@@ -52,10 +52,8 @@ class MakeConf:
             if var_name == "FEATURES":
                 value = self._get_var(var_name)
                 return value.split(" ") if value != "" else []
-            else:
-                assert False
-        else:
-            return self._get_var(var_name)
+
+        return self._get_var(var_name)
 
     def set_var(self, var_name, *value, synthesize=False):
         # create or set variable in make.conf
@@ -65,11 +63,10 @@ class MakeConf:
             if var_name == "FEATURES":
                 assert len(value) == 1
                 self._set_var(var_name, " ".join(*value))
-            else:
-                assert False
-        else:
-            assert len(value) == 1
-            self._set_var(var_name, *value)
+                return
+
+        assert len(value) == 1
+        self._set_var(var_name, *value)
 
     def update_var_as_value_set(self, var_name, value_list):
         # Check variable in make.conf
