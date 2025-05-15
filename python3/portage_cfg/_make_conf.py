@@ -40,48 +40,36 @@ class MakeConf:
         m = re.search("^%s=\"(.*)\"$" % (var_name), buf, re.MULTILINE)
         return m is not None
 
-    def get_var(self, var_name):
-        # Returns variable value, returns "" when not found
-        # Multiline variable definition is not supported yet
+    def get_var(self, var_name, parse=False):
+        # parse is True:
+        #     returns parsed variable value
+        #     multiline variable definition is not supported yet
+        # parse is False:
+        #     returns variable value, returns "" when not found
+        #     multiline variable definition is not supported yet
 
-        buf = pathlib.Path(self._path).read_text()
-        m = re.search("^%s=\"(.*)\"$" % (var_name), buf, re.MULTILINE)
-        if m is None:
-            return ""
-        varVal = m.group(1)
-
-        while True:
-            m = re.search("\\${(\\S+)?}", varVal)
-            if m is None:
-                break
-            varName2 = m.group(1)
-            varVal2 = self.get_var(varName2)
-            if varVal2 is None:
-                varVal2 = ""
-
-            varVal = varVal.replace(m.group(0), varVal2)
-
-        return varVal
-
-    def set_var(self, var_name, value):
-        # Create or set variable in make.conf
-        # Multiline variable definition is not supported yet
-
-        buf = pathlib.Path(self._path).read_text()
-        endEnter = (buf[-1] == "\n")
-
-        m = re.search("^%s=\"(.*)\"$" % (var_name), buf, re.MULTILINE)
-        if m is not None:
-            if m.group(1) != value:
-                newLine = "%s=\"%s\"" % (var_name, value)
-                buf = buf.replace(m.group(0), newLine)
-                with open(self._path, 'w') as f:
-                    f.write(buf)
+        if parse:
+            if var_name == "FEATURES":
+                value = self._get_var(var_name)
+                return value.split(" ") if value != "" else []
+            else:
+                assert False
         else:
-            with open(self._path, 'a') as f:
-                if not endEnter:
-                    f.write("\n")
-                f.write("%s=\"%s\"\n" % (var_name, value))
+            return self._get_var(var_name)
+
+    def set_var(self, var_name, *value, synthesize=False):
+        # create or set variable in make.conf
+        # multiline variable definition is not supported yet
+
+        if synthesize:
+            if var_name == "FEATURES":
+                assert len(value) == 1
+                self._set_var(var_name, " ".join(*value))
+            else:
+                assert False
+        else:
+            assert len(value) == 1
+            self._set_var(var_name, *value)
 
     def update_var_as_value_set(self, var_name, value_list):
         # Check variable in make.conf
@@ -142,3 +130,40 @@ class MakeConf:
             if not os.path.isdir(self._path):
                 # FIXME
                 pass
+
+    def _get_var(self, var_name):
+        buf = pathlib.Path(self._path).read_text()
+        m = re.search("^%s=\"(.*)\"$" % (var_name), buf, re.MULTILINE)
+        if m is None:
+            return ""
+        varVal = m.group(1)
+
+        while True:
+            m = re.search("\\${(\\S+)?}", varVal)
+            if m is None:
+                break
+            varName2 = m.group(1)
+            varVal2 = self._get_var(varName2)
+            if varVal2 is None:
+                varVal2 = ""
+
+            varVal = varVal.replace(m.group(0), varVal2)
+
+        return varVal
+
+    def _set_var(self, var_name, value):
+        buf = pathlib.Path(self._path).read_text()
+        endEnter = (buf[-1] == "\n")
+
+        m = re.search("^%s=\"(.*)\"$" % (var_name), buf, re.MULTILINE)
+        if m is not None:
+            if m.group(1) != value:
+                newLine = "%s=\"%s\"" % (var_name, value)
+                buf = buf.replace(m.group(0), newLine)
+                with open(self._path, 'w') as f:
+                    f.write(buf)
+        else:
+            with open(self._path, 'a') as f:
+                if not endEnter:
+                    f.write("\n")
+                f.write("%s=\"%s\"\n" % (var_name, value))
