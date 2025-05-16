@@ -187,9 +187,24 @@ class PortageConfigDirChecker:
                 return
 
         # /etc/portage is not a directory, fix: no way to fix it
-        if not os.path.isdir(self.self._obj.path):
+        if not os.path.isdir(self._obj.path):
             self._errorCallback("\"%s\" is not a directory" % (self._obj.path))
             return
+
+        # /etc/portage contains hidden files (don't check inner directories), fix: remove them
+        for fn in os.listdir(self._obj.path):
+            if fn.startswith("."):
+                fullfn = os.path.join(self._obj.path, fn)
+                if self._bAutoFix:
+                    Util.forceDelete(fullfn)
+                else:
+                    self._errorCallback("hidden file \"%s\" exists" % (fullfn))
+            elif fn.endswith("-"):
+                fullfn = os.path.join(self._obj.path, fn)
+                if self._bAutoFix:
+                    Util.forceDelete(fullfn)
+                else:
+                    self._errorCallback("saved file \"%s\" exists" % (fullfn))
 
     def check_mirrors_file(self):
         # check /etc/portage/mirrors
@@ -380,8 +395,9 @@ class PortageConfigDirFilesDirChecker:
 
         self._etcDirContentFileList.append(fullfn)
 
-    def check_link(self, link_name, target):
-        assert os.path.exists(target)
+    def check_link(self, link_name, target=None):
+        if target is not None:
+            assert os.path.exists(target)
 
         if "?" in link_name:
             link_name = link_name.replace("?", "%02d" % (self._etcDirContentIndex))
@@ -389,30 +405,40 @@ class PortageConfigDirFilesDirChecker:
 
         linkFile = os.path.join(self._etcDir, link_name)
 
-        # <linkFile> does not exist, fix: create the symlink
+        # <linkFile> does not exist
         if not os.path.lexists(linkFile):
-            if self._bAutoFix:
-                os.symlink(target, linkFile)
+            if target is not None:
+                if self._bAutoFix:
+                    os.symlink(target, linkFile)
+                else:
+                    self._errorCallback("\"%s\" must be a symlink to \"%s\"" % (linkFile, target))
+                    return
             else:
-                self._errorCallback("\"%s\" must be a symlink to \"%s\"" % (linkFile, target))
+                self._errorCallback("\"%s\" must be a symlink" % (linkFile))
                 return
 
-        # <linkFile> is not a symlink, fix: keep the original file, create the symlink
+        # <linkFile> is not a symlink
         if not os.path.islink(linkFile):
-            if self._bAutoFix:
-                os.rename(linkFile, Util.getInnerFileFullfn(self._etcDir, _unknownFilename))
-                os.symlink(target, linkFile)
+            if target is not None:
+                if self._bAutoFix:
+                    # keep the original file, create the symlink
+                    os.rename(linkFile, Util.getInnerFileFullfn(self._etcDir, _unknownFilename))
+                    os.symlink(target, linkFile)
+                else:
+                    self._errorCallback("\"%s\" must be a symlink to \"%s\"" % (linkFile, target))
+                    return
             else:
-                self._errorCallback("\"%s\" must be a symlink to \"%s\"" % (linkFile, target))
+                self._errorCallback("\"%s\" must be a symlink" % (linkFile))
                 return
 
         # <linkFile> is wrong, fix: re-create the symlink
-        if os.readlink(linkFile) != target:
-            if self._bAutoFix:
-                Util.forceSymlink(target, linkFile)
-            else:
-                self._errorCallback("\"%s\" must be a symlink to \"%s\"" % (linkFile, target))
-                return
+        if target is None:
+            if os.readlink(linkFile) != target:
+                if self._bAutoFix:
+                    Util.forceSymlink(target, linkFile)
+                else:
+                    self._errorCallback("\"%s\" must be a symlink to \"%s\"" % (linkFile, target))
+                    return
 
         self._etcDirContentFileList.append(linkFile)
 
