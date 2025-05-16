@@ -172,6 +172,13 @@ class PortageConfigDirChecker:
             else:
                 self._errorCallback("\"%s\" is not a directory" % (self._obj.path))
 
+    def check_mirrors_file(self):
+        # check /etc/portage/mirrors
+        pass
+
+    def check_make_conf_file(self):
+        self._obj.get_make_conf_obj().check(auto_fix=self._bAutoFix, error_callback=self._errorCallback)
+
     def check_make_profile_link(self, gentoo_repository_dir_path):
         if self._obj._prefix == "/":
             assert gentoo_repository_dir_path.startswith(self._obj._prefix)
@@ -185,12 +192,37 @@ class PortageConfigDirChecker:
         else:
             self._errorCallback("%s must exist" % (self._obj.make_profile_link_path))
 
-    def check_make_conf_file(self):
-        self._obj.get_make_conf_obj().check(auto_fix=self._bAutoFix, error_callback=self._errorCallback)
+    def check_repos_conf_dir(self):
+        # check /etc/portage/repos.conf
+        assert False
 
-    def check_mirrors_file(self):
-        # check /etc/portage/mirrors
-        pass
+    def check_repo_postsync_dir(self):
+        # check /etc/portage/repo.postsync.d
+        assert False
+
+    def check_package_accept_keywords_dir_or_file(self):
+        # check /etc/portage/package.accept_keywords
+        assert False
+
+    def check_package_license_dir_or_file(self):
+        # check /etc/portage/package.license
+        assert False
+
+    def check_package_mask_dir_or_file(self):
+        # check /etc/portage/package.mask
+        assert False
+
+    def check_package_unmask_dir_or_file(self):
+        # check /etc/portage/package.unmask
+        assert False
+
+    def check_package_use_dir_or_file(self):
+        # check /etc/portage/package.use
+        assert False
+
+    def check_custom_sets_dir(self):
+        # check /etc/portage/sets
+        assert False
 
     def check_custom_dir(self, path):
         assert path.startswith(self._obj.path + "/")
