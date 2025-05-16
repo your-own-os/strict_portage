@@ -179,11 +179,16 @@ class PortageConfigDirChecker:
 
     def check_self(self):
         # check /etc/portage
-        if not os.path.isdir(self._obj.path):
+        if not os.path.exists(self._obj.path):
             if self._bAutoFix:
                 os.makedirs(self._obj.path, exist_ok=True)
             else:
-                self._errorCallback("\"%s\" is not a directory" % (self._obj.path))
+                self._errorCallback("\"%s\" does not exist" % (self._obj.path))
+                return
+
+        if not os.path.isdir(self.self._obj.path):
+            self._errorCallback("\"%s\" is not a directory" % (self._obj.path))
+            return
 
     def check_mirrors_file(self):
         # check /etc/portage/mirrors
@@ -210,23 +215,33 @@ class PortageConfigDirChecker:
             self._errorCallback("%s points to an invalid location" % (self._obj.make_profile_link_path))
             return
 
-    def check_package_accept_keywords_file(self):
+    def check_package_accept_keywords_file(self, content=None, remove=False):
         # check /etc/portage/package.accept_keywords
         assert False
 
-    def check_package_license_file(self):
+    def check_package_license_file(self, content=None, remove=False):
         # check /etc/portage/package.license
+
+        if remove:
+            assert content is None
+            if os.path.exists(self._obj.package_license_file_path):
+                if self.bAutoFix:
+                    Util.forceDelete(self._obj.package_license_file_path)
+                else:
+                    self._errorCallback("\"%s\" should not exist" % (self._obj.package_license_file_path))
+            return
+
         assert False
 
-    def check_package_mask_file(self):
+    def check_package_mask_file(self, content=None, remove=False):
         # check /etc/portage/package.mask
         assert False
 
-    def check_package_unmask_file(self):
+    def check_package_unmask_file(self, content=None, remove=False):
         # check /etc/portage/package.unmask
         assert False
 
-    def check_package_use_file(self):
+    def check_package_use_file(self, content=None, remove=False):
         # check /etc/portage/package.use
         assert False
 
@@ -294,7 +309,25 @@ class PortageConfigDirFilesDirChecker:
         self._bAutoFix = bAutoFix
         self._errorCallback = errorCallback if errorCallback is not None else defaultErrorCallback
 
-    def check_content_file(self, file_name, content=None):
+    def check_remove(self):
+        if os.path.exists(self._etcDir):
+            if self.bAutoFix:
+                Util.forceDelete(self._etcDir)
+            else:
+                self._errorCallback("\"%s\" should not exist" % (self._etcDir))
+
+    def check_self(self):
+        if not os.path.exists(self._etcDir):
+            if self._bAutoFix:
+                os.makedirs(self._etcDir, exist_ok=True)
+            else:
+                self._errorCallback("\"%s\" does not exist" % (self._etcDir))
+
+        if not os.path.isdir(self._etcDir):
+            self._errorCallback("\"%s\" is not a directory" % (self._etcDir))
+            return
+
+    def check_file(self, file_name, content=None):
         if content is not None:
             # FIXME: check content format
             pass
@@ -325,7 +358,7 @@ class PortageConfigDirFilesDirChecker:
 
         self._etcDirContentFileList.append(fullfn)
 
-    def check_content_link(self, link_name, target):
+    def check_link(self, link_name, target):
         assert os.path.exists(target)
 
         if "?" in link_name:
@@ -361,7 +394,7 @@ class PortageConfigDirFilesDirChecker:
 
         self._etcDirContentFileList.append(linkFile)
 
-    def check_content_dir(self, dir_name):
+    def check_dir(self, dir_name):
         if "?" in dir_name:
             dir_name = dir_name.replace("?", "%02d" % (self._etcDirContentIndex))
             self._etcDirContentIndex += 1
