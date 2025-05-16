@@ -24,6 +24,7 @@
 import os
 import pathlib
 from ._util import Util
+from ._errors import defaultErrorCallback
 from ._make_conf import MakeConf
 from ._package_accept_keywords import PackageAcceptKeywords
 from ._package_license import PackageLicense
@@ -147,12 +148,13 @@ class PortageConfigDir:
     def create_checker(self, auto_fix=False, error_callback=None):
         if error_callback is None:
             error_callback = defaultErrorCallback
-        return PortageConfigDirChecker(self, auto_fix=auto_fix, error_callback=error_callback)
+        return PortageConfigDirChecker(self, auto_fix, error_callback)
 
     def create_files_dir_checker(self, dir_path, auto_fix=False, error_callback=None):
+        assert dir_path.startswith(self.path + "/")
         if error_callback is None:
             error_callback = defaultErrorCallback
-        return PortageConfigDirFilesDirChecker(self, dir_path, auto_fix=auto_fix, error_callback=error_callback)
+        return PortageConfigDirFilesDirChecker(self, dir_path, auto_fix, error_callback)
 
 
 class PortageConfigDirChecker:
