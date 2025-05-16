@@ -255,23 +255,29 @@ class PortageConfigDirChecker:
         # check /etc/portage/sets
         assert False
 
-    def check_custom_file(self, path, content):
+    def check_custom_file(self, path, content=None):
         assert path.startswith(self._obj.path + "/")
 
         if not os.path.exists(path):
-            if self._bAutoFix:
-                pathlib.Path(path).write_text(content)
+            if content is not None:
+                if self._bAutoFix:
+                    pathlib.Path(path).write_text(content)
+                else:
+                    self._errorCallback("\"%s\" does not exist" % (path))
+                return
             else:
                 self._errorCallback("\"%s\" does not exist" % (path))
-            return
+                return
 
-        if pathlib.Path(path).read_text() != content:
-            if self._bAutoFix:
-                pathlib.Path(path).write_text(content)
-            else:
-                self._errorCallback("\"%s\" has invalid content" % (path))
+        if content is not None:
+            if pathlib.Path(path).read_text() != content:
+                if self._bAutoFix:
+                    pathlib.Path(path).write_text(content)
+                else:
+                    self._errorCallback("\"%s\" has invalid content" % (path))
 
-    def check_custom_link(self, path, target):
+    def check_custom_link(self, path, target=None):
+        assert target is not None                           # FIXME
         assert path.startswith(self._obj.path + "/")
 
         if not os.path.islink(path) or os.readlink(path) != target:
