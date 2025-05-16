@@ -24,6 +24,7 @@
 import os
 import re
 import pathlib
+from ._errors import defaultErrorCallback
 
 
 class MakeConf:
@@ -118,6 +119,9 @@ class MakeConf:
             f.write(buf)
 
     def check(self, auto_fix=False, error_callback=None):
+        if error_callback is None:
+            error_callback = defaultErrorCallback
+
         # check CHOST variable
         if self.has_var("CHOST"):
             error_callback("variable CHOST should not exist in %s" % (self._path))

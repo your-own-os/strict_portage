@@ -144,19 +144,23 @@ class PortageConfigDir:
     def get_sets_obj(self):
         return Sets(prefix=self._prefix)
 
-    def create_checker(self):
-        return PortageConfigDirChecker(self, auto_fix=False, error_callback=None)
+    def create_checker(self, auto_fix=False, error_callback=None):
+        if error_callback is None:
+            error_callback = defaultErrorCallback
+        return PortageConfigDirChecker(self, auto_fix=auto_fix, error_callback=error_callback)
 
     def create_files_dir_checker(self, dir_path, auto_fix=False, error_callback=None):
-        return PortageConfigDirFilesDirChecker(self, dir_path, auto_fix=False, error_callback=None)
+        if error_callback is None:
+            error_callback = defaultErrorCallback
+        return PortageConfigDirFilesDirChecker(self, dir_path, auto_fix=auto_fix, error_callback=error_callback)
 
 
 class PortageConfigDirChecker:
 
-    def __init__(self, portage_config_dir, auto_fix=False, error_callback=None):
-        self._obj = portage_config_dir
-        self._bAutoFix = auto_fix
-        self._errorCallback = error_callback
+    def __init__(self, portageConfigDir, bAutoFix, errorCallback):
+        self._obj = portageConfigDir
+        self._bAutoFix = bAutoFix
+        self._errorCallback = errorCallback
 
     def check_self(self):
         # check /etc/portage
@@ -173,11 +177,11 @@ class PortageConfigDirChecker:
             assert gentoo_repository_dir_path.startswith(self._obj._prefix + "/")
 
         # check /etc/portage/make.profile
-        if os.path.exists(self.make_profile_link_path):
+        if os.path.exists(self._obj.make_profile_link_path):
             # FIXME: ensure it points to a real profile in gentoo_repository_dir_path
             pass
         else:
-            self._errorCallback("%s must exist" % (self.make_profile_link_path))
+            self._errorCallback("%s must exist" % (self._obj.make_profile_link_path))
 
     def check_make_conf_file(self):
         self._obj.get_make_conf_obj().check(auto_fix=self._bAutoFix, error_callback=self._errorCallback)
@@ -233,12 +237,13 @@ class PortageConfigDirChecker:
 
 class PortageConfigDirFilesDirChecker:
 
-    def __init__(self, path, auto_fix=False, error_callback=None):
+    def __init__(self, portageConfigDir, path, bAutoFix, errorCallback):
+        self._obj = portageConfigDir
         self._etcDir = path
         self._etcDirContentIndex = 1
         self._etcDirContentFileList = []
-        self._bAutoFix = auto_fix
-        self._errorCallback = error_callback
+        self._bAutoFix = bAutoFix
+        self._errorCallback = errorCallback
 
     def check_content_link(self, link_name, target):
         assert os.path.exists(target)
