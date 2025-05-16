@@ -26,10 +26,35 @@ import re
 import time
 import shutil
 import platform
+import itertools
 import subprocess
 
 
 class Util:
+
+    @staticmethod
+    def getTmpPathInPlace(path):
+        path2 = None
+        for i in itertools.count(2):
+            path2 = "%s.%d" % (path, i)
+            if not os.path.exists(path2):
+                return path2
+
+    def getInnerFileFullfn(dirpath, innerFileName):
+        fullfn = os.path.join(dirpath, innerFileName)
+        if not os.path.exists(fullfn):
+            return innerFileName
+        for i in itertools.count(2):
+            fullfn = os.path.join(dirpath, "%s-%d" % (innerFileName, i))
+            if not os.path.exists(fullfn):
+                return fullfn
+
+    @classmethod
+    def safeFileToDir(cls, path, innerFileName):
+        path2 = cls.getTmpPathInPlace(path)
+        os.mkdir(path2)
+        os.rename(path, cls.getInnerFileFullfn(path2, innerFileName))
+        os.rename(path2, path)
 
     @staticmethod
     def fileOrDirGetFileList(path):
