@@ -186,11 +186,16 @@ class PortageConfigDirChecker:
             assert gentoo_repository_dir_path.startswith(self._obj._prefix + "/")
 
         # check /etc/portage/make.profile
-        if os.path.exists(self._obj.make_profile_link_path):
-            # FIXME: ensure it points to a real profile in gentoo_repository_dir_path
-            pass
-        else:
+        # no way to auto fix
+        if not os.path.exists(self._obj.make_profile_link_path):
             self._errorCallback("%s must exist" % (self._obj.make_profile_link_path))
+            return
+        if not os.path.islink(self._obj.make_profile_link_path):
+            self._errorCallback("%s is not a symlink" % (self._obj.make_profile_link_path))
+            return
+        if not os.path.abspath(os.readlink(self._obj.make_profile_link_path)).startswith(os.path.abspath(gentoo_repository_dir_path)):
+            self._errorCallback("%s points to an invalid location" % (self._obj.make_profile_link_path))
+            return
 
     def check_repos_conf_dir(self):
         # check /etc/portage/repos.conf
@@ -272,6 +277,11 @@ class PortageConfigDirChecker:
 class PortageConfigDirFilesDirChecker:
 
     def __init__(self, portageConfigDir, path, bAutoFix, errorCallback):
+        if self._obj._prefix == "/":
+            assert path.startswith(self._obj._prefix)
+        else:
+            assert path.startswith(self._obj._prefix + "/")
+
         self._obj = portageConfigDir
         self._etcDir = path
         self._etcDirContentIndex = 1
@@ -336,8 +346,7 @@ class PortageConfigDirFilesDirChecker:
                 self._errorCallback("\"%s\" does not exist" % (fullfn))
                 return
 
-        with open(fullfn, "w") as f:
-            f.write(content)
+        pathlib.Path(fullfn).write_text(content)
 
         self._etcDirContentFileList.append(fullfn)
 

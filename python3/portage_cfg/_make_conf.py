@@ -43,10 +43,10 @@ class MakeConf:
 
     def get_var(self, var_name, parse=False):
         # parse is True:
-        #     returns parsed variable value
+        #     returns parsed variable value, returns appropriate default value when not found
         #     multiline variable definition is not supported yet
         # parse is False:
-        #     returns variable value, returns "" when not found
+        #     returns raw variable value, returns "" when not found
         #     multiline variable definition is not supported yet
 
         if parse:
