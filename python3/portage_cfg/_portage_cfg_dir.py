@@ -333,17 +333,22 @@ class PortageConfigDirFilesDirChecker:
         self._etcDirContentFileList.append(fullfn)
 
     def finialize(self):
-        if self._bAutoFix:
-            for fn in os.listdir(self._etcDir):
-                fullfn = os.path.join(self._etcDir, fn)
-                if os.path.islink(fullfn) and fullfn not in self._etcDirContentFileList:                               # remove symlinks
+        for fn in os.listdir(self._etcDir):
+            fullfn = os.path.join(self._etcDir, fn)
+            if os.path.islink(fullfn) and fullfn not in self._etcDirContentFileList:                               # remove symlinks
+                if self._bAutoFix:
                     os.unlink(fullfn)
-                elif os.path.isfile(fullfn) and fn.startswith("10-") and fullfn not in self._etcDirContentFileList:    # remove redundant "10-*" files
+                else:
+                    self._errorCallback("redundant symlink \"%s\" exists" % (fullfn))
+            elif os.path.isfile(fullfn) and fn.startswith("10-") and fullfn not in self._etcDirContentFileList:    # remove redundant "10-*" files
+                if self._bAutoFix:
                     os.unlink(fullfn)
+                else:
+                    self._errorCallback("redundant file \"%s\" exists" % (fullfn))
 
-        del self._etcDirContentFileList
-        del self._etcDirContentIndex
-        del self._etcDir
+        # reset some variables
+        self._etcDirContentIndex = 1
+        self._etcDirContentFileList = []
 
 
 def _getUnknownFilename(dirpath):
