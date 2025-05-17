@@ -33,6 +33,13 @@ import subprocess
 class Util:
 
     @staticmethod
+    def forceRemoveFromList(lst, element):
+        try:
+            lst.remove(element)
+        except ValueError:
+            pass
+
+    @staticmethod
     def doNothing(msg):
         pass
 

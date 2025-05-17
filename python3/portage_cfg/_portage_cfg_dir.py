@@ -25,7 +25,7 @@ import os
 import pathlib
 from ._util import Util
 from ._prototype import ConfigDirBase
-from ._prototype import DirCheckerBase
+from ._prototype import ConfigDirCheckerBase
 from ._make_conf import MakeConf
 from ._repos_conf_dir import ReposConfDir
 from ._repo_postsync_dir import RepoPostSyncDir
@@ -186,29 +186,52 @@ class PortageConfigDir(ConfigDirBase):
         return Sets(prefix=self._prefix)
 
 
-class PortageConfigDirChecker(DirCheckerBase):
+class PortageConfigDirChecker(ConfigDirCheckerBase):
 
     def __init__(self, parent, bAutoFix, errorCallback):
         super().__init__(parent, bAutoFix, errorCallback)
-        self._fileList = []
+        self._fileSet = set()
 
-    def check_mirrors_file(self):
+    def use_and_check_mirrors_file(self):
         if self._basicCheck():
             return
 
-        # check /etc/portage/mirrors
+        if not self._obj.has_mirrors_file():
+            self._errorCallback("%s must exist" % (self._obj.mirrors_file_path))
+            return
 
-    def check_make_conf_file(self):
+        self._fileSet.add(self._obj.mirrors_file_path)
+
+    def dont_use_mirrors_file(self):
         if self._basicCheck():
             return
 
-        # check /etc/portage/make.conf
-        self._obj.get_make_conf_obj().check(auto_fix=self._bAutoFix, error_callback=self._errorCallback)
+        if self._obj.has_mirrors_file():
+            self._errorCallback("\"%s\" should not exist" % (self._obj.mirrors_file_path))
+            return
 
-        if os.path.exists(self._obj.make_conf_file_path):
-            self._fileList.append(self._obj.make_conf_file_path)
+        self._fileSet.discard(self._obj.mirrors_file_path)
 
-    def check_make_profile_link(self, gentoo_repository_dir_path):
+    def use_make_conf_file(self):
+        if self._basicCheck():
+            return
+
+        if not self._obj.has_make_conf_file():
+            self._errorCallback("%s must exist" % (self._obj.mirrors_file_path))
+            return
+
+        self._fileSet.add(self._obj.make_conf_file_path)
+
+    def dont_use_make_conf_file(self):
+        if self._basicCheck():
+            return
+
+        if self._obj.has_make_conf_file():
+            self._errorCallback("\"%s\" should not exist" % (self._obj.make_conf_file_path))
+
+        self._fileSet.discard(self._obj.make_conf_file_path)
+
+    def use_and_check_make_profile_link(self, gentoo_repository_dir_path):
         if self._basicCheck():
             return
 
@@ -229,51 +252,121 @@ class PortageConfigDirChecker(DirCheckerBase):
             self._errorCallback("%s points to an invalid location" % (self._obj.make_profile_link_path))
             return
 
-        self._fileList.append(self._obj.make_profile_link_path)
+        self._fileSet.add(self._obj.make_profile_link_path)
 
-    def check_package_accept_keywords_file(self, content=None):
+    def dont_use_make_profile_link(self):
+        if self._basicCheck():
+            return
+
+        if self._obj.has_make_profile_link():
+            self._errorCallback("\"%s\" should not exist" % (self._obj.make_profile_link_path))
+            return
+
+        self._fileSet.discard(self._obj.make_profile_link_path)
+
+    def use_package_accept_keywords_file_or_dir(self):
         if self._basicCheck():
             return
 
         # check /etc/portage/package.accept_keywords
-        self._fileList.append(self._obj.package_accept_keywords_file_path)
+        self._fileSet.add(self._obj.package_accept_keywords_file_path)
 
-    def check_package_license_file(self, content=None):
+    def dont_use_package_accept_keywords_file_or_dir(self):
+        if self._basicCheck():
+            return
+
+        if self._obj.has_package_accept_keywords_file_or_dir():
+            self._errorCallback("\"%s\" should not exist" % (self._obj.package_accept_keywords_file_path))
+            return
+
+        self._fileSet.discard(self._obj.package_accept_keywords_file_path)
+
+    def use_package_license_file_or_dir(self):
         if self._basicCheck():
             return
 
         # check /etc/portage/package.license
-        self._fileList.append(self._obj.package_license_file_path)
+        self._fileSet.add(self._obj.package_license_file_path)
 
-    def check_package_mask_file(self, content=None):
+    def dont_use_package_license_file_or_dir(self):
+        if self._basicCheck():
+            return
+
+        if self._obj.has_package_license_file_or_dir():
+            self._errorCallback("\"%s\" should not exist" % (self._obj.package_license_file_path))
+            return
+
+        self._fileSet.discard(self._obj.package_license_file_path)
+
+    def use_package_mask_file_or_dir(self):
         if self._basicCheck():
             return
 
         # check /etc/portage/package.mask
-        self._fileList.append(self._obj.package_mask_file_path)
+        self._fileSet.add(self._obj.package_mask_file_path)
 
-    def check_package_unmask_file(self, content=None):
+    def dont_use_package_mask_file_or_dir(self):
+        if self._basicCheck():
+            return
+
+        if self._obj.has_package_mask_file_or_dir():
+            self._errorCallback("\"%s\" should not exist" % (self._obj.package_mask_file_path))
+            return
+
+        self._fileSet.discard(self._obj.package_mask_file_path)
+
+    def use_package_unmask_file_or_dir(self):
         if self._basicCheck():
             return
 
         # check /etc/portage/package.unmask
-        self._fileList.append(self._obj.package_unmask_file_path)
+        self._fileSet.add(self._obj.package_unmask_file_path)
 
-    def check_package_use_file(self, content=None):
+    def dont_use_package_unmask_file_or_dir(self):
+        if self._basicCheck():
+            return
+
+        if self._obj.has_package_unmask_file_or_dir():
+            self._errorCallback("\"%s\" should not exist" % (self._obj.package_unmask_file_path))
+            return
+
+        self._fileSet.discard(self._obj.package_unmask_file_path)
+
+    def use_package_use_file_or_dir(self):
         if self._basicCheck():
             return
 
         # check /etc/portage/package.use
-        self._fileList.append(self._obj.package_use_file_path)
+        self._fileSet.add(self._obj.package_use_file_path)
 
-    def check_custom_sets_dir(self):
+    def dont_use_package_use_file_or_dir(self):
+        if self._basicCheck():
+            return
+
+        if self._obj.has_package_use_file_or_dir():
+            self._errorCallback("\"%s\" should not exist" % (self._obj.package_use_file_path))
+            return
+
+        self._fileSet.discard(self._obj.package_use_file_path)
+
+    def use_and_check_custom_sets_dir(self):
         if self._basicCheck():
             return
 
         # check /etc/portage/sets
-        self._fileList.append(self._obj.custom_sets_dir_path)
+        self._fileSet.add(self._obj.custom_sets_dir_path)
 
-    def check_user_file(self, path, content=None):
+    def dont_use_custom_sets_dir(self):
+        if self._basicCheck():
+            return
+
+        if self._obj.has_custom_sets_dir():
+            self._errorCallback("\"%s\" should not exist" % (self._obj.custom_sets_dir_path))
+            return
+
+        self._fileSet.discard(self._obj.custom_sets_dir_path)
+
+    def use_and_check_extra_file(self, path, content=None):
         if self._basicCheck():
             return
 
@@ -297,9 +390,9 @@ class PortageConfigDirChecker(DirCheckerBase):
                 else:
                     self._errorCallback("\"%s\" has invalid content" % (path))
 
-        self._fileList.append(path)
+        self._fileSet.add(path)
 
-    def check_user_link(self, path, target=None):
+    def use_and_check_extra_link(self, path, target=None):
         if self._basicCheck():
             return
 
@@ -312,9 +405,9 @@ class PortageConfigDirChecker(DirCheckerBase):
             else:
                 self._errorCallback("\"%s\" is an invalid symlink" % (path))
 
-        self._fileList.append(path)
+        self._fileSet.add(path)
 
-    def check_user_dir(self, path):
+    def use_and_check_extra_dir(self, path):
         if self._basicCheck():
             return
 
@@ -333,78 +426,15 @@ class PortageConfigDirChecker(DirCheckerBase):
             else:
                 self._errorCallback("\"%s\" is not a directory" % (path))
 
-        self._fileList.append(path)
-
-    def check_no_mirrors_file(self):
-        if self._basicCheck():
-            return
-
-        if os.path.exists(self._obj.mirrors_file_path):
-            self._errorCallback("\"%s\" should not exist" % (self._obj.mirrors_file_path))
-
-    def check_no_make_conf_file(self):
-        if self._basicCheck():
-            return
-
-        if os.path.exists(self._obj.make_conf_file_path):
-            self._errorCallback("\"%s\" should not exist" % (self._obj.make_conf_file_path))
-
-    def check_no_make_profile_link(self):
-        if self._basicCheck():
-            return
-
-        if os.path.exists(self._obj.make_profile_link_path):
-            self._errorCallback("\"%s\" should not exist" % (self._obj.make_profile_link_path))
-
-    def check_no_package_accept_keywords_file_or_dir(self):
-        if self._basicCheck():
-            return
-
-        if self._obj.has_package_accept_keywords_file_or_dir():
-            self._errorCallback("\"%s\" should not exist" % (self._obj.package_accept_keywords_file_path))
-
-    def check_no_package_license_file_or_dir(self):
-        if self._basicCheck():
-            return
-
-        if self._obj.has_package_license_file_or_dir():
-            self._errorCallback("\"%s\" should not exist" % (self._obj.package_license_file_path))
-
-    def check_no_package_mask_file_or_dir(self):
-        if self._basicCheck():
-            return
-
-        if self._obj.has_package_mask_file_or_dir():
-            self._errorCallback("\"%s\" should not exist" % (self._obj.package_mask_file_path))
-
-    def check_no_package_unmask_file_or_dir(self):
-        if self._basicCheck():
-            return
-
-        if self._obj.has_package_unmask_file_or_dir():
-            self._errorCallback("\"%s\" should not exist" % (self._obj.package_unmask_file_path))
-
-    def check_no_package_use_file_or_dir(self):
-        if self._basicCheck():
-            return
-
-        if self._obj.has_package_use_file_or_dir():
-            self._errorCallback("\"%s\" should not exist" % (self._obj.package_use_file_path))
-
-    def check_no_custom_sets_dir(self):
-        if self._basicCheck():
-            return
-
-        if self._obj.has_custom_sets_dir():
-            self._errorCallback("\"%s\" should not exist" % (self._obj.custom_sets_dir_path))
+        self._fileSet.add(path)
 
     def finialize(self):
         for fn in os.listdir(self._obj.path):
             fullfn = os.path.join(self._obj.path, fn)
-            if fullfn not in self._fileList:
+            if fullfn not in self._fileSet:
                 if self._bAutoFix:
                     Util.forceDelete(fullfn)
                 else:
                     self._errorCallback("redundant file \"%s\" exists" % (fullfn))
 
-        self._fileList = []
+        self._fileSet = set()
