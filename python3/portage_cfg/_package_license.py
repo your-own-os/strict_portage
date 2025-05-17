@@ -56,7 +56,9 @@ class PackageLicenses(ConfigFileOrDirBase):
 
 
 class PackageLicensesFileChecker(ConfigFileCheckerBase):
-    pass
+
+    def __init__(self, parent, fileClass, bAutoFix, errorCallback):
+        super().__init__(parent, fileClass, bAutoFix, errorCallback)
 
 
 class PackageLicensesDirChecker(FilesDirCheckerBase):
