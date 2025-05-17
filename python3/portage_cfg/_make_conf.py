@@ -24,19 +24,15 @@
 import os
 import re
 import pathlib
-from ._util import Util
+from ._prototype import ConfigFileBase
+from ._prototype import FileCheckerBase
 
 
-class MakeConf:
+class MakeConf(ConfigFileBase):
 
     def __init__(self, prefix="/"):
         # user should guarantee existence
-
-        self._path = os.path.join(prefix, "etc", "portage", "make.conf")
-
-    @property
-    def path(self):
-        return self._path
+        super().__init__(os.path.join(prefix, "etc", "portage", "make.conf"), Checker)
 
     def has_var(self, var_name):
         buf = pathlib.Path(self._path).read_text()
@@ -120,9 +116,6 @@ class MakeConf:
         with open(self._path, 'w') as f:
             f.write(buf)
 
-    def create_checker(self, auto_fix=False, error_callback=None):
-        return Checker(self, auto_fix, error_callback)
-
     def _get_var(self, var_name):
         buf = pathlib.Path(self._path).read_text()
         m = re.search("^%s=\"(.*)\"$" % (var_name), buf, re.MULTILINE)
@@ -161,12 +154,10 @@ class MakeConf:
                 f.write("%s=\"%s\"\n" % (var_name, value))
 
 
-class Checker:
+class Checker(FileCheckerBase):
 
-    def __init__(self, makeConfObj, bAutoFix, errorCallback):
-        self._obj = makeConfObj
-        self._bAutoFix = bAutoFix
-        self._errorCallback = errorCallback if errorCallback is not None else Util.doNothing
+    def __init__(self, parent, bAutoFix, errorCallback):
+        super().__init__(parent, bAutoFix, errorCallback)
 
     def check(self):
         # check existence

@@ -23,14 +23,14 @@
 
 import os
 from ._util import Util
-from ._prototype import ConfigFileOrDir
+from ._prototype import ConfigFileOrDirBase
 
 
-class PackageLicenses(ConfigFileOrDir):
+class PackageLicenses(ConfigFileOrDirBase):
 
     def __init__(self, prefix="/", file_or_dir=None):
         # user should guarantee existence
-        ConfigFileOrDir.__init__(self,
+        ConfigFileOrDirBase.__init__(self,
             os.path.join(prefix, "etc", "portage", "package.license"),
             file_or_dir,
             None)

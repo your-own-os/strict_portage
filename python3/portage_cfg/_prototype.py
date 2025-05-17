@@ -47,7 +47,21 @@ class SetBase(abc.ABC):
         pass
 
 
-class ConfigFileOrDir:
+class ConfigFileBase:
+
+    def __init__(self, path, fileCheckerClass):
+        self._path = path
+        self._fileCheckerClass = fileCheckerClass
+
+    @property
+    def path(self):
+        return self._path
+
+    def create_checker(self, auto_fix=False, error_callback=None):
+        return self._fileCheckerClass(self, auto_fix, error_callback)
+
+
+class ConfigFileOrDirBase:
 
     def __init__(self, path, bFileOrDir, fileClass, dirCheckerClass, fileCheckerClass):
         self._path = path
@@ -93,6 +107,18 @@ class ConfigFileOrDir:
             return self._fileCheckerClass(self, auto_fix, error_callback)
         else:
             return self._dirCheckerClass(self, self._fileClass, auto_fix, error_callback)
+
+
+class FileCheckerBase(abc.ABC):
+
+    def __init__(self, parent, bAutoFix, errorCallback):
+        self._obj = parent
+        self._bAutoFix = bAutoFix
+        self._errorCallback = errorCallback if errorCallback is not None else Util.doNothing
+
+    @abc.abstractmethod
+    def check(self):
+        pass
 
 
 class FilesDirCheckerBase:
