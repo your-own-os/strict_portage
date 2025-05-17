@@ -22,8 +22,10 @@
 
 
 import os
+import functools
 from ._util import Util
 from ._prototype import ConfigFileOrDirBase
+from ._prototype import FileCheckerBase
 from ._prototype import FilesDirCheckerBase
 
 
@@ -36,7 +38,9 @@ class PackageAcceptKeywords(ConfigFileOrDirBase):
         ConfigFileOrDirBase.__init__(self,
                                      os.path.join(prefix, "etc", "portage", "package.accept_keywords"),
                                      file_or_dir,
-                                     None, FileChecker, DirChecker)
+                                     None,
+                                     functools.partial(PackageAcceptKeywordsFileChecker, self),
+                                     functools.partial(PackageAcceptKeywordsDirChecker, self))
 
     def get_entries(self):
         # entry examples:
@@ -55,12 +59,12 @@ class FileClass:
     pass
 
 
-class FileChecker:
+class PackageAcceptKeywordsFileChecker(FileCheckerBase):
     pass
 
 
-class DirChecker(FilesDirCheckerBase):
+class PackageAcceptKeywordsDirChecker(FilesDirCheckerBase):
 
-    def __init__(self, parent, fileClass, bAutoFix, errorCallback):
-        self._obj = parent
-        super().__init__(self._obj.path, fileClass, bAutoFix, errorCallback)
+    def __init__(self, portageConfigDirObj, parent, fileClass, bAutoFix, errorCallback):
+        assert parent.path.startswith(portageConfigDirObj.path)
+        super().__init__(parent, fileClass, bAutoFix, errorCallback)

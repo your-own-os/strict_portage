@@ -22,8 +22,11 @@
 
 
 import os
+import functools
 from ._util import Util
 from ._prototype import ConfigFileOrDirBase
+from ._prototype import FileCheckerBase
+from ._prototype import FilesDirCheckerBase
 
 
 class PackageLicenses(ConfigFileOrDirBase):
@@ -35,7 +38,9 @@ class PackageLicenses(ConfigFileOrDirBase):
         ConfigFileOrDirBase.__init__(self,
                                      os.path.join(prefix, "etc", "portage", "package.license"),
                                      file_or_dir,
-                                     None, None, None)
+                                     None,
+                                     functools.partial(PackageLicensesFileChecker, self),
+                                     functools.partial(PackageLicensesDirChecker, self))
 
     def get_entries(self):
         # entry examples:
@@ -48,3 +53,14 @@ class PackageLicenses(ConfigFileOrDirBase):
                 itemlist = line.split()
                 ret.append((itemlist[0], itemlist[1:]))
         return ret
+
+
+class PackageLicensesFileChecker(FileCheckerBase):
+    pass
+
+
+class PackageLicensesDirChecker(FilesDirCheckerBase):
+
+    def __init__(self, portageConfigDirObj, parent, fileClass, bAutoFix, errorCallback):
+        assert parent.path.startswith(portageConfigDirObj.path)
+        super().__init__(parent, fileClass, bAutoFix, errorCallback)

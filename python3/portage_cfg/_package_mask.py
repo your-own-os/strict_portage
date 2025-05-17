@@ -22,8 +22,11 @@
 
 
 import os
+import functools
 from ._util import Util
 from ._prototype import ConfigFileOrDirBase
+from ._prototype import FileCheckerBase
+from ._prototype import FilesDirCheckerBase
 
 
 class PackageMask(ConfigFileOrDirBase):
@@ -35,7 +38,9 @@ class PackageMask(ConfigFileOrDirBase):
         ConfigFileOrDirBase.__init__(self,
                                      os.path.join(prefix, "etc", "portage", "package.mask"),
                                      file_or_dir,
-                                     None, None, None)
+                                     None,
+                                     functools.partial(PackageMaskFileChecker, self),
+                                     functools.partial(PackageMaskDirChecker, self))
 
     def get_entries(self):
         # entry examples:
@@ -53,3 +58,14 @@ class PackageMask(ConfigFileOrDirBase):
         for fullfn in Util.fileOrDirGetFileList(self._path):
             ret += Util.readListFile(fullfn)
         return ret
+
+
+class PackageMaskFileChecker(FileCheckerBase):
+    pass
+
+
+class PackageMaskDirChecker(FilesDirCheckerBase):
+
+    def __init__(self, portageConfigDirObj, parent, fileClass, bAutoFix, errorCallback):
+        assert parent.path.startswith(portageConfigDirObj.path)
+        super().__init__(parent, fileClass, bAutoFix, errorCallback)

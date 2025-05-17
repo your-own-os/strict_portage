@@ -22,6 +22,7 @@
 
 
 import os
+import functools
 from ._util import Util
 from ._prototype import ConfigFileOrDirBase
 from ._prototype import FilesDirCheckerBase
@@ -36,7 +37,9 @@ class PackageUse(ConfigFileOrDirBase):
         ConfigFileOrDirBase.__init__(self,
                                      os.path.join(prefix, "etc", "portage", "package.use"),
                                      file_or_dir,
-                                     None, FileChecker, DirChecker)
+                                     None,
+                                     functools.partial(PackageUseFileChecker, self),
+                                     functools.partial(PackageUseDirChecker, self))
 
     def get_entries(self):
         # entry examples:
@@ -55,11 +58,11 @@ class FileClass:
     pass
 
 
-class FileChecker:
+class PackageUseFileChecker:
     pass
 
 
-class DirChecker(FilesDirCheckerBase):
+class PackageUseDirChecker(FilesDirCheckerBase):
 
     def __init__(self, portageConfigDirObj, parent, fileClass, bAutoFix, errorCallback):
         assert parent.path.startswith(portageConfigDirObj.path)
