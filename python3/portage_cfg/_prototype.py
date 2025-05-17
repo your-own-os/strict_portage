@@ -50,6 +50,7 @@ class SetBase(abc.ABC):
 class ConfigFileBase:
 
     def __init__(self, path, fileCheckerClass):
+        assert issubclass(fileCheckerClass, FileCheckerBase)
         self._path = path
         self._fileCheckerClass = fileCheckerClass
 
@@ -63,7 +64,7 @@ class ConfigFileBase:
 
 class ConfigFileOrDirBase:
 
-    def __init__(self, path, bFileOrDir, fileClass, dirCheckerClass, fileCheckerClass):
+    def __init__(self, path, bFileOrDir, fileClass, fileCheckerClass, dirCheckerClass):
         self._path = path
 
         if bFileOrDir is not None:
@@ -76,8 +77,8 @@ class ConfigFileOrDirBase:
 
         self._fileClass = fileClass
 
-        self._dirCheckerClass = dirCheckerClass
         self._fileCheckerClass = fileCheckerClass
+        self._dirCheckerClass = dirCheckerClass
 
     @property
     def path(self):
@@ -85,14 +86,7 @@ class ConfigFileOrDirBase:
 
     @property
     def is_file_or_dir(self):
-        if self._bFileOrDir is not None:
-            return bool(self._bFileOrDir)
-        else:
-            if os.path.isfile(self._path):
-                return True
-            if os.path.isdir(self._path):
-                return False
-            return True                 # default value: file
+        return self._bFileOrDir
 
     def get_file_object(self):
         assert os.path.isfile(self._path)
@@ -103,7 +97,7 @@ class ConfigFileOrDirBase:
         return [self._fileClass(os.path.join(self._path, x)) for x in os.listdir(self._path)]
 
     def create_checker(self, auto_fix=False, error_callback=None):
-        if self.is_file_or_dir:
+        if self._bFileOrDir:
             return self._fileCheckerClass(self, auto_fix, error_callback)
         else:
             return self._dirCheckerClass(self, self._fileClass, auto_fix, error_callback)
