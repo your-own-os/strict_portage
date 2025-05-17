@@ -25,7 +25,7 @@ import os
 import functools
 from ._util import Util
 from ._prototype import ConfigFileOrDirBase
-from ._prototype import FileCheckerBase
+from ._prototype import ConfigFileCheckerBase
 from ._prototype import FilesDirCheckerBase
 
 
@@ -60,7 +60,7 @@ class PackageMask(ConfigFileOrDirBase):
         return ret
 
 
-class PackageMaskFileChecker(FileCheckerBase):
+class PackageMaskFileChecker(ConfigFileCheckerBase):
     pass
 
 

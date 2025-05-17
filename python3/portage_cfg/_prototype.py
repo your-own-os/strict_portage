@@ -126,8 +126,69 @@ class ConfigFileCheckerBase(abc.ABC):
         self._bAutoFix = bAutoFix
         self._errorCallback = errorCallback if errorCallback is not None else Util.doNothing
 
-    def check(self):
-        self._basicCheck()
+    def check_file(self, content=None):
+        if self._basicCheck():
+            return
+
+        if content is not None:
+            # FIXME: check content format
+            pass
+
+        # is a symlink, fix: remove the symlink and create a file
+        if os.path.islink(self._obj.path):
+            if content is not None:
+                if self._bAutoFix:
+                    os.unlink(self._obj.path)
+                    pathlib.Path(self._obj.path).write_text(content)
+                    return
+                else:
+                    self._errorCallback("\"%s\" should not be a symlink" % (self._obj.path))
+                    return
+            else:
+                self._errorCallback("\"%s\" should not be a symlink" % (self._obj.path))
+                return
+
+        # content is invalid, fix: re-write content
+        if content is not None:
+            if pathlib.path(self._obj.path).read_text() != content:
+                if self._bAutoFix:
+                    pathlib.Path(self._obj.path).write_text(content)
+                else:
+                    self._errorCallback("\"%s\" has invalid content" % (self._obj.path))
+                    return
+        else:
+            # FIXME: read file content check format
+            pass
+
+    def check_link(self, target=None):
+        if self._basicCheck():
+            return
+
+        if target is not None:
+            assert os.path.exists(target)
+
+        # is not a symlink, fix: remove the file and create a symlink
+        if not os.path.islink(self._obj.path):
+            if target is not None:
+                if self._bAutoFix:
+                    Util.forceSymlink(target, self._obj.path)
+                    return
+                else:
+                    self._errorCallback("\"%s\" must be a symlink to \"%s\"" % (self._obj.path, target))
+                    return
+            else:
+                self._errorCallback("\"%s\" must be a symlink" % (self._obj.path))
+                return
+
+        # original target is wrong, fix: re-create the symlink
+        if target is not None:
+            if os.readlink(self._obj.path) != target:
+                if self._bAutoFix:
+                    Util.forceSymlink(target, self._obj.path)
+                    return
+                else:
+                    self._errorCallback("\"%s\" must be a symlink to \"%s\"" % (self._obj.path, target))
+                    return
 
     def __enter__(self):
         return self
