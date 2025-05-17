@@ -319,7 +319,7 @@ class FilesDirCheckerBase(abc.ABC):         # FIXME: name is bad
             if self._bAutoFix:
                 os.makedirs(self._obj.path, exist_ok=True)
             else:
-                self._fatalCallback("\"%s\" does not exist" % (self._obj.path))
+                self._errorCallback("\"%s\" does not exist" % (self._obj.path))
                 return True         # returning True means there's fatal error
 
         # not a directory, fix: create the directory and move the original file into it
@@ -327,7 +327,7 @@ class FilesDirCheckerBase(abc.ABC):         # FIXME: name is bad
             if self._bAutoFix:
                 Util.safeFileToDir(self._obj.path, "90-unknown")
             else:
-                self._fatalCallback("\"%s\" is not a directory" % (self._obj.path))
+                self._errorCallback("\"%s\" is not a directory" % (self._obj.path))
                 return True         # returning True means there's fatal error
 
         return False                # returning False means there's no fatal error

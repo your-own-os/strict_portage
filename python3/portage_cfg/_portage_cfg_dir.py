@@ -377,10 +377,10 @@ class PortageConfigDirChecker(ConfigDirCheckerBase):
                 if self._bAutoFix:
                     pathlib.Path(path).write_text(content)
                 else:
-                    self._fatalCallback("\"%s\" does not exist" % (path))
+                    self._errorCallback("\"%s\" does not exist" % (path))
                     return
             else:
-                self._fatalCallback("\"%s\" does not exist" % (path))
+                self._errorCallback("\"%s\" does not exist" % (path))
                 return
 
         if content is not None:
