@@ -164,17 +164,17 @@ class PortageConfigDir:
     def get_make_conf_obj(self):
         return MakeConf(prefix=self._prefix)
 
-    def get_package_accept_keywords_obj(self):
-        return PackageAcceptKeywords(prefix=self._prefix)
+    def get_package_accept_keywords_obj(self, file_or_dir=None):
+        return PackageAcceptKeywords(prefix=self._prefix, file_or_dir=file_or_dir)
 
-    def get_package_license_obj(self):
-        return PackageLicense(prefix=self._prefix)
+    def get_package_license_obj(self, file_or_dir=None):
+        return PackageLicense(prefix=self._prefix, file_or_dir=file_or_dir)
 
-    def get_package_mask_obj(self):
-        return PackageMask(prefix=self._prefix)
+    def get_package_mask_obj(self, file_or_dir=None):
+        return PackageMask(prefix=self._prefix, file_or_dir=file_or_dir)
 
-    def get_package_use_obj(self):
-        return PackageUse(prefix=self._prefix)
+    def get_package_use_obj(self, file_or_dir=None):
+        return PackageUse(prefix=self._prefix, file_or_dir=file_or_dir)
 
     def get_sets_obj(self):
         return Sets(prefix=self._prefix)
