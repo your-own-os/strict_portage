@@ -25,13 +25,15 @@ import os
 import re
 import pathlib
 from ._prototype import ConfigFileBase
-from ._prototype import FileCheckerBase
+from ._prototype import ConfigFileCheckerBase
 
 
 class MakeConf(ConfigFileBase):
 
     def __init__(self, prefix="/"):
-        # user should guarantee existence
+        # user should guarantee existence when calling other methods
+        # but checker is compatible with non-existence senario
+
         super().__init__(os.path.join(prefix, "etc", "portage", "make.conf"), Checker)
 
     def has_var(self, var_name):
@@ -154,15 +156,13 @@ class MakeConf(ConfigFileBase):
                 f.write("%s=\"%s\"\n" % (var_name, value))
 
 
-class Checker(FileCheckerBase):
+class Checker(ConfigFileCheckerBase):
 
     def __init__(self, parent, bAutoFix, errorCallback):
         super().__init__(parent, bAutoFix, errorCallback)
 
     def check(self):
-        # check existence
-        if not os.path.isfile(self._obj.path):
-            self._errorCallback("%s must be a file" % (self._obj.path))
+        if self._basic_check():
             return
 
         # check CHOST variable

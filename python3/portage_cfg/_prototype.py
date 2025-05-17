@@ -23,6 +23,7 @@
 
 import os
 import abc
+import pathlib
 from ._util import Util
 
 
@@ -47,10 +48,11 @@ class SetBase(abc.ABC):
         pass
 
 
-class ConfigFileBase:
+class ConfigFileBase(abc.ABC):
 
     def __init__(self, path, fileCheckerClass):
-        assert issubclass(fileCheckerClass, FileCheckerBase)
+        assert issubclass(fileCheckerClass, ConfigFileCheckerBase)
+
         self._path = path
         self._fileCheckerClass = fileCheckerClass
 
@@ -62,9 +64,28 @@ class ConfigFileBase:
         return self._fileCheckerClass(self, auto_fix, error_callback)
 
 
-class ConfigFileOrDirBase:
+class ConfigDirBase(abc.ABC):
+
+    def __init__(self, path, dirCheckerClass):
+        assert issubclass(dirCheckerClass, ConfigFileCheckerBase)
+
+        self._path = path
+        self._dirCheckerClass = dirCheckerClass
+
+    @property
+    def path(self):
+        return self._path
+
+    def create_checker(self, auto_fix=False, error_callback=None):
+        return self._dirCheckerClass(self, auto_fix, error_callback)
+
+
+class ConfigFileOrDirBase(abc.ABC):
 
     def __init__(self, path, bFileOrDir, fileClass, fileCheckerClass, dirCheckerClass):
+        assert issubclass(fileCheckerClass, ConfigFileCheckerBase)
+        assert issubclass(dirCheckerClass, FilesDirCheckerBase)
+
         self._path = path
 
         if bFileOrDir is not None:
@@ -88,14 +109,6 @@ class ConfigFileOrDirBase:
     def is_file_or_dir(self):
         return self._bFileOrDir
 
-    def get_file_object(self):
-        assert os.path.isfile(self._path)
-        return self._fileClass(self._path)
-
-    def get_file_objects(self):
-        assert os.path.isdir(self._path)
-        return [self._fileClass(os.path.join(self._path, x)) for x in os.listdir(self._path)]
-
     def create_checker(self, auto_fix=False, error_callback=None):
         if self._bFileOrDir:
             return self._fileCheckerClass(self, auto_fix, error_callback)
@@ -103,22 +116,62 @@ class ConfigFileOrDirBase:
             return self._dirCheckerClass(self, self._fileClass, auto_fix, error_callback)
 
 
-class FileCheckerBase(abc.ABC):
+class ConfigFileCheckerBase(abc.ABC):
 
     def __init__(self, parent, bAutoFix, errorCallback):
+        assert isinstance(parent, ConfigFileBase) or (isinstance(parent, ConfigFileOrDirBase) and parent.is_file_or_dir)
+
         self._obj = parent
         self._bAutoFix = bAutoFix
         self._errorCallback = errorCallback if errorCallback is not None else Util.doNothing
 
-    @abc.abstractmethod
     def check(self):
-        pass
+        self._basicCheck()
+
+    def _basicCheck(self):
+        # check existence
+        if not os.path.isfile(self._obj.path):
+            self._errorCallback("%s must be a file" % (self._obj.path))
+            return True
+
+        return False
 
 
-class FilesDirCheckerBase:
+class ConfigDirCheckerBase(abc.ABC):
 
-    def __init__(self, path, fileClass, bAutoFix, errorCallback):
-        self._etcDir = path
+    def __init__(self, parent, bAutoFix, errorCallback):
+        assert isinstance(parent, ConfigDirBase)
+
+        self._obj = parent
+        self._bAutoFix = bAutoFix
+        self._errorCallback = errorCallback if errorCallback is not None else Util.doNothing
+
+    def check_self(self):
+        self._basicCheck()
+
+    def _basicCheck(self):
+        # not exist, fix: create the directory
+        if not os.path.exists(self._obj.path):
+            if self._bAutoFix:
+                os.makedirs(self._obj.path, exist_ok=True)
+            else:
+                self._errorCallback("\"%s\" does not exist" % (self._obj.path))
+                return True         # returning True means there's fatal error
+
+        # not a directory, fix: no way to fix it
+        if not os.path.isdir(self._obj.path):
+            self._errorCallback("\"%s\" is not a directory" % (self._obj.path))
+            return True             # returning True means there's fatal error
+
+        return False                # returning False means there's no fatal error
+
+
+class FilesDirCheckerBase(abc.ABC):         # FIXME: name is bad
+
+    def __init__(self, parent, fileClass, bAutoFix, errorCallback):
+        assert isinstance(parent, ConfigFileOrDirBase)
+
+        self._obj = parent
         self._fileClass = fileClass
         self._etcDirContentIndex = 1
         self._etcDirContentFileList = []
@@ -126,22 +179,12 @@ class FilesDirCheckerBase:
         self._errorCallback = errorCallback if errorCallback is not None else Util.doNothing
 
     def check_self(self):
-        # not exist, fix: create the directory
-        if not os.path.exists(self._etcDir):
-            if self._bAutoFix:
-                os.makedirs(self._etcDir, exist_ok=True)
-            else:
-                self._errorCallback("\"%s\" does not exist" % (self._etcDir))
-
-        # not a directory, fix: create the directory and move the original file into it
-        if not os.path.isdir(self._etcDir):
-            if self._bAutoFix:
-                Util.safeFileToDir(self._etcDir, _unknownFilename)
-            else:
-                self._errorCallback("\"%s\" is not a directory" % (self._etcDir))
-                return
+        self._basicCheck()
 
     def check_file(self, file_name, content=None):
+        if self._basicCheck():
+            return
+
         if content is not None:
             # FIXME: check content format
             pass
@@ -150,7 +193,7 @@ class FilesDirCheckerBase:
             file_name = file_name.replace("?", "%02d" % (self._etcDirContentIndex))
             self._etcDirContentIndex += 1
 
-        fullfn = os.path.join(self._etcDir, file_name)
+        fullfn = os.path.join(self._obj.path, file_name)
 
         if os.path.exists(fullfn):
             if content is not None:
@@ -173,6 +216,9 @@ class FilesDirCheckerBase:
         self._etcDirContentFileList.append(fullfn)
 
     def check_link(self, link_name, target=None):
+        if self._basicCheck():
+            return
+
         if target is not None:
             assert os.path.exists(target)
 
@@ -180,7 +226,7 @@ class FilesDirCheckerBase:
             link_name = link_name.replace("?", "%02d" % (self._etcDirContentIndex))
             self._etcDirContentIndex += 1
 
-        linkFile = os.path.join(self._etcDir, link_name)
+        linkFile = os.path.join(self._obj.path, link_name)
 
         # <linkFile> does not exist
         if not os.path.lexists(linkFile):
@@ -199,7 +245,7 @@ class FilesDirCheckerBase:
             if target is not None:
                 if self._bAutoFix:
                     # keep the original file, create the symlink
-                    os.rename(linkFile, Util.getInnerFileFullfn(self._etcDir, _unknownFilename))
+                    os.rename(linkFile, Util.getInnerFileFullfn(self._obj.path, "90-unknown"))
                     os.symlink(target, linkFile)
                 else:
                     self._errorCallback("\"%s\" must be a symlink to \"%s\"" % (linkFile, target))
@@ -220,11 +266,14 @@ class FilesDirCheckerBase:
         self._etcDirContentFileList.append(linkFile)
 
     def check_dir(self, dir_name):
+        if self._basicCheck():
+            return
+
         if "?" in dir_name:
             dir_name = dir_name.replace("?", "%02d" % (self._etcDirContentIndex))
             self._etcDirContentIndex += 1
 
-        fullfn = os.path.join(self._etcDir, dir_name)
+        fullfn = os.path.join(self._obj.path, dir_name)
 
         # <fullfn> does not exist, fix: create the directory
         if not os.path.exists(fullfn):
@@ -243,8 +292,11 @@ class FilesDirCheckerBase:
         self._etcDirContentFileList.append(fullfn)
 
     def finialize(self):
-        for fn in os.listdir(self._etcDir):
-            fullfn = os.path.join(self._etcDir, fn)
+        if self._basicCheck():
+            return
+
+        for fn in os.listdir(self._obj.path):
+            fullfn = os.path.join(self._obj.path, fn)
             if os.path.islink(fullfn) and fullfn not in self._etcDirContentFileList:                               # remove symlinks
                 if self._bAutoFix:
                     os.unlink(fullfn)
@@ -262,22 +314,19 @@ class FilesDirCheckerBase:
 
     def _basicCheck(self):
         # not exist, fix: create the directory
-        if not os.path.exists(self._etcDir):
+        if not os.path.exists(self._obj.path):
             if self._bAutoFix:
-                os.makedirs(self._etcDir, exist_ok=True)
+                os.makedirs(self._obj.path, exist_ok=True)
             else:
-                self._fatalCallback("\"%s\" does not exist" % (self._etcDir))
-                return True     # returning True means there's fatal error
-
-        # not a directory, fix: create the directory and move the original file into it
-        if not os.path.isdir(self._etcDir):
-            if self._bAutoFix:
-                Util.safeFileToDir(self._etcDir, _unknownFilename)
-            else:
-                self._fatalCallback("\"%s\" is not a directory" % (self._etcDir))
+                self._fatalCallback("\"%s\" does not exist" % (self._obj.path))
                 return True         # returning True means there's fatal error
 
-        return False            # returning False means there's no fatal error
+        # not a directory, fix: create the directory and move the original file into it
+        if not os.path.isdir(self._obj.path):
+            if self._bAutoFix:
+                Util.safeFileToDir(self._obj.path, "90-unknown")
+            else:
+                self._fatalCallback("\"%s\" is not a directory" % (self._obj.path))
+                return True         # returning True means there's fatal error
 
-
-_unknownFilename = "90-unknown"
+        return False                # returning False means there's no fatal error

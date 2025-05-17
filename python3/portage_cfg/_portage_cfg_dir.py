@@ -24,6 +24,8 @@
 import os
 import pathlib
 from ._util import Util
+from ._prototype import ConfigDirBase
+from ._prototype import DirCheckerBase
 from ._make_conf import MakeConf
 from ._package_accept_keywords import PackageAcceptKeywords
 from ._package_license import PackageLicense
@@ -32,18 +34,14 @@ from ._package_use import PackageUse
 from ._sets import Sets
 
 
-class PortageConfigDir:
+class PortageConfigDir(ConfigDirBase):
 
     def __init__(self, prefix="/"):
-        # user should guarantee existence
+        # user should guarantee existence when calling other methods
+        # but checker is compatible with non-existence senario
 
         self._prefix = prefix
-        self._path = os.path.join(self._prefix, "etc", "portage")
-
-    @property
-    def path(self):
-        # /etc/portage
-        return self._path
+        super().__init__(os.path.join(self._prefix, "etc", "portage"), PortageConfigDirChecker)
 
     @property
     def mirrors_file_path(self):
@@ -130,13 +128,13 @@ class PortageConfigDir:
 
     def has_make_conf_file(self):
         return os.path.isfile(self.make_conf_file_path)
-    
+
     def has_mirrors_file(self):
         return os.path.isfile(self.mirrors_file_path)
 
     def has_make_profile_link(self):
         return os.path.islink(self.make_profile_link_path)
-    
+
     def has_repos_conf_dir(self):
         return os.path.isdir(self.repos_conf_dir_path)
 
@@ -148,16 +146,16 @@ class PortageConfigDir:
 
     def has_package_license_file_or_dir(self):
         return os.path.exists(self.package_license_dir_path)
-    
+
     def has_package_mask_file_or_dir(self):
         return os.path.exists(self.package_mask_dir_path)
-    
+
     def has_package_unmask_file_or_dir(self):
         return os.path.exists(self.package_unmask_dir_path)
-    
+
     def has_package_use_file_or_dir(self):
         return os.path.exists(self.package_use_dir_path)
-    
+
     def has_custom_sets_dir(self):
         return os.path.isdir(self.custom_sets_dir_path)
 
@@ -179,41 +177,12 @@ class PortageConfigDir:
     def get_sets_obj(self):
         return Sets(prefix=self._prefix)
 
-    def create_checker(self, auto_fix=False, error_callback=None):
-        return PortageConfigDirChecker(self, auto_fix, error_callback)
 
-    def create_repos_conf_dir_checker(self, auto_fix=False, error_callback=None):
-        return PortageConfigDirFilesDirChecker(self, self.repos_conf_dir_path, auto_fix, error_callback)
+class PortageConfigDirChecker(DirCheckerBase):
 
-    def create_repo_postsync_dir_checker(self, auto_fix=False, error_callback=None):
-        return PortageConfigDirFilesDirChecker(self, self.repo_postsync_dir_path, auto_fix, error_callback)
-
-    def create_package_accept_keywords_dir_checker(self, auto_fix=False, error_callback=None):
-        return PortageConfigDirFilesDirChecker(self, self.package_accept_keywords_dir_path, auto_fix, error_callback)
-
-    def create_package_license_dir_checker(self, auto_fix=False, error_callback=None):
-        return PortageConfigDirFilesDirChecker(self, self.package_license_dir_path, auto_fix, error_callback)
-
-    def create_package_mask_dir_checker(self, auto_fix=False, error_callback=None):
-        return PortageConfigDirFilesDirChecker(self, self.package_mask_dir_path, auto_fix, error_callback)
-
-    def create_package_unmask_dir_checker(self, auto_fix=False, error_callback=None):
-        return PortageConfigDirFilesDirChecker(self, self.package_unmask_dir_path, auto_fix, error_callback)
-
-    def create_package_use_dir_checker(self, auto_fix=False, error_callback=None):
-        return PortageConfigDirFilesDirChecker(self, self.package_use_dir_path, auto_fix, error_callback)
-
-
-class PortageConfigDirChecker:
-
-    def __init__(self, portageConfigDirObj, bAutoFix, errorCallback):
-        self._obj = portageConfigDirObj
+    def __init__(self, parent, bAutoFix, errorCallback):
+        super().__init__(parent, bAutoFix, errorCallback)
         self._fileList = []
-        self._bAutoFix = bAutoFix
-        self._errorCallback = errorCallback if errorCallback is not None else Util.doNothing
-
-    def check_self(self):
-        self._basicCheck()
 
     def check_mirrors_file(self):
         if self._basicCheck():
@@ -352,7 +321,7 @@ class PortageConfigDirChecker:
 
         if not os.path.isdir(path):
             if self._bAutoFix:
-                Util.safeFileToDir(path, _unknownFilename)
+                Util.safeFileToDir(path, "90-unknown")
             else:
                 self._errorCallback("\"%s\" is not a directory" % (path))
 
@@ -396,198 +365,9 @@ class PortageConfigDirChecker:
 
         self._fileList = []
 
-    def _basicCheck(self):
-        # /etc/portage does not exist, fix: create it
-        if not os.path.exists(self._obj.path):
-            if self._bAutoFix:
-                os.makedirs(self._obj.path, exist_ok=True)
-            else:
-                self._errorCallback("\"%s\" does not exist" % (self._obj.path))
-                return True     # returning True means there's fatal error
-
-        # /etc/portage is not a directory, fix: no way to fix it
-        if not os.path.isdir(self._obj.path):
-            self._errorCallback("\"%s\" is not a directory" % (self._obj.path))
-            return True         # returning True means there's fatal error
-
-        return False            # returning False means there's no fatal error
-
     def _checkNoFileOrDir(self, path):
         if self._basicCheck():
             return
 
         if os.path.exists(path):
             self._errorCallback("\"%s\" should not exist" % (path))
-
-
-class PortageConfigDirFilesDirChecker:
-
-    def __init__(self, portageConfigDirObj, path, bAutoFix, errorCallback):
-        if self._obj._prefix == "/":
-            assert path.startswith(self._obj._prefix)
-        else:
-            assert path.startswith(self._obj._prefix + "/")
-
-        self._obj = portageConfigDirObj
-        self._etcDir = path
-        self._etcDirContentIndex = 1
-        self._etcDirContentFileList = []
-        self._bAutoFix = bAutoFix
-        self._errorCallback = errorCallback if errorCallback is not None else Util.doNothing
-
-    def check_self(self):
-        # not exist, fix: create the directory
-        if not os.path.exists(self._etcDir):
-            if self._bAutoFix:
-                os.makedirs(self._etcDir, exist_ok=True)
-            else:
-                self._fatalCallback("\"%s\" does not exist" % (self._etcDir))
-
-        # not a directory, fix: create the directory and move the original file into it
-        if not os.path.isdir(self._etcDir):
-            if self._bAutoFix:
-                Util.safeFileToDir(self._etcDir, _unknownFilename)
-            else:
-                self._errorCallback("\"%s\" is not a directory" % (self._etcDir))
-                return
-
-    def check_file(self, file_name, content=None):
-        if content is not None:
-            # FIXME: check content format
-            pass
-
-        if "?" in file_name:
-            file_name = file_name.replace("?", "%02d" % (self._etcDirContentIndex))
-            self._etcDirContentIndex += 1
-
-        fullfn = os.path.join(self._etcDir, file_name)
-
-        if os.path.exists(fullfn):
-            if content is not None:
-                if pathlib.path(fullfn).read_text() != content:
-                    if self._bAutoFix:
-                        pathlib.Path(fullfn).write_text(content)
-                    else:
-                        self._errorCallback("\"%s\" has invalid content" % (fullfn))
-                        return
-            else:
-                # FIXME: check file format
-                pass
-        else:
-            if self._bAutoFix:
-                pathlib.Path(fullfn).write_text(content)
-            else:
-                self._errorCallback("\"%s\" does not exist" % (fullfn))
-                return
-
-        self._etcDirContentFileList.append(fullfn)
-
-    def check_link(self, link_name, target=None):
-        if target is not None:
-            assert os.path.exists(target)
-
-        if "?" in link_name:
-            link_name = link_name.replace("?", "%02d" % (self._etcDirContentIndex))
-            self._etcDirContentIndex += 1
-
-        linkFile = os.path.join(self._etcDir, link_name)
-
-        # <linkFile> does not exist
-        if not os.path.lexists(linkFile):
-            if target is not None:
-                if self._bAutoFix:
-                    os.symlink(target, linkFile)
-                else:
-                    self._errorCallback("\"%s\" must be a symlink to \"%s\"" % (linkFile, target))
-                    return
-            else:
-                self._errorCallback("\"%s\" must be a symlink" % (linkFile))
-                return
-
-        # <linkFile> is not a symlink
-        if not os.path.islink(linkFile):
-            if target is not None:
-                if self._bAutoFix:
-                    # keep the original file, create the symlink
-                    os.rename(linkFile, Util.getInnerFileFullfn(self._etcDir, _unknownFilename))
-                    os.symlink(target, linkFile)
-                else:
-                    self._errorCallback("\"%s\" must be a symlink to \"%s\"" % (linkFile, target))
-                    return
-            else:
-                self._errorCallback("\"%s\" must be a symlink" % (linkFile))
-                return
-
-        # <linkFile> is wrong, fix: re-create the symlink
-        if target is None:
-            if os.readlink(linkFile) != target:
-                if self._bAutoFix:
-                    Util.forceSymlink(target, linkFile)
-                else:
-                    self._errorCallback("\"%s\" must be a symlink to \"%s\"" % (linkFile, target))
-                    return
-
-        self._etcDirContentFileList.append(linkFile)
-
-    def check_dir(self, dir_name):
-        if "?" in dir_name:
-            dir_name = dir_name.replace("?", "%02d" % (self._etcDirContentIndex))
-            self._etcDirContentIndex += 1
-
-        fullfn = os.path.join(self._etcDir, dir_name)
-
-        # <fullfn> does not exist, fix: create the directory
-        if not os.path.exists(fullfn):
-            if self._bAutoFix:
-                os.mkdir(fullfn)
-            else:
-                self._errorCallback("\"%s\" does not exist" % (fullfn))
-                return
-
-        # <fullfn> is not directory
-        if not os.path.isdir(fullfn):
-            # no way to auto fix
-            self._errorCallback("\"%s\" is not a directory" % (fullfn))
-            return
-
-        self._etcDirContentFileList.append(fullfn)
-
-    def finialize(self):
-        for fn in os.listdir(self._etcDir):
-            fullfn = os.path.join(self._etcDir, fn)
-            if os.path.islink(fullfn) and fullfn not in self._etcDirContentFileList:                               # remove symlinks
-                if self._bAutoFix:
-                    os.unlink(fullfn)
-                else:
-                    self._errorCallback("redundant symlink \"%s\" exists" % (fullfn))
-            elif os.path.isfile(fullfn) and fn.startswith("10-") and fullfn not in self._etcDirContentFileList:    # remove redundant "10-*" files
-                if self._bAutoFix:
-                    os.unlink(fullfn)
-                else:
-                    self._errorCallback("redundant file \"%s\" exists" % (fullfn))
-
-        # reset some variables
-        self._etcDirContentIndex = 1
-        self._etcDirContentFileList = []
-
-    def _basicCheck(self):
-        # not exist, fix: create the directory
-        if not os.path.exists(self._etcDir):
-            if self._bAutoFix:
-                os.makedirs(self._etcDir, exist_ok=True)
-            else:
-                self._fatalCallback("\"%s\" does not exist" % (self._etcDir))
-                return True     # returning True means there's fatal error
-
-        # not a directory, fix: create the directory and move the original file into it
-        if not os.path.isdir(self._etcDir):
-            if self._bAutoFix:
-                Util.safeFileToDir(self._etcDir, _unknownFilename)
-            else:
-                self._fatalCallback("\"%s\" is not a directory" % (self._etcDir))
-                return True         # returning True means there's fatal error
-
-        return False            # returning False means there's no fatal error
-
-
-_unknownFilename = "90-unknown"

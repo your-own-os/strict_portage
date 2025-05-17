@@ -24,16 +24,19 @@
 import os
 from ._util import Util
 from ._prototype import ConfigFileOrDirBase
+from ._prototype import FilesDirCheckerBase
 
 
 class PackageUse(ConfigFileOrDirBase):
 
     def __init__(self, prefix="/", file_or_dir=None):
-        # user should guarantee existence
+        # user should guarantee existence when calling other methods
+        # but checker is compatible with non-existence senario
+
         ConfigFileOrDirBase.__init__(self,
-            os.path.join(prefix, "etc", "portage", "package.use"),
-            file_or_dir,
-            None, FileChecker, DirChecker)
+                                     os.path.join(prefix, "etc", "portage", "package.use"),
+                                     file_or_dir,
+                                     None, FileChecker, DirChecker)
 
     def get_entries(self):
         # entry examples:
@@ -58,6 +61,6 @@ class FileChecker:
 
 class DirChecker(FilesDirCheckerBase):
 
-    def __init__(self, parent, fileClass, bAutoFix, errorCallback):
-        self._obj = parent
-        super().__init__(self._obj.path, fileClass, bAutoFix, errorCallback)
+    def __init__(self, portageConfigDirObj, parent, fileClass, bAutoFix, errorCallback):
+        assert parent.path.startswith(portageConfigDirObj.path)
+        super().__init__(parent, fileClass, bAutoFix, errorCallback)

@@ -29,11 +29,13 @@ from ._prototype import ConfigFileOrDirBase
 class PackageMask(ConfigFileOrDirBase):
 
     def __init__(self, prefix="/", file_or_dir=None):
-        # user should guarantee existence
+        # user should guarantee existence when calling other methods
+        # but checker is compatible with non-existence senario
+
         ConfigFileOrDirBase.__init__(self,
-            os.path.join(prefix, "etc", "portage", "package.mask"),
-            file_or_dir,
-            None)
+                                     os.path.join(prefix, "etc", "portage", "package.mask"),
+                                     file_or_dir,
+                                     None, None, None)
 
     def get_entries(self):
         # entry examples:
