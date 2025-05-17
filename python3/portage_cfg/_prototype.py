@@ -49,16 +49,27 @@ class SetBase(abc.ABC):
 
 class ConfigFileOrDir:
 
-    def __init__(self, path, fileClass):
+    def __init__(self, path, bFileOrDir, fileClass, dirCheckerClass, fileCheckerClass):
         self._path = path
+        self._bFileOrDir = bFileOrDir
         self._fileClass = fileClass
+        self._dirCheckerClass = dirCheckerClass
+        self._fileCheckerClass = fileCheckerClass
 
+    @property
+    def path(self):
+        return self._path
+
+    @property
     def is_file_or_dir(self):
-        if os.path.isdir(self._path):
-            return False
-        if os.path.isfile(self._path):
-            return True
-        assert False
+        if self._bFileOrDir is not None:
+            return bool(self._bFileOrDir)
+        else:
+            if os.path.isfile(self._path):
+                return True
+            if os.path.isdir(self._path):
+                return False
+            return True                 # default value: file
 
     def get_file_object(self):
         assert os.path.isfile(self._path)
@@ -67,6 +78,12 @@ class ConfigFileOrDir:
     def get_file_objects(self):
         assert os.path.isdir(self._path)
         return [self._fileClass(os.path.join(self._path, x)) for x in os.listdir(self._path)]
+
+    def create_checker(self, auto_fix=False, error_callback=None):
+        if self.is_file_or_dir:
+            return self._fileCheckerClass(self, auto_fix, error_callback)
+        else:
+            return self._dirCheckerClass(self, self._fileClass, auto_fix, error_callback)
 
 
 class FilesDirCheckerBase:

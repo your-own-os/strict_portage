@@ -23,23 +23,18 @@
 
 import os
 from ._util import Util
+from ._prototype import ConfigFileOrDir
 from ._prototype import FilesDirCheckerBase
 
 
-class PackageAcceptKeywords:
+class PackageAcceptKeywords(ConfigFileOrDir):
 
-    def __init__(self, prefix="/"):
+    def __init__(self, prefix="/", file_or_dir=None):
         # user should guarantee existence
-
-        self._path = os.path.join(prefix, "etc", "portage", "package.accept_keywords")
-
-    @property
-    def path(self):
-        return self._path
-
-    @property
-    def is_file_or_dir(self):
-        return os.path.isfile(self._path)
+        ConfigFileOrDir.__init__(self,
+            os.path.join(prefix, "etc", "portage", "package.accept_keywords"),
+            file_or_dir,
+            None, FileChecker, DirChecker)
 
     def get_entries(self):
         # entry examples:
@@ -53,12 +48,17 @@ class PackageAcceptKeywords:
                 ret.append((itemlist[0], itemlist[1:]))
         return ret
 
-    def create_checker(self, auto_fix=False, error_callback=None):
-        return Checker(self, auto_fix, error_callback)
+
+class FileClass:
+    pass
 
 
-class Checker(FilesDirCheckerBase):
+class FileChecker:
+    pass
 
-    def __init__(self, parent, bAutoFix, errorCallback):
+
+class DirChecker(FilesDirCheckerBase):
+
+    def __init__(self, parent, fileClass, bAutoFix, errorCallback):
         self._obj = parent
-        super().__init__(self._obj.path, None, bAutoFix, errorCallback)
+        super().__init__(self._obj.path, fileClass, bAutoFix, errorCallback)

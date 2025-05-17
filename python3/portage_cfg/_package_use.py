@@ -23,22 +23,17 @@
 
 import os
 from ._util import Util
+from ._prototype import ConfigFileOrDir
 
 
-class PackageUse:
+class PackageUse(ConfigFileOrDir):
 
-    def __init__(self, prefix="/"):
+    def __init__(self, prefix="/", file_or_dir=None):
         # user should guarantee existence
-
-        self._path = os.path.join(prefix, "etc", "portage", "package.use")
-
-    @property
-    def path(self):
-        return self._path
-
-    @property
-    def is_file_or_dir(self):
-        return os.path.isfile(self._path)
+        ConfigFileOrDir.__init__(self,
+            os.path.join(prefix, "etc", "portage", "package.use"),
+            file_or_dir,
+            None)
 
     def get_entries(self):
         # entry examples:
