@@ -129,6 +129,12 @@ class ConfigFileCheckerBase(abc.ABC):
     def check(self):
         self._basicCheck()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        pass
+
     def _basicCheck(self):
         # check existence
         if not os.path.isfile(self._obj.path):
@@ -149,6 +155,12 @@ class ConfigDirCheckerBase(abc.ABC):
 
     def check_self(self):
         self._basicCheck()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        pass
 
     def _basicCheck(self):
         # not exist, fix: create the directory
@@ -312,6 +324,12 @@ class FilesDirCheckerBase(abc.ABC):         # FIXME: name is bad
         # reset some variables
         self._etcDirContentIndex = 1
         self._etcDirContentFileList = []
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.finialize()
 
     def _basicCheck(self):
         # not exist, fix: create the directory
