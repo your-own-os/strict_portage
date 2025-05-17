@@ -288,7 +288,7 @@ class FilesDirCheckerBase(abc.ABC):         # FIXME: name is bad
     def check_self(self):
         self._basicCheck()
 
-    def check_file(self, file_name, content=None):
+    def check_member_file(self, file_name, content=None):
         if self._basicCheck():
             return
 
@@ -322,7 +322,7 @@ class FilesDirCheckerBase(abc.ABC):         # FIXME: name is bad
 
         self._etcDirContentFileList.append(fullfn)
 
-    def check_link(self, link_name, target=None):
+    def check_member_link(self, link_name, target=None):
         if self._basicCheck():
             return
 
@@ -372,7 +372,16 @@ class FilesDirCheckerBase(abc.ABC):         # FIXME: name is bad
 
         self._etcDirContentFileList.append(linkFile)
 
-    def check_dir(self, dir_name):
+    # FIXME: really?
+    def check_extra_file(self, dir_name):
+        assert False
+
+    # FIXME: really?
+    def check_extra_link(self, dir_name):
+        assert False
+
+    # FIXME: really?
+    def check_extra_dir(self, dir_name):
         if self._basicCheck():
             return
 
