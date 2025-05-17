@@ -34,7 +34,7 @@ class MakeConf(ConfigFileBase):
         # user should guarantee existence when calling other methods
         # but checker is compatible with non-existence senario
 
-        super().__init__(os.path.join(prefix, "etc", "portage", "make.conf"), Checker)
+        super().__init__(os.path.join(prefix, "etc", "portage", "make.conf"), MakeConfChecker)
 
     def has_var(self, var_name):
         buf = pathlib.Path(self._path).read_text()
@@ -156,7 +156,7 @@ class MakeConf(ConfigFileBase):
                 f.write("%s=\"%s\"\n" % (var_name, value))
 
 
-class Checker(ConfigFileCheckerBase):
+class MakeConfChecker(ConfigFileCheckerBase):
 
     def __init__(self, parent, bAutoFix, errorCallback):
         super().__init__(parent, bAutoFix, errorCallback)
