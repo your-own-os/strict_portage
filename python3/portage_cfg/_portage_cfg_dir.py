@@ -24,7 +24,6 @@
 import os
 import pathlib
 from ._util import Util
-from ._errors import defaultErrorCallback
 from ._make_conf import MakeConf
 from ._package_accept_keywords import PackageAcceptKeywords
 from ._package_license import PackageLicense
@@ -36,6 +35,8 @@ from ._sets import Sets
 class PortageConfigDir:
 
     def __init__(self, prefix="/"):
+        # user should guarantee existence
+
         self._prefix = prefix
         self._path = os.path.join(self._prefix, "etc", "portage")
 
@@ -176,34 +177,29 @@ class PortageConfigDirChecker:
         self._obj = portageConfigDir
         self._fileList = []
         self._bAutoFix = bAutoFix
-        self._errorCallback = errorCallback if errorCallback is not None else defaultErrorCallback
+        self._errorCallback = errorCallback if errorCallback is not None else Util.doNothing
 
     def check_self(self):
-        # /etc/portage does not exist, fix: create it
-        if not os.path.exists(self._obj.path):
-            if self._bAutoFix:
-                os.makedirs(self._obj.path, exist_ok=True)
-            else:
-                self._errorCallback("\"%s\" does not exist" % (self._obj.path))
-                return True
-
-        # /etc/portage is not a directory, fix: no way to fix it
-        if not os.path.isdir(self._obj.path):
-            self._errorCallback("\"%s\" is not a directory" % (self._obj.path))
-            return True
-
-        return False
+        self._basicCheck()
 
     def check_mirrors_file(self):
         # check /etc/portage/mirrors
-        pass
-
-    def check_make_conf_file(self):
-        if self._obj.get_make_conf_obj().check(auto_fix=self._bAutoFix, error_callback=self._errorCallback):
+        if self._basicCheck():
             return
 
+    def check_make_conf_file(self):
+        if self._basicCheck():
+            return
+
+        # does /etc/portage/make.conf exist? it would be fatal error
+        if not os.path.isfile(self._obj.make_conf_file_path):
+            self._errorCallback("%s must be a file" % (self._obj.make_conf_file_path))
+            return
+
+        # check /etc/portage/make.conf
+        self._obj.get_make_conf_obj().check(auto_fix=self._bAutoFix, error_callback=self._errorCallback)
+
         self._fileList.append(self._obj.make_conf_file_path)
-        return False
 
     def check_make_profile_link(self, gentoo_repository_dir_path):
         if self._obj._prefix == "/":
@@ -211,138 +207,153 @@ class PortageConfigDirChecker:
         else:
             assert gentoo_repository_dir_path.startswith(self._obj._prefix + "/")
 
+        if self._basicCheck():
+            return
+
         # check /etc/portage/make.profile
         # no way to auto fix
         if not os.path.exists(self._obj.make_profile_link_path):
-            self._errorCallback("%s must exist" % (self._obj.make_profile_link_path))
-            return True
+            self._fatalCallback("%s must exist" % (self._obj.make_profile_link_path))
+            return
         if not os.path.islink(self._obj.make_profile_link_path):
-            self._errorCallback("%s is not a symlink" % (self._obj.make_profile_link_path))
-            return True
+            self._fatalCallback("%s is not a symlink" % (self._obj.make_profile_link_path))
+            return
         if not os.path.abspath(os.readlink(self._obj.make_profile_link_path)).startswith(os.path.abspath(gentoo_repository_dir_path)):
-            self._errorCallback("%s points to an invalid location" % (self._obj.make_profile_link_path))
-            return True
+            self._fatalCallback("%s points to an invalid location" % (self._obj.make_profile_link_path))
+            return
 
         self._fileList.append(self._obj.make_profile_link_path)
-        return False
 
     def check_package_accept_keywords_file(self, content=None):
+        if self._basicCheck():
+            return
+
         # check /etc/portage/package.accept_keywords
         self._fileList.append(self._obj.package_accept_keywords_file_path)
-        return False
 
     def check_package_license_file(self, content=None):
+        if self._basicCheck():
+            return
+
         # check /etc/portage/package.license
         self._fileList.append(self._obj.package_license_file_path)
-        return False
 
     def check_package_mask_file(self, content=None):
+        if self._basicCheck():
+            return
+
         # check /etc/portage/package.mask
         self._fileList.append(self._obj.package_mask_file_path)
-        return False
 
     def check_package_unmask_file(self, content=None):
+        if self._basicCheck():
+            return
+
         # check /etc/portage/package.unmask
         self._fileList.append(self._obj.package_unmask_file_path)
-        return False
 
     def check_package_use_file(self, content=None):
+        if self._basicCheck():
+            return
+
         # check /etc/portage/package.use
         self._fileList.append(self._obj.package_use_file_path)
-        return False
 
     def check_custom_sets_dir(self):
+        if self._basicCheck():
+            return
+
         # check /etc/portage/sets
         self._fileList.append(self._obj.custom_sets_dir_path)
-        return False
 
     def check_user_file(self, path, content=None):
         assert path.startswith(self._obj.path + "/")
 
-        bNew = False
+        if self._basicCheck():
+            return
+
         if not os.path.exists(path):
             if content is not None:
                 if self._bAutoFix:
                     pathlib.Path(path).write_text(content)
-                    bNew = True
                 else:
-                    self._errorCallback("\"%s\" does not exist" % (path))
-                    return True
+                    self._fatalCallback("\"%s\" does not exist" % (path))
+                    return
             else:
-                self._errorCallback("\"%s\" does not exist" % (path))
-                return True
+                self._fatalCallback("\"%s\" does not exist" % (path))
+                return
 
-        if not bNew and content is not None:
+        if content is not None:
             if pathlib.Path(path).read_text() != content:
                 if self._bAutoFix:
                     pathlib.Path(path).write_text(content)
                 else:
                     self._errorCallback("\"%s\" has invalid content" % (path))
-                    return True
 
         self._fileList.append(path)
-        return False
 
     def check_user_link(self, path, target=None):
         assert target is not None                           # FIXME
         assert path.startswith(self._obj.path + "/")
+
+        if self._basicCheck():
+            return
 
         if not os.path.islink(path) or os.readlink(path) != target:
             if self._bAutoFix:
                 Util.forceSymlink(target, path)
             else:
                 self._errorCallback("\"%s\" is an invalid symlink" % (path))
-                return True
 
         self._fileList.append(path)
-        return False
 
     def check_user_dir(self, path):
         assert path.startswith(self._obj.path + "/")
+
+        if self._basicCheck():
+            return
 
         if not os.path.exists(path):
             if self._bAutoFix:
                 os.mkdir(path)
             else:
-                self._errorCallback("\"%s\" is not a directory" % (path))
-                return True
+                self._fatalCallback("\"%s\" does not exist" % (path))
+                return
 
         if not os.path.isdir(path):
             if self._bAutoFix:
                 Util.safeFileToDir(path, _unknownFilename)
             else:
                 self._errorCallback("\"%s\" is not a directory" % (path))
-                return True
 
         self._fileList.append(path)
-        return False
 
     def check_no_mirrors_file(self):
-        return self._checkNoFileOrDir(self._obj.mirrors_file_path)
+        self._checkNoFileOrDir(self._obj.mirrors_file_path)
 
     def check_no_make_conf_file(self):
-        return self._checkNoFileOrDir(self._obj.make_conf_file_path)
+        self._checkNoFileOrDir(self._obj.make_conf_file_path)
 
     def check_no_make_profile_link(self):
-        return self._checkNoFileOrDir(self._obj.make_profile_link_path)
+        self._checkNoFileOrDir(self._obj.make_profile_link_path)
 
     def check_no_package_accept_keywords_file_or_dir(self):
-        return self._checkNoFileOrDir(self._obj.package_accept_keywords_file_path)
+        self._checkNoFileOrDir(self._obj.package_accept_keywords_file_path)
 
     def check_no_package_license_file_or_dir(self):
-        return self._checkNoFileOrDir(self._obj.package_license_file_path)
+        self._checkNoFileOrDir(self._obj.package_license_file_path)
 
     def check_no_package_mask_file_or_dir(self):
-        return self._checkNoFileOrDir(self._obj.package_mask_file_path)
+        self._checkNoFileOrDir(self._obj.package_mask_file_path)
 
     def check_no_package_unmask_file_or_dir(self):
-        return self._checkNoFileOrDir(self._obj.package_unmask_file_path)
+        self._checkNoFileOrDir(self._obj.package_unmask_file_path)
 
     def check_no_package_use_file_or_dir(self):
-        return self._checkNoFileOrDir(self._obj.package_use_file_path)
+        self._checkNoFileOrDir(self._obj.package_use_file_path)
 
     def check_no_custom_sets_dir(self):
-        return self._checkNoFileOrDir(self._obj.custom_sets_dir_path)
+        self._checkNoFileOrDir(self._obj.custom_sets_dir_path)
 
     def finialize(self):
         for fn in os.listdir(self._obj.path):
@@ -355,16 +366,33 @@ class PortageConfigDirChecker:
 
         self._fileList = []
 
+    def _basicCheck(self):
+        # /etc/portage does not exist, fix: create it
+        if not os.path.exists(self._obj.path):
+            if self._bAutoFix:
+                os.makedirs(self._obj.path, exist_ok=True)
+            else:
+                self._fatalCallback("\"%s\" does not exist" % (self._obj.path))
+                return True     # returning True means there's fatal error
+
+        # /etc/portage is not a directory, fix: no way to fix it
+        if not os.path.isdir(self._obj.path):
+            self._fatalCallback("\"%s\" is not a directory" % (self._obj.path))
+            return True         # returning True means there's fatal error
+
+        return False            # returning False means there's no fatal error
+
     def _checkNoFileOrDir(self, path):
+        if self._basicCheck():
+            return
+
         if os.path.exists(path):
-            self._errorCallback("\"%s\" should not exist" % (path))
-            return True
-        return False
+            self._fatalCallback("\"%s\" should not exist" % (path))
 
 
 class PortageConfigDirFilesDirChecker:
 
-    def __init__(self, portageConfigDir, path, bAutoFix, errorCallback):
+    def __init__(self, portageConfigDir, path, bAutoFix, errorCallback, fatalCallback):
         if self._obj._prefix == "/":
             assert path.startswith(self._obj._prefix)
         else:
@@ -375,7 +403,8 @@ class PortageConfigDirFilesDirChecker:
         self._etcDirContentIndex = 1
         self._etcDirContentFileList = []
         self._bAutoFix = bAutoFix
-        self._errorCallback = errorCallback if errorCallback is not None else defaultErrorCallback
+        self._errorCallback = errorCallback if errorCallback is not None else Util.doNothing
+        self._fatalCallback = fatalCallback if fatalCallback is not None else Util.doNothing
 
     def check_self(self):
         # not exist, fix: create the directory
@@ -383,7 +412,7 @@ class PortageConfigDirFilesDirChecker:
             if self._bAutoFix:
                 os.makedirs(self._etcDir, exist_ok=True)
             else:
-                self._errorCallback("\"%s\" does not exist" % (self._etcDir))
+                self._fatalCallback("\"%s\" does not exist" % (self._etcDir))
 
         # not a directory, fix: create the directory and move the original file into it
         if not os.path.isdir(self._etcDir):
@@ -511,6 +540,25 @@ class PortageConfigDirFilesDirChecker:
         # reset some variables
         self._etcDirContentIndex = 1
         self._etcDirContentFileList = []
+
+    def _basicCheck(self):
+        # not exist, fix: create the directory
+        if not os.path.exists(self._etcDir):
+            if self._bAutoFix:
+                os.makedirs(self._etcDir, exist_ok=True)
+            else:
+                self._fatalCallback("\"%s\" does not exist" % (self._etcDir))
+                return True     # returning True means there's fatal error
+
+        # not a directory, fix: create the directory and move the original file into it
+        if not os.path.isdir(self._etcDir):
+            if self._bAutoFix:
+                Util.safeFileToDir(self._etcDir, _unknownFilename)
+            else:
+                self._fatalCallback("\"%s\" is not a directory" % (self._etcDir))
+                return True         # returning True means there's fatal error
+
+        return False            # returning False means there's no fatal error
 
 
 _unknownFilename = "90-unknown"

@@ -24,12 +24,14 @@
 import os
 import re
 import pathlib
-from ._errors import defaultErrorCallback
+from ._util import Util
 
 
 class MakeConf:
 
     def __init__(self, prefix="/"):
+        # user should guarantee existence
+
         self._path = os.path.join(prefix, "etc", "portage", "make.conf")
 
     @property
@@ -120,7 +122,7 @@ class MakeConf:
 
     def check(self, auto_fix=False, error_callback=None):
         if error_callback is None:
-            error_callback = defaultErrorCallback
+            error_callback = Util.doNothing
 
         # check CHOST variable
         if self.has_var("CHOST"):
@@ -131,8 +133,6 @@ class MakeConf:
             if not os.path.isdir(self._path):
                 # FIXME
                 pass
-
-        return False
 
     def _get_var(self, var_name):
         buf = pathlib.Path(self._path).read_text()

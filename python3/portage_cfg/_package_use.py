@@ -28,6 +28,8 @@ from ._util import Util
 class PackageUse:
 
     def __init__(self, prefix="/"):
+        # user should guarantee existence
+
         self._path = os.path.join(prefix, "etc", "portage", "package.use")
 
     @property

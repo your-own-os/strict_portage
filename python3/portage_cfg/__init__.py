@@ -42,8 +42,6 @@ from ._sets import Sets
 from ._sets import CustomSet
 from ._sets import World
 
-from ._errors import CheckError
-
 
 __all__ = [
     "PortageConfigDir",
@@ -55,5 +53,4 @@ __all__ = [
     "Sets",
     "CustomSet",
     "World",
-    "CheckError",
 ]

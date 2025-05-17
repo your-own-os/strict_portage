@@ -33,6 +33,10 @@ import subprocess
 class Util:
 
     @staticmethod
+    def doNothing(msg):
+        pass
+
+    @staticmethod
     def getTmpPathInPlace(path):
         path2 = None
         for i in itertools.count(2):

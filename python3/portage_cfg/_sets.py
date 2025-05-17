@@ -54,6 +54,8 @@ class Sets:
 class CustomSet(SetBase):
 
     def __init__(self, name, prefix="/"):
+        # user should guarantee existence
+
         self._path = os.path.join(self._prefix, "etc", "portage", "sets", name)
 
     @property
@@ -73,6 +75,8 @@ class CustomSet(SetBase):
 class World(SetBase):
 
     def __init__(self, prefix="/"):
+        # user should guarantee existence
+
         self._prefix = prefix
         self._path = os.path.join(self._prefix, "var", "lib", "portage", "world")
         self._setPath = os.path.join(self._prefix, "var", "lib", "portage", "world_sets")
