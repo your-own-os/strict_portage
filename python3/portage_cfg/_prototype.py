@@ -160,9 +160,13 @@ class ConfigFileCheckerBase(abc.ABC):
             # FIXME: read file content check format
             pass
 
-    def check_link(self, target=None):
+    def check_link(self, content=None, target=None):
         if self._basicCheck():
             return
+
+        if content is not None:
+            # FIXME: check content format
+            pass
 
         if target is not None:
             assert os.path.exists(target)
@@ -172,7 +176,6 @@ class ConfigFileCheckerBase(abc.ABC):
             if target is not None:
                 if self._bAutoFix:
                     Util.forceSymlink(target, self._obj.path)
-                    return
                 else:
                     self._errorCallback("\"%s\" must be a symlink to \"%s\"" % (self._obj.path, target))
                     return
@@ -185,10 +188,40 @@ class ConfigFileCheckerBase(abc.ABC):
             if os.readlink(self._obj.path) != target:
                 if self._bAutoFix:
                     Util.forceSymlink(target, self._obj.path)
-                    return
                 else:
                     self._errorCallback("\"%s\" must be a symlink to \"%s\"" % (self._obj.path, target))
                     return
+
+        # content is invalid, fix: re-write content
+        if content is not None:
+            if pathlib.path(self._obj.path).read_text() != content:
+                self._errorCallback("\"%s\" has invalid content" % (self._obj.path))
+                return
+        else:
+            # FIXME: read file content check format
+            pass
+
+    def check_file_or_link(self, content=None):
+        if self._basicCheck():
+            return
+
+        # content is invalid, fix: re-write content
+        if content is not None:
+            # FIXME: check content format
+
+            if pathlib.path(self._obj.path).read_text() != content:
+                if os.path.islink(self._obj.path):
+                    self._errorCallback("\"%s\" has invalid content" % (self._obj.path))
+                    return
+                else:
+                    if self._bAutoFix:
+                        pathlib.Path(self._obj.path).write_text(content)
+                    else:
+                        self._errorCallback("\"%s\" has invalid content" % (self._obj.path))
+                        return
+        else:
+            # FIXME: read file content check format
+            pass
 
     def __enter__(self):
         return self
