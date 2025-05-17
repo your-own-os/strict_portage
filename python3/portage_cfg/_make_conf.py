@@ -132,6 +132,8 @@ class MakeConf:
                 # FIXME
                 pass
 
+        return False
+
     def _get_var(self, var_name):
         buf = pathlib.Path(self._path).read_text()
         m = re.search("^%s=\"(.*)\"$" % (var_name), buf, re.MULTILINE)
