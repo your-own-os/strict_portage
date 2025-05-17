@@ -51,8 +51,17 @@ class ConfigFileOrDir:
 
     def __init__(self, path, bFileOrDir, fileClass, dirCheckerClass, fileCheckerClass):
         self._path = path
-        self._bFileOrDir = bFileOrDir
+
+        if bFileOrDir is not None:
+            self._bFileOrDir = bool(bFileOrDir)
+        else:
+            if os.path.isdir(self._path):
+                self._bFileOrDir = False
+            else:
+                self._bFileOrDir = True
+
         self._fileClass = fileClass
+
         self._dirCheckerClass = dirCheckerClass
         self._fileCheckerClass = fileCheckerClass
 

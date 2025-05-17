@@ -33,7 +33,7 @@ class PackageUse(ConfigFileOrDir):
         ConfigFileOrDir.__init__(self,
             os.path.join(prefix, "etc", "portage", "package.use"),
             file_or_dir,
-            None)
+            None, FileChecker, DirChecker)
 
     def get_entries(self):
         # entry examples:
@@ -46,3 +46,18 @@ class PackageUse(ConfigFileOrDir):
                 itemlist = line.split()
                 ret.append((itemlist[0], itemlist[1:]))
         return ret
+
+
+class FileClass:
+    pass
+
+
+class FileChecker:
+    pass
+
+
+class DirChecker(FilesDirCheckerBase):
+
+    def __init__(self, parent, fileClass, bAutoFix, errorCallback):
+        self._obj = parent
+        super().__init__(self._obj.path, fileClass, bAutoFix, errorCallback)
