@@ -83,9 +83,6 @@ class ConfigDirBase(abc.ABC):
 class ConfigFileOrDirBase(abc.ABC):
 
     def __init__(self, path, bFileOrDir, fileClass, fileCheckerClass, dirCheckerClass):
-        assert issubclass(fileCheckerClass, ConfigFileCheckerBase)
-        assert issubclass(dirCheckerClass, FilesDirCheckerBase)
-
         self._path = path
 
         if bFileOrDir is not None:
@@ -98,8 +95,12 @@ class ConfigFileOrDirBase(abc.ABC):
 
         self._fileClass = fileClass
 
-        self._fileCheckerClass = fileCheckerClass
-        self._dirCheckerClass = dirCheckerClass
+        if self._bFileOrDir:
+            assert issubclass(fileCheckerClass, ConfigFileCheckerBase)
+            self._fileCheckerClass = fileCheckerClass
+        else:
+            assert issubclass(dirCheckerClass, FilesDirCheckerBase)
+            self._dirCheckerClass = dirCheckerClass
 
     @property
     def path(self):

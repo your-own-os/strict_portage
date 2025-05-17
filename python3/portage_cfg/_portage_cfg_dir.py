@@ -27,6 +27,8 @@ from ._util import Util
 from ._prototype import ConfigDirBase
 from ._prototype import DirCheckerBase
 from ._make_conf import MakeConf
+from ._repos_conf_dir import ReposConfDir
+from ._repo_postsync_dir import RepoPostSyncDir
 from ._package_accept_keywords import PackageAcceptKeywords
 from ._package_license import PackageLicense
 from ._package_mask import PackageMask
@@ -161,6 +163,12 @@ class PortageConfigDir(ConfigDirBase):
 
     def get_make_conf_obj(self):
         return MakeConf(prefix=self._prefix)
+
+    def get_repos_conf_dir_obj(self):
+        return ReposConfDir(prefix=self._prefix)
+
+    def get_repo_postsync_dir_obj(self):
+        return RepoPostSyncDir(prefix=self._prefix)
 
     def get_package_accept_keywords_obj(self, file_or_dir=None):
         return PackageAcceptKeywords(prefix=self._prefix, file_or_dir=file_or_dir)
