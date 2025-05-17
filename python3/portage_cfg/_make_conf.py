@@ -121,7 +121,7 @@ class MakeConf:
             f.write(buf)
 
     def create_checker(self, auto_fix=False, error_callback=None):
-        return MakeConfChecker(self, auto_fix, error_callback)
+        return Checker(self, auto_fix, error_callback)
 
     def _get_var(self, var_name):
         buf = pathlib.Path(self._path).read_text()
@@ -161,7 +161,7 @@ class MakeConf:
                 f.write("%s=\"%s\"\n" % (var_name, value))
 
 
-class MakeConfChecker:
+class Checker:
 
     def __init__(self, makeConfObj, bAutoFix, errorCallback):
         self._obj = makeConfObj
@@ -169,6 +169,11 @@ class MakeConfChecker:
         self._errorCallback = errorCallback if errorCallback is not None else Util.doNothing
 
     def check(self):
+        # check existence
+        if not os.path.isfile(self._obj.path):
+            self._errorCallback("%s must be a file" % (self._obj.path))
+            return
+
         # check CHOST variable
         if self._obj.has_var("CHOST"):
             self._errorCallback("variable CHOST should not exist in %s" % (self._obj.path))

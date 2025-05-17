@@ -23,6 +23,7 @@
 
 import os
 from ._util import Util
+from ._prototype import FilesDirCheckerBase
 
 
 class PackageAcceptKeywords:
@@ -51,3 +52,13 @@ class PackageAcceptKeywords:
                 itemlist = line.split()
                 ret.append((itemlist[0], itemlist[1:]))
         return ret
+
+    def create_checker(self, auto_fix=False, error_callback=None):
+        return Checker(self, auto_fix, error_callback)
+
+
+class Checker(FilesDirCheckerBase):
+
+    def __init__(self, parent, bAutoFix, errorCallback):
+        self._obj = parent
+        super().__init__(self._obj.path, None, bAutoFix, errorCallback)

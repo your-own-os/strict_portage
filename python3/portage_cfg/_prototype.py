@@ -23,6 +23,7 @@
 
 import os
 import abc
+from ._util import Util
 
 
 class SetBase(abc.ABC):
@@ -52,7 +53,7 @@ class ConfigFileOrDir:
         self._path = path
         self._fileClass = fileClass
 
-    def is_file_or_directory(self):
+    def is_file_or_dir(self):
         if os.path.isdir(self._path):
             return False
         if os.path.isfile(self._path):
@@ -66,3 +67,171 @@ class ConfigFileOrDir:
     def get_file_objects(self):
         assert os.path.isdir(self._path)
         return [self._fileClass(os.path.join(self._path, x)) for x in os.listdir(self._path)]
+
+
+class FilesDirCheckerBase:
+
+    def __init__(self, path, fileClass, bAutoFix, errorCallback):
+        self._etcDir = path
+        self._fileClass = fileClass
+        self._etcDirContentIndex = 1
+        self._etcDirContentFileList = []
+        self._bAutoFix = bAutoFix
+        self._errorCallback = errorCallback if errorCallback is not None else Util.doNothing
+
+    def check_self(self):
+        # not exist, fix: create the directory
+        if not os.path.exists(self._etcDir):
+            if self._bAutoFix:
+                os.makedirs(self._etcDir, exist_ok=True)
+            else:
+                self._errorCallback("\"%s\" does not exist" % (self._etcDir))
+
+        # not a directory, fix: create the directory and move the original file into it
+        if not os.path.isdir(self._etcDir):
+            if self._bAutoFix:
+                Util.safeFileToDir(self._etcDir, _unknownFilename)
+            else:
+                self._errorCallback("\"%s\" is not a directory" % (self._etcDir))
+                return
+
+    def check_file(self, file_name, content=None):
+        if content is not None:
+            # FIXME: check content format
+            pass
+
+        if "?" in file_name:
+            file_name = file_name.replace("?", "%02d" % (self._etcDirContentIndex))
+            self._etcDirContentIndex += 1
+
+        fullfn = os.path.join(self._etcDir, file_name)
+
+        if os.path.exists(fullfn):
+            if content is not None:
+                if pathlib.path(fullfn).read_text() != content:
+                    if self._bAutoFix:
+                        pathlib.Path(fullfn).write_text(content)
+                    else:
+                        self._errorCallback("\"%s\" has invalid content" % (fullfn))
+                        return
+            else:
+                # FIXME: check file format
+                pass
+        else:
+            if self._bAutoFix:
+                pathlib.Path(fullfn).write_text(content)
+            else:
+                self._errorCallback("\"%s\" does not exist" % (fullfn))
+                return
+
+        self._etcDirContentFileList.append(fullfn)
+
+    def check_link(self, link_name, target=None):
+        if target is not None:
+            assert os.path.exists(target)
+
+        if "?" in link_name:
+            link_name = link_name.replace("?", "%02d" % (self._etcDirContentIndex))
+            self._etcDirContentIndex += 1
+
+        linkFile = os.path.join(self._etcDir, link_name)
+
+        # <linkFile> does not exist
+        if not os.path.lexists(linkFile):
+            if target is not None:
+                if self._bAutoFix:
+                    os.symlink(target, linkFile)
+                else:
+                    self._errorCallback("\"%s\" must be a symlink to \"%s\"" % (linkFile, target))
+                    return
+            else:
+                self._errorCallback("\"%s\" must be a symlink" % (linkFile))
+                return
+
+        # <linkFile> is not a symlink
+        if not os.path.islink(linkFile):
+            if target is not None:
+                if self._bAutoFix:
+                    # keep the original file, create the symlink
+                    os.rename(linkFile, Util.getInnerFileFullfn(self._etcDir, _unknownFilename))
+                    os.symlink(target, linkFile)
+                else:
+                    self._errorCallback("\"%s\" must be a symlink to \"%s\"" % (linkFile, target))
+                    return
+            else:
+                self._errorCallback("\"%s\" must be a symlink" % (linkFile))
+                return
+
+        # <linkFile> is wrong, fix: re-create the symlink
+        if target is None:
+            if os.readlink(linkFile) != target:
+                if self._bAutoFix:
+                    Util.forceSymlink(target, linkFile)
+                else:
+                    self._errorCallback("\"%s\" must be a symlink to \"%s\"" % (linkFile, target))
+                    return
+
+        self._etcDirContentFileList.append(linkFile)
+
+    def check_dir(self, dir_name):
+        if "?" in dir_name:
+            dir_name = dir_name.replace("?", "%02d" % (self._etcDirContentIndex))
+            self._etcDirContentIndex += 1
+
+        fullfn = os.path.join(self._etcDir, dir_name)
+
+        # <fullfn> does not exist, fix: create the directory
+        if not os.path.exists(fullfn):
+            if self._bAutoFix:
+                os.mkdir(fullfn)
+            else:
+                self._errorCallback("\"%s\" does not exist" % (fullfn))
+                return
+
+        # <fullfn> is not directory
+        if not os.path.isdir(fullfn):
+            # no way to auto fix
+            self._errorCallback("\"%s\" is not a directory" % (fullfn))
+            return
+
+        self._etcDirContentFileList.append(fullfn)
+
+    def finialize(self):
+        for fn in os.listdir(self._etcDir):
+            fullfn = os.path.join(self._etcDir, fn)
+            if os.path.islink(fullfn) and fullfn not in self._etcDirContentFileList:                               # remove symlinks
+                if self._bAutoFix:
+                    os.unlink(fullfn)
+                else:
+                    self._errorCallback("redundant symlink \"%s\" exists" % (fullfn))
+            elif os.path.isfile(fullfn) and fn.startswith("10-") and fullfn not in self._etcDirContentFileList:    # remove redundant "10-*" files
+                if self._bAutoFix:
+                    os.unlink(fullfn)
+                else:
+                    self._errorCallback("redundant file \"%s\" exists" % (fullfn))
+
+        # reset some variables
+        self._etcDirContentIndex = 1
+        self._etcDirContentFileList = []
+
+    def _basicCheck(self):
+        # not exist, fix: create the directory
+        if not os.path.exists(self._etcDir):
+            if self._bAutoFix:
+                os.makedirs(self._etcDir, exist_ok=True)
+            else:
+                self._fatalCallback("\"%s\" does not exist" % (self._etcDir))
+                return True     # returning True means there's fatal error
+
+        # not a directory, fix: create the directory and move the original file into it
+        if not os.path.isdir(self._etcDir):
+            if self._bAutoFix:
+                Util.safeFileToDir(self._etcDir, _unknownFilename)
+            else:
+                self._fatalCallback("\"%s\" is not a directory" % (self._etcDir))
+                return True         # returning True means there's fatal error
+
+        return False            # returning False means there's no fatal error
+
+
+_unknownFilename = "90-unknown"

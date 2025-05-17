@@ -71,19 +71,14 @@ class PortageConfigDir:
         return os.path.join(self._path, "repo.postsync.d")
 
     @property
-    def package_accept_keywords_dir_path(self):
-        # /etc/portage/package.accept_keywords
-        return os.path.join(self._path, "package.accept_keywords")
-
-    @property
     def package_accept_keywords_file_path(self):
         # same as self.package_accept_keywords_dir_path
         return os.path.join(self._path, "package.accept_keywords")
 
     @property
-    def package_license_dir_path(self):
-        # /etc/portage/package.license
-        return os.path.join(self._path, "package.license")
+    def package_accept_keywords_dir_path(self):
+        # /etc/portage/package.accept_keywords
+        return os.path.join(self._path, "package.accept_keywords")
 
     @property
     def package_license_file_path(self):
@@ -91,9 +86,9 @@ class PortageConfigDir:
         return os.path.join(self._path, "package.license")
 
     @property
-    def package_mask_dir_path(self):
-        # /etc/portage/package.mask
-        return os.path.join(self._path, "package.mask")
+    def package_license_dir_path(self):
+        # /etc/portage/package.license
+        return os.path.join(self._path, "package.license")
 
     @property
     def package_mask_file_path(self):
@@ -101,9 +96,9 @@ class PortageConfigDir:
         return os.path.join(self._path, "package.mask")
 
     @property
-    def package_unmask_dir_path(self):
-        # /etc/portage/package.unmask
-        return os.path.join(self._path, "package.unmask")
+    def package_mask_dir_path(self):
+        # /etc/portage/package.mask
+        return os.path.join(self._path, "package.mask")
 
     @property
     def package_unmask_file_path(self):
@@ -111,13 +106,18 @@ class PortageConfigDir:
         return os.path.join(self._path, "package.unmask")
 
     @property
-    def package_use_dir_path(self):
-        # /etc/portage/package.use
-        return os.path.join(self._path, "package.use")
+    def package_unmask_dir_path(self):
+        # /etc/portage/package.unmask
+        return os.path.join(self._path, "package.unmask")
 
     @property
     def package_use_file_path(self):
         # same as self.package_use_dir_path
+        return os.path.join(self._path, "package.use")
+
+    @property
+    def package_use_dir_path(self):
+        # /etc/portage/package.use
         return os.path.join(self._path, "package.use")
 
     @property
@@ -127,6 +127,39 @@ class PortageConfigDir:
 
     # portageCfgEnvDir = os.path.join(portageCfgDir, "package.env")
     # portageCfgEnvDataDir = os.path.join(portageCfgDir, "env")
+
+    def has_make_conf_file(self):
+        return os.path.isfile(self.make_conf_file_path)
+    
+    def has_mirrors_file(self):
+        return os.path.isfile(self.mirrors_file_path)
+
+    def has_make_profile_link(self):
+        return os.path.islink(self.make_profile_link_path)
+    
+    def has_repos_conf_dir(self):
+        return os.path.isdir(self.repos_conf_dir_path)
+
+    def has_repo_postsync_dir(self):
+        return os.path.isdir(self.repo_postsync_dir_path)
+
+    def has_package_accept_keywords_file_or_dir(self):
+        return os.path.exists(self.package_accept_keywords_dir_path)
+
+    def has_package_license_file_or_dir(self):
+        return os.path.exists(self.package_license_dir_path)
+    
+    def has_package_mask_file_or_dir(self):
+        return os.path.exists(self.package_mask_dir_path)
+    
+    def has_package_unmask_file_or_dir(self):
+        return os.path.exists(self.package_unmask_dir_path)
+    
+    def has_package_use_file_or_dir(self):
+        return os.path.exists(self.package_use_dir_path)
+    
+    def has_custom_sets_dir(self):
+        return os.path.isdir(self.custom_sets_dir_path)
 
     def get_make_conf_obj(self):
         return MakeConf(prefix=self._prefix)
@@ -183,32 +216,29 @@ class PortageConfigDirChecker:
         self._basicCheck()
 
     def check_mirrors_file(self):
-        # check /etc/portage/mirrors
         if self._basicCheck():
             return
+
+        # check /etc/portage/mirrors
 
     def check_make_conf_file(self):
         if self._basicCheck():
             return
 
-        # does /etc/portage/make.conf exist? it would be fatal error
-        if not os.path.isfile(self._obj.make_conf_file_path):
-            self._errorCallback("%s must be a file" % (self._obj.make_conf_file_path))
-            return
-
         # check /etc/portage/make.conf
         self._obj.get_make_conf_obj().check(auto_fix=self._bAutoFix, error_callback=self._errorCallback)
 
-        self._fileList.append(self._obj.make_conf_file_path)
+        if os.path.exists(self._obj.make_conf_file_path):
+            self._fileList.append(self._obj.make_conf_file_path)
 
     def check_make_profile_link(self, gentoo_repository_dir_path):
+        if self._basicCheck():
+            return
+
         if self._obj._prefix == "/":
             assert gentoo_repository_dir_path.startswith(self._obj._prefix)
         else:
             assert gentoo_repository_dir_path.startswith(self._obj._prefix + "/")
-
-        if self._basicCheck():
-            return
 
         # check /etc/portage/make.profile
         # no way to auto fix
@@ -267,10 +297,10 @@ class PortageConfigDirChecker:
         self._fileList.append(self._obj.custom_sets_dir_path)
 
     def check_user_file(self, path, content=None):
-        assert path.startswith(self._obj.path + "/")
-
         if self._basicCheck():
             return
+
+        assert path.startswith(self._obj.path + "/")
 
         if not os.path.exists(path):
             if content is not None:
@@ -293,11 +323,11 @@ class PortageConfigDirChecker:
         self._fileList.append(path)
 
     def check_user_link(self, path, target=None):
-        assert target is not None                           # FIXME
-        assert path.startswith(self._obj.path + "/")
-
         if self._basicCheck():
             return
+
+        assert target is not None                           # FIXME
+        assert path.startswith(self._obj.path + "/")
 
         if not os.path.islink(path) or os.readlink(path) != target:
             if self._bAutoFix:
@@ -308,16 +338,16 @@ class PortageConfigDirChecker:
         self._fileList.append(path)
 
     def check_user_dir(self, path):
-        assert path.startswith(self._obj.path + "/")
-
         if self._basicCheck():
             return
+
+        assert path.startswith(self._obj.path + "/")
 
         if not os.path.exists(path):
             if self._bAutoFix:
                 os.mkdir(path)
             else:
-                self._fatalCallback("\"%s\" does not exist" % (path))
+                self._errorCallback("\"%s\" does not exist" % (path))
                 return
 
         if not os.path.isdir(path):
@@ -372,12 +402,12 @@ class PortageConfigDirChecker:
             if self._bAutoFix:
                 os.makedirs(self._obj.path, exist_ok=True)
             else:
-                self._fatalCallback("\"%s\" does not exist" % (self._obj.path))
+                self._errorCallback("\"%s\" does not exist" % (self._obj.path))
                 return True     # returning True means there's fatal error
 
         # /etc/portage is not a directory, fix: no way to fix it
         if not os.path.isdir(self._obj.path):
-            self._fatalCallback("\"%s\" is not a directory" % (self._obj.path))
+            self._errorCallback("\"%s\" is not a directory" % (self._obj.path))
             return True         # returning True means there's fatal error
 
         return False            # returning False means there's no fatal error
@@ -387,7 +417,7 @@ class PortageConfigDirChecker:
             return
 
         if os.path.exists(path):
-            self._fatalCallback("\"%s\" should not exist" % (path))
+            self._errorCallback("\"%s\" should not exist" % (path))
 
 
 class PortageConfigDirFilesDirChecker:
