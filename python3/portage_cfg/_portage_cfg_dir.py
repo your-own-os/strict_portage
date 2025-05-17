@@ -264,6 +264,46 @@ class PortageConfigDirChecker(ConfigDirCheckerBase):
 
         self._fileSet.discard(self._obj.make_profile_link_path)
 
+    def use_repos_conf_dir(self):
+        if self._basicCheck():
+            return
+
+        if not self._obj.has_repos_conf_dir():
+            self._errorCallback("%s must exist" % (self._obj.repos_conf_dir_path))
+            return
+
+        self._fileSet.add(self._obj.repos_conf_dir_path)
+
+    def dont_use_repos_conf_dir(self):
+        if self._basicCheck():
+            return
+
+        if self._obj.has_repos_conf_dir():
+            self._errorCallback("\"%s\" should not exist" % (self._obj.repos_conf_dir_path))
+            return
+
+        self._fileSet.discard(self._obj.repos_conf_dir_path)
+
+    def use_repo_postsync_dir(self):
+        if self._basicCheck():
+            return
+
+        if not self._obj.has_repo_postsync_dir():
+            self._errorCallback("%s must exist" % (self._obj.repo_postsync_dir_path))
+            return
+
+        self._fileSet.add(self._obj.repo_postsync_dir_path)
+
+    def dont_use_repo_postsync_dir(self):
+        if self._basicCheck():
+            return
+
+        if self._obj.has_repo_postsync_dir():
+            self._errorCallback("\"%s\" should not exist" % (self._obj.repo_postsync_dir_path))
+            return
+
+        self._fileSet.discard(self._obj.repo_postsync_dir_path)
+
     def use_package_accept_keywords_file_or_dir(self):
         if self._basicCheck():
             return
