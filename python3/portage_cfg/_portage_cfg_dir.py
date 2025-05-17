@@ -173,8 +173,8 @@ class PortageConfigDir:
 
 class PortageConfigDirChecker:
 
-    def __init__(self, portageConfigDir, bAutoFix, errorCallback):
-        self._obj = portageConfigDir
+    def __init__(self, portageConfigDirObj, bAutoFix, errorCallback):
+        self._obj = portageConfigDirObj
         self._fileList = []
         self._bAutoFix = bAutoFix
         self._errorCallback = errorCallback if errorCallback is not None else Util.doNothing
@@ -213,13 +213,13 @@ class PortageConfigDirChecker:
         # check /etc/portage/make.profile
         # no way to auto fix
         if not os.path.exists(self._obj.make_profile_link_path):
-            self._fatalCallback("%s must exist" % (self._obj.make_profile_link_path))
+            self._errorCallback("%s must exist" % (self._obj.make_profile_link_path))
             return
         if not os.path.islink(self._obj.make_profile_link_path):
-            self._fatalCallback("%s is not a symlink" % (self._obj.make_profile_link_path))
+            self._errorCallback("%s is not a symlink" % (self._obj.make_profile_link_path))
             return
         if not os.path.abspath(os.readlink(self._obj.make_profile_link_path)).startswith(os.path.abspath(gentoo_repository_dir_path)):
-            self._fatalCallback("%s points to an invalid location" % (self._obj.make_profile_link_path))
+            self._errorCallback("%s points to an invalid location" % (self._obj.make_profile_link_path))
             return
 
         self._fileList.append(self._obj.make_profile_link_path)
@@ -392,19 +392,18 @@ class PortageConfigDirChecker:
 
 class PortageConfigDirFilesDirChecker:
 
-    def __init__(self, portageConfigDir, path, bAutoFix, errorCallback, fatalCallback):
+    def __init__(self, portageConfigDirObj, path, bAutoFix, errorCallback):
         if self._obj._prefix == "/":
             assert path.startswith(self._obj._prefix)
         else:
             assert path.startswith(self._obj._prefix + "/")
 
-        self._obj = portageConfigDir
+        self._obj = portageConfigDirObj
         self._etcDir = path
         self._etcDirContentIndex = 1
         self._etcDirContentFileList = []
         self._bAutoFix = bAutoFix
         self._errorCallback = errorCallback if errorCallback is not None else Util.doNothing
-        self._fatalCallback = fatalCallback if fatalCallback is not None else Util.doNothing
 
     def check_self(self):
         # not exist, fix: create the directory

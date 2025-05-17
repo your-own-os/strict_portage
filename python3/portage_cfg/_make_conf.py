@@ -120,19 +120,8 @@ class MakeConf:
         with open(self._path, 'w') as f:
             f.write(buf)
 
-    def check(self, auto_fix=False, error_callback=None):
-        if error_callback is None:
-            error_callback = Util.doNothing
-
-        # check CHOST variable
-        if self.has_var("CHOST"):
-            error_callback("variable CHOST should not exist in %s" % (self._path))
-
-        # check/fix DISTDIR variable
-        if self.has_var("DISTDIR"):
-            if not os.path.isdir(self._path):
-                # FIXME
-                pass
+    def create_checker(self, auto_fix=False, error_callback=None):
+        return MakeConfChecker(self, auto_fix, error_callback)
 
     def _get_var(self, var_name):
         buf = pathlib.Path(self._path).read_text()
@@ -170,3 +159,22 @@ class MakeConf:
                 if not endEnter:
                     f.write("\n")
                 f.write("%s=\"%s\"\n" % (var_name, value))
+
+
+class MakeConfChecker:
+
+    def __init__(self, makeConfObj, bAutoFix, errorCallback):
+        self._obj = makeConfObj
+        self._bAutoFix = bAutoFix
+        self._errorCallback = errorCallback if errorCallback is not None else Util.doNothing
+
+    def check(self):
+        # check CHOST variable
+        if self._obj.has_var("CHOST"):
+            self._errorCallback("variable CHOST should not exist in %s" % (self._obj.path))
+
+        # check/fix DISTDIR variable
+        if self._obj.has_var("DISTDIR"):
+            if not os.path.isdir(self._obj.path):
+                # FIXME
+                pass
