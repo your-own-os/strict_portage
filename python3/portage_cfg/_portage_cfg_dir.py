@@ -164,8 +164,8 @@ class PortageConfigDir(ConfigDirBase):
     def get_make_conf_obj(self):
         return MakeConf(prefix=self._prefix)
 
-    def get_repos_conf_dir_obj(self):
-        return ReposConf(prefix=self._prefix)
+    def get_repos_conf_obj(self, file_or_dir=None):
+        return ReposConf(prefix=self._prefix, file_or_dir=file_or_dir)
 
     def get_repo_postsync_dir_obj(self):
         return RepoPostSyncDir(prefix=self._prefix)
@@ -264,7 +264,7 @@ class PortageConfigDirChecker(ConfigDirCheckerBase):
 
         self._fileSet.discard(self._obj.make_profile_link_path)
 
-    def use_repos_conf_dir(self):
+    def use_repos_conf_file_or_dir(self):
         if self._basicCheck():
             return
 
@@ -274,7 +274,7 @@ class PortageConfigDirChecker(ConfigDirCheckerBase):
 
         self._fileSet.add(self._obj.repos_conf_dir_path)
 
-    def dont_use_repos_conf_dir(self):
+    def dont_use_repos_conf_file_or_dir(self):
         if self._basicCheck():
             return
 
