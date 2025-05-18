@@ -280,8 +280,8 @@ class FilesDirCheckerBase(abc.ABC):         # FIXME: name is bad
 
         self._obj = parent
         self._fileClass = fileClass
-        self._etcDirContentIndex = 1
-        self._etcDirContentFileList = []
+        self._memberIndex = 1
+        self._memberFullfnSet = set()
         self._bAutoFix = bAutoFix
         self._errorCallback = errorCallback if errorCallback is not None else Util.doNothing
 
@@ -297,8 +297,8 @@ class FilesDirCheckerBase(abc.ABC):         # FIXME: name is bad
             pass
 
         if "?" in file_name:
-            file_name = file_name.replace("?", "%02d" % (self._etcDirContentIndex))
-            self._etcDirContentIndex += 1
+            file_name = file_name.replace("?", "%02d" % (self._memberIndex))
+            self._memberIndex += 1
 
         fullfn = os.path.join(self._obj.path, file_name)
 
@@ -320,7 +320,7 @@ class FilesDirCheckerBase(abc.ABC):         # FIXME: name is bad
                 self._errorCallback("\"%s\" does not exist" % (fullfn))
                 return
 
-        self._etcDirContentFileList.append(fullfn)
+        self._memberFullfnSet.add(fullfn)
 
     def check_member_link(self, link_name, target=None):
         if self._basicCheck():
@@ -330,8 +330,8 @@ class FilesDirCheckerBase(abc.ABC):         # FIXME: name is bad
             assert os.path.exists(target)
 
         if "?" in link_name:
-            link_name = link_name.replace("?", "%02d" % (self._etcDirContentIndex))
-            self._etcDirContentIndex += 1
+            link_name = link_name.replace("?", "%02d" % (self._memberIndex))
+            self._memberIndex += 1
 
         linkFile = os.path.join(self._obj.path, link_name)
 
@@ -370,7 +370,7 @@ class FilesDirCheckerBase(abc.ABC):         # FIXME: name is bad
                     self._errorCallback("\"%s\" must be a symlink to \"%s\"" % (linkFile, target))
                     return
 
-        self._etcDirContentFileList.append(linkFile)
+        self._memberFullfnSet.add(linkFile)
 
     # FIXME: really?
     def check_extra_file(self, dir_name):
@@ -386,8 +386,8 @@ class FilesDirCheckerBase(abc.ABC):         # FIXME: name is bad
             return
 
         if "?" in dir_name:
-            dir_name = dir_name.replace("?", "%02d" % (self._etcDirContentIndex))
-            self._etcDirContentIndex += 1
+            dir_name = dir_name.replace("?", "%02d" % (self._memberIndex))
+            self._memberIndex += 1
 
         fullfn = os.path.join(self._obj.path, dir_name)
 
@@ -405,7 +405,7 @@ class FilesDirCheckerBase(abc.ABC):         # FIXME: name is bad
             self._errorCallback("\"%s\" is not a directory" % (fullfn))
             return
 
-        self._etcDirContentFileList.append(fullfn)
+        self._memberFullfnSet.add(fullfn)
 
     def finialize(self):
         if self._basicCheck():
@@ -413,20 +413,15 @@ class FilesDirCheckerBase(abc.ABC):         # FIXME: name is bad
 
         for fn in os.listdir(self._obj.path):
             fullfn = os.path.join(self._obj.path, fn)
-            if os.path.islink(fullfn) and fullfn not in self._etcDirContentFileList:                               # remove symlinks
-                if self._bAutoFix:
-                    os.unlink(fullfn)
-                else:
-                    self._errorCallback("redundant symlink \"%s\" exists" % (fullfn))
-            elif os.path.isfile(fullfn) and fn.startswith("10-") and fullfn not in self._etcDirContentFileList:    # remove redundant "10-*" files
+            if fullfn not in self._memberFullfnSet:
                 if self._bAutoFix:
                     os.unlink(fullfn)
                 else:
                     self._errorCallback("redundant file \"%s\" exists" % (fullfn))
 
         # reset some variables
-        self._etcDirContentIndex = 1
-        self._etcDirContentFileList = []
+        self._memberIndex = 1
+        self._memberFullfnSet = []
 
     def __enter__(self):
         return self
