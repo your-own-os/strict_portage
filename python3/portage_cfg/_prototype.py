@@ -150,7 +150,7 @@ class ConfigFileCheckerBase(abc.ABC):
 
         # content is invalid, fix: re-write content
         if content is not None:
-            if pathlib.path(self._obj.path).read_text() != content:
+            if pathlib.Path(self._obj.path).read_text() != content:
                 if self._bAutoFix:
                     pathlib.Path(self._obj.path).write_text(content)
                 else:
@@ -194,7 +194,7 @@ class ConfigFileCheckerBase(abc.ABC):
 
         # content is invalid, fix: re-write content
         if content is not None:
-            if pathlib.path(self._obj.path).read_text() != content:
+            if pathlib.Path(self._obj.path).read_text() != content:
                 self._errorCallback("\"%s\" has invalid content" % (self._obj.path))
                 return
         else:
@@ -209,7 +209,7 @@ class ConfigFileCheckerBase(abc.ABC):
         if content is not None:
             # FIXME: check content format
 
-            if pathlib.path(self._obj.path).read_text() != content:
+            if pathlib.Path(self._obj.path).read_text() != content:
                 if os.path.islink(self._obj.path):
                     self._errorCallback("\"%s\" has invalid content" % (self._obj.path))
                     return
@@ -304,7 +304,7 @@ class FilesDirCheckerBase(abc.ABC):         # FIXME: name is bad
 
         if os.path.exists(fullfn):
             if content is not None:
-                if pathlib.path(fullfn).read_text() != content:
+                if pathlib.Path(fullfn).read_text() != content:
                     if self._bAutoFix:
                         pathlib.Path(fullfn).write_text(content)
                     else:
