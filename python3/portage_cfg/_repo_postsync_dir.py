@@ -22,7 +22,6 @@
 
 
 import os
-import functools
 from ._prototype import ConfigFileOrDirBase
 from ._prototype import FilesDirCheckerBase
 
@@ -37,7 +36,7 @@ class RepoPostSyncDir(ConfigFileOrDirBase):
                                      False,
                                      None,
                                      None,
-                                     functools.partial(RepoPostSyncDirDirChecker, self))
+                                     RepoPostSyncDirDirChecker)
 
 
 class RepoPostSyncDirDirChecker(FilesDirCheckerBase):

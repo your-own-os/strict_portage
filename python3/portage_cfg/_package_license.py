@@ -22,7 +22,6 @@
 
 
 import os
-import functools
 from ._util import Util
 from ._prototype import ConfigFileOrDirBase
 from ._prototype import ConfigFileCheckerBase
@@ -39,8 +38,8 @@ class PackageLicenses(ConfigFileOrDirBase):
                                      os.path.join(prefix, "etc", "portage", "package.license"),
                                      file_or_dir,
                                      None,
-                                     functools.partial(PackageLicensesFileChecker, self),
-                                     functools.partial(PackageLicensesDirChecker, self))
+                                     PackageLicensesFileChecker,
+                                     PackageLicensesDirChecker)
 
     def get_entries(self):
         # entry examples:

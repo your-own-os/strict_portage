@@ -22,27 +22,23 @@
 
 
 import os
-import functools
 from ._prototype import ConfigFileOrDirBase
 from ._prototype import FilesDirCheckerBase
 
 
-class RepoPostSyncDir(ConfigFileOrDirBase):
+class ReposConf(ConfigFileOrDirBase):
 
-    def __init__(self, prefix="/"):
+    def __init__(self, prefix="/", file_or_dir=None):
         # user should guarantee existence when calling other methods
         # but checker is compatible with non-existence senario
 
         ConfigFileOrDirBase.__init__(self,
-                                     os.path.join(prefix, "etc", "portage", "repo.postsync.d"),
-                                     False,
+                                     os.path.join(prefix, "etc", "portage", "repos.conf"),
+                                     file_or_dir,
                                      None,
                                      None,
-                                     functools.partial(RepoPostSyncDirChecker, self))
+                                     ReposConfDirChecker)
 
 
-class RepoPostSyncDirChecker(FilesDirCheckerBase):
-
-    def __init__(self, portageConfigDirObj, parent, fileClass, bAutoFix, errorCallback):
-        assert parent.path.startswith(portageConfigDirObj.path)
-        super().__init__(parent, fileClass, bAutoFix, errorCallback)
+class ReposConfDirChecker(FilesDirCheckerBase):
+    pass

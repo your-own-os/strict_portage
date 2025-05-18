@@ -22,7 +22,6 @@
 
 
 import os
-import functools
 from ._util import Util
 from ._prototype import ConfigFileOrDirBase
 from ._prototype import ConfigFileCheckerBase
@@ -39,8 +38,8 @@ class PackageMask(ConfigFileOrDirBase):
                                      os.path.join(prefix, "etc", "portage", "package.mask"),
                                      file_or_dir,
                                      None,
-                                     functools.partial(PackageMaskFileChecker, self),
-                                     functools.partial(PackageMaskDirChecker, self))
+                                     PackageMaskFileChecker,
+                                     PackageMaskDirChecker)
 
     def get_entries(self):
         # entry examples:

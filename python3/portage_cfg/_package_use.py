@@ -22,7 +22,6 @@
 
 
 import os
-import functools
 from ._util import Util
 from ._prototype import ConfigFileOrDirBase
 from ._prototype import FilesDirCheckerBase
@@ -38,8 +37,8 @@ class PackageUse(ConfigFileOrDirBase):
                                      os.path.join(prefix, "etc", "portage", "package.use"),
                                      file_or_dir,
                                      None,
-                                     functools.partial(PackageUseFileChecker, self),
-                                     functools.partial(PackageUseDirChecker, self))
+                                     PackageUseFileChecker,
+                                     PackageUseDirChecker)
 
     def get_entries(self):
         # entry examples:

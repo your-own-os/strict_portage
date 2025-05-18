@@ -27,7 +27,7 @@ from ._util import Util
 from ._prototype import ConfigDirBase
 from ._prototype import ConfigDirCheckerBase
 from ._make_conf import MakeConf
-from ._repos_conf_dir import ReposConfDir
+from ._repos_conf import ReposConf
 from ._repo_postsync_dir import RepoPostSyncDir
 from ._package_accept_keywords import PackageAcceptKeywords
 from ._package_license import PackageLicense
@@ -165,7 +165,7 @@ class PortageConfigDir(ConfigDirBase):
         return MakeConf(prefix=self._prefix)
 
     def get_repos_conf_dir_obj(self):
-        return ReposConfDir(prefix=self._prefix)
+        return ReposConf(prefix=self._prefix)
 
     def get_repo_postsync_dir_obj(self):
         return RepoPostSyncDir(prefix=self._prefix)

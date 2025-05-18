@@ -33,7 +33,7 @@ __author__ = 'Fpemud <fpemud@sina.com>'
 from ._portage_cfg_dir import PortageConfigDir
 
 from ._make_conf import MakeConf
-from ._repos_conf_dir import ReposConfDir
+from ._repos_conf import ReposConf
 from ._repo_postsync_dir import RepoPostSyncDir
 from ._package_accept_keywords import PackageAcceptKeywords
 from ._package_license import PackageLicense
@@ -48,7 +48,7 @@ from ._sets import World
 __all__ = [
     "PortageConfigDir",
     "MakeConf",
-    "ReposConfDir",
+    "ReposConf",
     "RepoPostSyncDir",
     "PackageAcceptKeywords",
     "PackageLicense",
