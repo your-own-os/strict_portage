@@ -32,6 +32,7 @@ from ._repo_postsync_dir import RepoPostSyncDir
 from ._package_accept_keywords import PackageAcceptKeywords
 from ._package_license import PackageLicense
 from ._package_mask import PackageMask
+from ._package_unmask import PackageUnmask
 from ._package_use import PackageUse
 from ._sets import Sets
 
@@ -180,7 +181,7 @@ class PortageConfigDir(ConfigDirBase):
         return PackageMask(prefix=self._prefix, file_or_dir=file_or_dir)
 
     def get_package_unmask_obj(self, file_or_dir=None):
-        return PackageMask(prefix=self._prefix, file_or_dir=file_or_dir)
+        return PackageUnmask(prefix=self._prefix, file_or_dir=file_or_dir)
 
     def get_package_use_obj(self, file_or_dir=None):
         return PackageUse(prefix=self._prefix, file_or_dir=file_or_dir)
