@@ -67,7 +67,7 @@ class ConfigFileBase(abc.ABC):
 class ConfigDirBase(abc.ABC):
 
     def __init__(self, path, dirCheckerClass):
-        assert issubclass(dirCheckerClass, ConfigFileCheckerBase)
+        assert issubclass(dirCheckerClass, ConfigDirCheckerBase)
 
         self._path = path
         self._dirCheckerClass = dirCheckerClass
