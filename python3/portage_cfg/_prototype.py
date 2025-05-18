@@ -110,6 +110,10 @@ class ConfigFileOrDirBase(abc.ABC):
     def is_file_or_dir(self):
         return self._bFileOrDir
 
+    def has_member(self, name):
+        assert not self._bFileOrDir
+        return os.path.exists(os.path.join(self._path, name))
+
     def create_checker(self, auto_fix=False, error_callback=None):
         if self._bFileOrDir:
             return self._fileCheckerClass(self, auto_fix, error_callback)
