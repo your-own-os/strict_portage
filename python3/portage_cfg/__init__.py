@@ -38,6 +38,7 @@ from ._repo_postsync_dir import RepoPostSyncDir
 from ._package_accept_keywords import PackageAcceptKeywords
 from ._package_license import PackageLicense
 from ._package_mask import PackageMask
+from ._package_unmask import PackageUnmask
 from ._package_use import PackageUse
 
 from ._sets import Sets
@@ -53,6 +54,7 @@ __all__ = [
     "PackageAcceptKeywords",
     "PackageLicense",
     "PackageMask",
+    "PackageUnmask",
     "PackageUse",
     "Sets",
     "CustomSet",

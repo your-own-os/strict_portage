@@ -179,6 +179,9 @@ class PortageConfigDir(ConfigDirBase):
     def get_package_mask_obj(self, file_or_dir=None):
         return PackageMask(prefix=self._prefix, file_or_dir=file_or_dir)
 
+    def get_package_unmask_obj(self, file_or_dir=None):
+        return PackageMask(prefix=self._prefix, file_or_dir=file_or_dir)
+
     def get_package_use_obj(self, file_or_dir=None):
         return PackageUse(prefix=self._prefix, file_or_dir=file_or_dir)
 
