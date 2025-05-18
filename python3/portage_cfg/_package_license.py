@@ -28,7 +28,7 @@ from ._prototype import ConfigFileCheckerBase
 from ._prototype import FilesDirCheckerBase
 
 
-class PackageLicenses(ConfigFileOrDirBase):
+class PackageLicense(ConfigFileOrDirBase):
 
     def __init__(self, prefix="/", file_or_dir=None):
         # user should guarantee existence when calling other methods
