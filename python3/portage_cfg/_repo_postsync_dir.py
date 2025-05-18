@@ -40,7 +40,4 @@ class RepoPostSyncDir(ConfigFileOrDirBase):
 
 
 class RepoPostSyncDirDirChecker(FilesDirCheckerBase):
-
-    def __init__(self, portageConfigDirObj, parent, fileClass, bAutoFix, errorCallback):
-        assert parent.path.startswith(portageConfigDirObj.path)
-        super().__init__(parent, fileClass, bAutoFix, errorCallback)
+    pass

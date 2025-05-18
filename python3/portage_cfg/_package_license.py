@@ -55,13 +55,8 @@ class PackageLicenses(ConfigFileOrDirBase):
 
 
 class PackageLicensesFileChecker(ConfigFileCheckerBase):
-
-    def __init__(self, parent, fileClass, bAutoFix, errorCallback):
-        super().__init__(parent, fileClass, bAutoFix, errorCallback)
+    pass
 
 
 class PackageLicensesDirChecker(FilesDirCheckerBase):
-
-    def __init__(self, portageConfigDirObj, parent, fileClass, bAutoFix, errorCallback):
-        assert parent.path.startswith(portageConfigDirObj.path)
-        super().__init__(parent, fileClass, bAutoFix, errorCallback)
+    pass
