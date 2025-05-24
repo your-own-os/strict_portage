@@ -178,6 +178,9 @@ class PortageConfigDir(ConfigDirBase):
     def has_custom_sets_dir(self):
         return os.path.isdir(self.custom_sets_dir_path)
 
+    def has_env_data_dir(self):
+        return os.path.isdir(self.env_data_dir_path)
+
     def get_make_conf_obj(self):
         return MakeConf(prefix=self._prefix)
 
@@ -351,6 +354,9 @@ class PortageConfigDirChecker(ConfigDirCheckerBase):
         # check /etc/portage/package.env
         self._fileSet.add(self._obj.package_env_file_path)
 
+        # check /etc/portage/env, which must be with /etc/portage/package.env
+        self._fileSet.add(self._obj.env_data_dir_path)
+
     def dont_use_package_env_file_or_dir(self):
         if self._basicCheck():
             return
@@ -359,7 +365,12 @@ class PortageConfigDirChecker(ConfigDirCheckerBase):
             self._errorCallback("\"%s\" should not exist" % (self._obj.package_env_file_path))
             return
 
+        if self._obj.has_env_data_dir():
+            self._errorCallback("\"%s\" should not exist" % (self._obj.env_data_dir_path))
+            return
+
         self._fileSet.discard(self._obj.package_env_file_path)
+        self._fileSet.discard(self._obj.env_data_dir_path)
 
     def use_package_license_file_or_dir(self):
         if self._basicCheck():
