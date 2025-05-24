@@ -41,6 +41,7 @@ class PackageEnv(ConfigFileOrDirBase):
                                      None,
                                      PackageEnvFileChecker,
                                      PackageEnvDirChecker)
+        self._envDataDir = os.path.join(prefix, "etc", "portage", "env")
 
     def get_entries(self):
         # entry examples:
@@ -57,8 +58,44 @@ class PackageEnv(ConfigFileOrDirBase):
 
 
 class PackageEnvFileChecker(ConfigFileCheckerBase):
-    pass
+
+    def _basicCheck(self):
+        if super()._basicCheck():
+            return True
+
+        # /etc/portage/env does not exist, fix: create the directory
+        if not os.path.exists(self._obj._envDataDir):
+            if self._bAutoFix:
+                os.makedirs(self._obj._envDataDir, exist_ok=True)
+            else:
+                self._errorCallback("\"%s\" does not exist" % (self._obj.path))
+                return True         # returning True means there's fatal error
+
+        # /etc/portage/env is not a directory, fix: no way to fix it
+        if not os.path.isdir(self._obj._envDataDir):
+            self._errorCallback("\"%s\" is not a directory" % (self._obj._envDataDir))
+            return True             # returning True means there's fatal error
+
+        return False                # returning False means there's no fatal error
 
 
 class PackageEnvDirChecker(FilesDirCheckerBase):
-    pass
+
+    def _basicCheck(self):
+        if super()._basicCheck():
+            return True
+
+        # /etc/portage/env does not exist, fix: create the directory
+        if not os.path.exists(self._obj._envDataDir):
+            if self._bAutoFix:
+                os.makedirs(self._obj._envDataDir, exist_ok=True)
+            else:
+                self._errorCallback("\"%s\" does not exist" % (self._obj.path))
+                return True         # returning True means there's fatal error
+
+        # /etc/portage/env is not a directory, fix: no way to fix it
+        if not os.path.isdir(self._obj._envDataDir):
+            self._errorCallback("\"%s\" is not a directory" % (self._obj._envDataDir))
+            return True             # returning True means there's fatal error
+
+        return False                # returning False means there's no fatal error
