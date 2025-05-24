@@ -63,4 +63,5 @@ __all__ = [
     "Sets",
     "CustomSet",
     "World",
+    "FileFormatError",
 ]

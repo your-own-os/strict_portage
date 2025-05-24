@@ -30,6 +30,7 @@ from ._make_conf import MakeConf
 from ._repos_conf import ReposConf
 from ._repo_postsync_dir import RepoPostSyncDir
 from ._package_accept_keywords import PackageAcceptKeywords
+from ._package_env import PackageEnv
 from ._package_license import PackageLicense
 from ._package_mask import PackageMask
 from ._package_unmask import PackageUnmask
@@ -73,52 +74,62 @@ class PortageConfigDir(ConfigDirBase):
 
     @property
     def package_accept_keywords_file_path(self):
-        # same as self.package_accept_keywords_dir_path
-        return os.path.join(self._path, "package.accept_keywords")
-
-    @property
-    def package_accept_keywords_dir_path(self):
         # /etc/portage/package.accept_keywords
         return os.path.join(self._path, "package.accept_keywords")
 
     @property
-    def package_license_file_path(self):
-        # same as self.package_license_dir_path
-        return os.path.join(self._path, "package.license")
+    def package_accept_keywords_dir_path(self):
+        # same as self.package_accept_keywords_file_path
+        return os.path.join(self._path, "package.accept_keywords")
 
     @property
-    def package_license_dir_path(self):
+    def package_env_file_path(self):
+        # /etc/portage/package.env
+        return os.path.join(self._path, "package.env")
+
+    @property
+    def package_env_dir_path(self):
+        # same as self.package_env_file_path
+        return os.path.join(self._path, "package.env")
+
+    @property
+    def package_license_file_path(self):
         # /etc/portage/package.license
         return os.path.join(self._path, "package.license")
 
     @property
-    def package_mask_file_path(self):
-        # same as self.package_mask_dir_path
-        return os.path.join(self._path, "package.mask")
+    def package_license_dir_path(self):
+        # same as self.package_license_file_path
+        return os.path.join(self._path, "package.license")
 
     @property
-    def package_mask_dir_path(self):
+    def package_mask_file_path(self):
         # /etc/portage/package.mask
         return os.path.join(self._path, "package.mask")
 
     @property
-    def package_unmask_file_path(self):
-        # same as self.package_unmask_dir_path
-        return os.path.join(self._path, "package.unmask")
+    def package_mask_dir_path(self):
+        # same as self.package_mask_file_path
+        return os.path.join(self._path, "package.mask")
 
     @property
-    def package_unmask_dir_path(self):
+    def package_unmask_file_path(self):
         # /etc/portage/package.unmask
         return os.path.join(self._path, "package.unmask")
 
     @property
+    def package_unmask_dir_path(self):
+        # same as self.package_unmask_file_path
+        return os.path.join(self._path, "package.unmask")
+
+    @property
     def package_use_file_path(self):
-        # same as self.package_use_dir_path
+        # /etc/portage/package.use
         return os.path.join(self._path, "package.use")
 
     @property
     def package_use_dir_path(self):
-        # /etc/portage/package.use
+        # same as self.package_use_file_path
         return os.path.join(self._path, "package.use")
 
     @property
@@ -126,8 +137,10 @@ class PortageConfigDir(ConfigDirBase):
         # /etc/portage/sets
         return os.path.join(self._path, "sets")
 
-    # portageCfgEnvDir = os.path.join(portageCfgDir, "package.env")
-    # portageCfgEnvDataDir = os.path.join(portageCfgDir, "env")
+    @property
+    def env_data_dir_path(self):
+        # /etc/portage/env
+        return os.path.join(self._path, "env")
 
     def has_make_conf_file(self):
         return os.path.isfile(self.make_conf_file_path)
@@ -145,19 +158,22 @@ class PortageConfigDir(ConfigDirBase):
         return os.path.isdir(self.repo_postsync_dir_path)
 
     def has_package_accept_keywords_file_or_dir(self):
-        return os.path.exists(self.package_accept_keywords_dir_path)
+        return os.path.exists(self.package_accept_keywords_file_path)
+
+    def has_package_env_file_or_dir(self):
+        return os.path.exists(self.package_env_file_path)
 
     def has_package_license_file_or_dir(self):
-        return os.path.exists(self.package_license_dir_path)
+        return os.path.exists(self.package_license_file_path)
 
     def has_package_mask_file_or_dir(self):
-        return os.path.exists(self.package_mask_dir_path)
+        return os.path.exists(self.package_mask_file_path)
 
     def has_package_unmask_file_or_dir(self):
-        return os.path.exists(self.package_unmask_dir_path)
+        return os.path.exists(self.package_unmask_file_path)
 
     def has_package_use_file_or_dir(self):
-        return os.path.exists(self.package_use_dir_path)
+        return os.path.exists(self.package_use_file_path)
 
     def has_custom_sets_dir(self):
         return os.path.isdir(self.custom_sets_dir_path)
@@ -173,6 +189,9 @@ class PortageConfigDir(ConfigDirBase):
 
     def get_package_accept_keywords_obj(self, file_or_dir=None):
         return PackageAcceptKeywords(prefix=self._prefix, file_or_dir=file_or_dir)
+
+    def get_package_env_obj(self, file_or_dir=None):
+        return PackageEnv(prefix=self._prefix, file_or_dir=file_or_dir)
 
     def get_package_license_obj(self, file_or_dir=None):
         return PackageLicense(prefix=self._prefix, file_or_dir=file_or_dir)
@@ -324,6 +343,23 @@ class PortageConfigDirChecker(ConfigDirCheckerBase):
             return
 
         self._fileSet.discard(self._obj.package_accept_keywords_file_path)
+
+    def use_package_env_file_or_dir(self):
+        if self._basicCheck():
+            return
+
+        # check /etc/portage/package.env
+        self._fileSet.add(self._obj.package_env_file_path)
+
+    def dont_use_package_env_file_or_dir(self):
+        if self._basicCheck():
+            return
+
+        if self._obj.has_package_env_file_or_dir():
+            self._errorCallback("\"%s\" should not exist" % (self._obj.package_env_file_path))
+            return
+
+        self._fileSet.discard(self._obj.package_env_file_path)
 
     def use_package_license_file_or_dir(self):
         if self._basicCheck():
