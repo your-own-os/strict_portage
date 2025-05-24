@@ -498,9 +498,11 @@ class PortageConfigDirChecker(ConfigDirCheckerBase):
 
         self._fileSet.add(path)
 
-    def use_and_check_extra_link(self, path, target=None, checker=None):
+    def use_and_check_extra_link(self, path, target=None, checker=None, default_target_generator=None):
         if target is not None:
             assert checker is None
+        if checker is None:
+            assert default_target_generator is None
 
         if self._basicCheck():
             return
