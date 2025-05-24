@@ -460,7 +460,6 @@ class PortageConfigDirChecker(ConfigDirCheckerBase):
     def use_and_check_extra_file(self, path, content=None, checker=None, default_content_generator=None):
         if content is not None:
             assert checker is None
-            assert default_content_generator is None
         if checker is None:
             assert default_content_generator is None
 
