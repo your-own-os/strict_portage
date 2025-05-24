@@ -517,7 +517,7 @@ class PortageConfigDirChecker(ConfigDirCheckerBase):
 
         self._fileSet.add(path)
 
-    def use_and_check_extra_dir(self, path):
+    def use_and_check_extra_dir(self, path, recursive=False):
         if self._basicCheck():
             return
 
@@ -537,6 +537,10 @@ class PortageConfigDirChecker(ConfigDirCheckerBase):
                 self._errorCallback("\"%s\" is not a directory" % (path))
 
         self._fileSet.add(path)
+        if recursive:
+            # only recurse one level
+            for fn in os.listdir(path):
+                self._fileSet.add(os.path.join(path, fn))
 
     def finialize(self):
         for fn in os.listdir(self._obj.path):
