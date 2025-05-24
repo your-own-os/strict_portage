@@ -410,7 +410,10 @@ class PortageConfigDirChecker(ConfigDirCheckerBase):
 
         self._fileSet.discard(self._obj.custom_sets_dir_path)
 
-    def use_and_check_extra_file(self, path, content=None):
+    def use_and_check_extra_file(self, path, content=None, checker=None):
+        if content is not None:
+            assert checker is None
+
         if self._basicCheck():
             return
 
@@ -434,9 +437,16 @@ class PortageConfigDirChecker(ConfigDirCheckerBase):
                 else:
                     self._errorCallback("\"%s\" has invalid content" % (path))
 
+        if checker is not None:
+            if not checker(pathlib.Path(path).read_text()):
+                self._errorCallback("\"%s\" has invalid content" % (path))
+
         self._fileSet.add(path)
 
-    def use_and_check_extra_link(self, path, target=None):
+    def use_and_check_extra_link(self, path, target=None, checker=None):
+        if target is not None:
+            assert checker is None
+
         if self._basicCheck():
             return
 
