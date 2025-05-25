@@ -121,14 +121,14 @@ class PackageEnvDirChecker(FilesDirCheckerBase):
             if os.path.exists(fullfn2):
                 if envData is not None:
                     if pathlib.Path(fullfn).read_text() != envData[fn2]:
-                        if self.bCanAutoFix and self._bAutoFix:
+                        if bCanAutoFix and self._bAutoFix:
                             pathlib.Path(fullfn).write_text(envData[fn2])
                         else:
                             self._errorCallback("\"%s\" has invalid content" % (fullfn2))
                             continue
             else:
                 if envData is not None:
-                    if self.bCanAutoFix and self._bAutoFix:
+                    if bCanAutoFix and self._bAutoFix:
                         pathlib.Path(fullfn2).write_text(envData[fn2])
                     else:
                         self._errorCallback("\"%s\" does not exist" % (fullfn2))
