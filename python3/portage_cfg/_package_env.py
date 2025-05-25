@@ -22,6 +22,7 @@
 
 
 import os
+import pathlib
 from ._util import Util
 from ._errors import FileFormatError
 from ._prototype import ConfigFileOrDirBase
@@ -81,6 +82,14 @@ class PackageEnvFileChecker(ConfigFileCheckerBase):
 
 class PackageEnvDirChecker(FilesDirCheckerBase):
 
+    def check_member_file(self, file_name, content=None, env_data=None):
+        super().check_member_file(file_name, content)
+        self._checkEnvData(file_name, env_data, True)
+
+    def check_member_link(self, link_name, target=None, env_data=None):
+        super().check_member_link(link_name, target)
+        self._checkEnvData(link_name, env_data, False)
+
     def _basicCheck(self):
         if super()._basicCheck():
             return True
@@ -99,3 +108,31 @@ class PackageEnvDirChecker(FilesDirCheckerBase):
             return True             # returning True means there's fatal error
 
         return False                # returning False means there's no fatal error
+
+    def _checkEnvData(self, fileName, envData, bCanAutoFix):
+        fullfn = os.path.join(self._obj.path, fileName)
+        if not os.path.exists(fullfn):
+            return
+
+        for line in Util.readListFile(fullfn):
+            fn2 = line.split()[1]
+            fullfn2 = os.path.join(self._obj._envDataDir, fn2)
+
+            if os.path.exists(fullfn2):
+                if envData is not None:
+                    if pathlib.Path(fullfn).read_text() != envData[fn2]:
+                        if self.bCanAutoFix and self._bAutoFix:
+                            pathlib.Path(fullfn).write_text(envData[fn2])
+                        else:
+                            self._errorCallback("\"%s\" has invalid content" % (fullfn2))
+                            continue
+            else:
+                if envData is not None:
+                    if self.bCanAutoFix and self._bAutoFix:
+                        pathlib.Path(fullfn2).write_text(envData[fn2])
+                    else:
+                        self._errorCallback("\"%s\" does not exist" % (fullfn2))
+                        continue
+                else:
+                    self._errorCallback("\"%s\" does not exist" % (fullfn2))
+                    continue
