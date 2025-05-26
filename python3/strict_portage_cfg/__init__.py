@@ -23,7 +23,7 @@
 # THE SOFTWARE.
 
 
-__package__ = 'portage_cfg'
+__package__ = 'strict_portage_cfg'
 
 __version__ = '0.0.1'
 
