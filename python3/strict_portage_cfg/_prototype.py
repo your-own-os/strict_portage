@@ -318,8 +318,12 @@ class FilesDirCheckerBase(abc.ABC):         # FIXME: name is bad
                 # FIXME: check file format
                 pass
         else:
-            if self._bAutoFix:
-                pathlib.Path(fullfn).write_text(content)
+            if content is not None:
+                if self._bAutoFix:
+                    pathlib.Path(fullfn).write_text(content)
+                else:
+                    self._errorCallback("\"%s\" does not exist" % (fullfn))
+                    return
             else:
                 self._errorCallback("\"%s\" does not exist" % (fullfn))
                 return
