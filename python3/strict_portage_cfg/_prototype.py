@@ -148,7 +148,7 @@ class ConfigFileOrDirBase(abc.ABC):
             assert issubclass(fileCheckerClass, ConfigFileCheckerBase)
             self._fileCheckerClass = fileCheckerClass
         else:
-            assert issubclass(dirCheckerClass, FilesDirCheckerBase)
+            assert issubclass(dirCheckerClass, ConfigDirCheckerBase)
             self._dirCheckerClass = dirCheckerClass
 
     @property
@@ -386,42 +386,7 @@ class ConfigFileCheckerBase(abc.ABC):
         return False
 
 
-class ConfigDirCheckerBase(abc.ABC):
-
-    def __init__(self, parent, bAutoFix, errorCallback):
-        assert isinstance(parent, ConfigDirBase)
-
-        self._obj = parent
-        self._bAutoFix = bAutoFix
-        self._errorCallback = errorCallback if errorCallback is not None else Util.doNothing
-
-    def check_self(self):
-        self._basicCheck()
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, traceback):
-        pass
-
-    def _basicCheck(self):
-        # not exist, fix: create the directory
-        if not os.path.exists(self._obj.path):
-            if self._bAutoFix:
-                os.makedirs(self._obj.path, exist_ok=True)
-            else:
-                self._errorCallback("\"%s\" does not exist" % (self._obj.path))
-                return True         # returning True means there's fatal error
-
-        # not a directory, fix: no way to fix it
-        if not os.path.isdir(self._obj.path):
-            self._errorCallback("\"%s\" is not a directory" % (self._obj.path))
-            return True             # returning True means there's fatal error
-
-        return False                # returning False means there's no fatal error
-
-
-class FilesDirCheckerBase(abc.ABC):         # FIXME: name is bad
+class ConfigDirCheckerBase(abc.ABC):         # FIXME: name is bad
 
     def __init__(self, parent, fileClass, bAutoFix, errorCallback):
         assert isinstance(parent, ConfigFileOrDirBase)

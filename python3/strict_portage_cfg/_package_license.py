@@ -27,7 +27,7 @@ from ._util import Util
 from ._prototype import ConfigFileOrDirBase
 from ._prototype import ConfigDirMemberFileBase
 from ._prototype import ConfigFileCheckerBase
-from ._prototype import FilesDirCheckerBase
+from ._prototype import ConfigDirCheckerBase
 
 
 class PackageLicense(ConfigFileOrDirBase):
@@ -88,7 +88,7 @@ class PackageLicensesFileChecker(ConfigFileCheckerBase):
     pass
 
 
-class PackageLicensesDirChecker(FilesDirCheckerBase):
+class PackageLicensesDirChecker(ConfigDirCheckerBase):
 
     def __init__(self, parent, bAutoFix, errorCallback):
         super().__init__(parent, PackageLicenseMemberFile, bAutoFix, errorCallback)

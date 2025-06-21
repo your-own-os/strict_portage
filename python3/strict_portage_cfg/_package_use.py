@@ -26,7 +26,7 @@ import pathlib
 from ._util import Util
 from ._prototype import ConfigFileOrDirBase
 from ._prototype import ConfigDirMemberFileBase
-from ._prototype import FilesDirCheckerBase
+from ._prototype import ConfigDirCheckerBase
 
 
 class PackageUse(ConfigFileOrDirBase):
@@ -87,7 +87,7 @@ class PackageUseFileChecker:
     pass
 
 
-class PackageUseDirChecker(FilesDirCheckerBase):
+class PackageUseDirChecker(ConfigDirCheckerBase):
 
     def __init__(self, parent, bAutoFix, errorCallback):
         super().__init__(parent, PackageUseMemberFile, bAutoFix, errorCallback)

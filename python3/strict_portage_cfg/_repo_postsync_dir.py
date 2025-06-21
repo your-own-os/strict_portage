@@ -23,7 +23,7 @@
 
 import os
 from ._prototype import ConfigFileOrDirBase
-from ._prototype import FilesDirCheckerBase
+from ._prototype import ConfigDirCheckerBase
 
 
 class RepoPostSyncDir(ConfigFileOrDirBase):
@@ -39,5 +39,5 @@ class RepoPostSyncDir(ConfigFileOrDirBase):
                                      RepoPostSyncDirDirChecker)
 
 
-class RepoPostSyncDirDirChecker(FilesDirCheckerBase):
+class RepoPostSyncDirDirChecker(ConfigDirCheckerBase):
     pass

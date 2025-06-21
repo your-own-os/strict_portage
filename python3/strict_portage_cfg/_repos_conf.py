@@ -23,7 +23,7 @@
 
 import os
 from ._prototype import ConfigFileOrDirBase
-from ._prototype import FilesDirCheckerBase
+from ._prototype import ConfigDirCheckerBase
 
 
 class ReposConf(ConfigFileOrDirBase):
@@ -40,5 +40,5 @@ class ReposConf(ConfigFileOrDirBase):
                                      ReposConfDirChecker)
 
 
-class ReposConfDirChecker(FilesDirCheckerBase):
+class ReposConfDirChecker(ConfigDirCheckerBase):
     pass

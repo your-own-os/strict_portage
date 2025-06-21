@@ -27,7 +27,7 @@ from ._util import Util
 from ._errors import FileFormatError
 from ._prototype import ConfigFileOrDirBase
 from ._prototype import ConfigFileCheckerBase
-from ._prototype import FilesDirCheckerBase
+from ._prototype import ConfigDirCheckerBase
 
 
 class PackageEnv(ConfigFileOrDirBase):
@@ -80,7 +80,7 @@ class PackageEnvFileChecker(ConfigFileCheckerBase):
         return False                # returning False means there's no fatal error
 
 
-class PackageEnvDirChecker(FilesDirCheckerBase):
+class PackageEnvDirChecker(ConfigDirCheckerBase):
 
     def check_member_file(self, file_name, content=None, env_data=None):
         super().check_member_file(file_name, content)
