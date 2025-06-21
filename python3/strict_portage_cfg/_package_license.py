@@ -91,27 +91,27 @@ class _EntryDict(dict):
 
     def __init__(self, entryList=[]):
         super().__init__()
-        for pkgAtom, useList in entryList:
+        for pkgAtom, flagList in entryList:
             assert pkgAtom not in self
-            assert len(set(useList)) == len(useList)
-            self[pkgAtom] = set(useList)
+            assert len(set(flagList)) == len(flagList)
+            self[pkgAtom] = set(flagList)
 
-    def mergeEntry(self, pkgAtom, useList):
+    def mergeEntry(self, pkgAtom, flagList):
         if pkgAtom not in self:
             self[pkgAtom] = set()
-        self[pkgAtom] |= set(useList)
+        self[pkgAtom] |= set(flagList)
 
     def mergeEntryList(self, entryList):
-        for pkgAtom, useList in srcEntryList:
+        for pkgAtom, flagList in srcEntryList:
             if pkgAtom not in self:
                 self[pkgAtom] = set()
-            self[pkgAtom] |= set(useList)
+            self[pkgAtom] |= set(flagList)
 
     def mergeEntryDict(self, entryDict):
-        for pkgAtom, useList in entryDict.items():
+        for pkgAtom, flagList in entryDict.items():
             if pkgAtom not in self:
                 self[pkgAtom] = set()
-            self[pkgAtom] |= set(useList)
+            self[pkgAtom] |= set(flagList)
 
     def toEntryList(self):
         ret = []
@@ -141,6 +141,6 @@ class _FileUtil:
     @classmethod
     def writeEntrDict(path, entryDict):
         buf = ""
-        for pkgAtom, useList in entryDict.toEntryList():
-            buf += "%s %s\n" % (pkgAtom, " ".join(useList))
+        for pkgAtom, flagList in entryDict.toEntryList():
+            buf += "%s %s\n" % (pkgAtom, " ".join(flagList))
         pathlib.Path(path).write_text(buf)

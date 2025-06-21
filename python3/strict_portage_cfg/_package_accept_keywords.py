@@ -37,25 +37,44 @@ class PackageAcceptKeywords(ConfigFileOrDirBase):
         ConfigFileOrDirBase.__init__(self,
                                      os.path.join(prefix, "etc", "portage", "package.accept_keywords"),
                                      file_or_dir,
-                                     None,
+                                     PackageAcceptKeywordsMemberFile,
                                      PackageAcceptKeywordsFileChecker,
                                      PackageAcceptKeywordsDirChecker)
 
     def get_entries(self):
-        # entry examples:
-        #   "sys-kernel/gentoo-sources ~x86 ~amd64"
-        #   "sys-kernel/gentoo-sources **"
+        if self.is_file_or_dir:
+            e = _FileUtil.readEntryDict(self.path)
+        else:
+            e = _EntryDict()
+            for fullfn in Util.fileOrDirGetFileList(p.path):
+                e.mergeEntryDict(_FileUtil.readEntryDict(fullfn))
+        return e.toEntryList()
 
-        ret = []
-        for fullfn in Util.fileOrDirGetFileList(self._path):
-            for line in Util.readListFile(fullfn):
-                itemlist = line.split()
-                ret.append((itemlist[0], itemlist[1:]))
-        return ret
+    def merge_entries(self, new_entries):
+        e = _FileUtil.readEntryDict(self.path)
+        e.mergeEntryList(new_entries)
+        _FileUtil.writeEntrDict(self.path, e)
+
+    def merge_content(self, new_content):
+        e = _FileUtil.readEntryDict(self.path)
+        e.mergeEntryDict(_FileUtil.parseEntryDict(new_content))
+        _FileUtil.writeEntrDict(self.path, e)
 
 
-class FileClass:
-    pass
+class PackageAcceptKeywordsMemberFile(ConfigDirMemberFileBase):
+
+    def get_entries(self):
+        return _FileUtil.readEntryDict(self.path).toEntryList()
+
+    def merge_entries(self, new_entries):
+        e = _FileUtil.readEntryDict(self.path)
+        e.mergeEntryList(new_entries)
+        _FileUtil.writeEntrDict(self.path, e)
+
+    def merge_content(self, new_content):
+        e = _FileUtil.readEntryDict(self.path)
+        e.mergeEntryDict(_FileUtil.parseEntryDict(new_content))
+        _FileUtil.writeEntrDict(self.path, e)
 
 
 class PackageAcceptKeywordsFileChecker(ConfigFileCheckerBase):
@@ -63,4 +82,65 @@ class PackageAcceptKeywordsFileChecker(ConfigFileCheckerBase):
 
 
 class PackageAcceptKeywordsDirChecker(FilesDirCheckerBase):
-    pass
+
+    def __init__(self, parent, bAutoFix, errorCallback):
+        super().__init__(parent, PackageAcceptKeywordsMemberFile, bAutoFix, errorCallback)
+
+
+class _EntryDict(dict):
+
+    def __init__(self, entryList=[]):
+        super().__init__()
+        for pkgAtom, flagList in entryList:
+            assert pkgAtom not in self
+            assert len(set(flagList)) == len(flagList)
+            self[pkgAtom] = set(flagList)
+
+    def mergeEntry(self, pkgAtom, flagList):
+        if pkgAtom not in self:
+            self[pkgAtom] = set()
+        self[pkgAtom] |= set(flagList)
+
+    def mergeEntryList(self, entryList):
+        for pkgAtom, flagList in srcEntryList:
+            if pkgAtom not in self:
+                self[pkgAtom] = set()
+            self[pkgAtom] |= set(flagList)
+
+    def mergeEntryDict(self, entryDict):
+        for pkgAtom, flagList in entryDict.items():
+            if pkgAtom not in self:
+                self[pkgAtom] = set()
+            self[pkgAtom] |= set(flagList)
+
+    def toEntryList(self):
+        ret = []
+        for k in sorted(self.keys()):
+            ret.append((k, sorted(self[k])))
+        return ret
+
+
+class _FileUtil:
+
+    # entry examples:
+    #   ("sys-kernel/gentoo-sources", ["~x86", "~amd64"])
+    #   ("sys-kernel/gentoo-sources", ["**"])
+
+    @staticmethod
+    def parseEntryDict(buf):
+        ret = _EntryDict()
+        for line in Util.readListBuffer(buf):
+            itemlist = line.split()
+            ret.mergeEntry(itemlist[0], itemlist[1:])
+        return ret
+
+    @classmethod
+    def readEntryDict(cls, path):
+        return cls.parseEntryDict(pathlib.Path(path).read_text())
+
+    @classmethod
+    def writeEntrDict(path, entryDict):
+        buf = ""
+        for pkgAtom, flagList in entryDict.toEntryList():
+            buf += "%s %s\n" % (pkgAtom, " ".join(flagList))
+        pathlib.Path(path).write_text(buf)
