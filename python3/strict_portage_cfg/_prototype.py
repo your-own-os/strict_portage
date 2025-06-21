@@ -131,7 +131,6 @@ class ConfigFileOrDirBase(abc.ABC):
         return self._bFileOrDir
 
     @abc.abstractmethod
-    @enforceConfigFile
     def get_entries(self):
         pass
 

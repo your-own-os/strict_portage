@@ -78,18 +78,21 @@ class Util:
         return fullfnList
 
     @staticmethod
-    def readListFile(path):
+    def readListBuffer(buf):
         ret = []
-        with open(path, "r") as f:
-            for line in f.read().split("\n"):
-                idx = line.find("#")
-                if idx >= 0:
-                    line = line[:idx]
-                line = line.strip()
-                if line == "":
-                    continue
-                ret.append(line)
+        for line in buf.split("\n"):
+            idx = line.find("#")
+            if idx >= 0:
+                line = line[:idx]
+            line = line.strip()
+            if line == "":
+                continue
+            ret.append(line)
         return ret
+
+    @staticmethod
+    def readListFile(path):
+        return cls.readListBuffer(pathlib.Path(path).read_text())
 
     @staticmethod
     def realPathSplit(path):
