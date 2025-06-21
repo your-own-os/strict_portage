@@ -24,8 +24,6 @@
 import os
 import pathlib
 from ._util import Util
-from ._prototype import ConfigDirBase
-from ._prototype import ConfigDirCheckerBase
 from ._make_conf import MakeConf
 from ._repos_conf import ReposConf
 from ._repo_postsync_dir import RepoPostSyncDir
@@ -38,14 +36,18 @@ from ._package_use import PackageUse
 from ._sets import Sets
 
 
-class PortageConfigDir(ConfigDirBase):
+class PortageConfigDir:
 
     def __init__(self, prefix="/"):
         # user should guarantee existence when calling other methods
         # but checker is compatible with non-existence senario
 
         self._prefix = prefix
-        super().__init__(os.path.join(self._prefix, "etc", "portage"), PortageConfigDirChecker)
+        self._path = os.path.join(self._prefix, "etc", "portage")
+
+    @property
+    def path(self):
+        return self._path
 
     @property
     def mirrors_file_path(self):
@@ -142,6 +144,12 @@ class PortageConfigDir(ConfigDirBase):
         # /etc/portage/env
         return os.path.join(self._path, "env")
 
+    def exists(self):
+        return os.path.isdir(self._path)
+
+    def remove(self):
+        Util.forceDelete(self._path)
+
     def has_make_conf_file(self):
         return os.path.isfile(self.make_conf_file_path)
 
@@ -211,12 +219,20 @@ class PortageConfigDir(ConfigDirBase):
     def get_sets_obj(self):
         return Sets(prefix=self._prefix)
 
+    def create_checker(self, auto_fix=False, error_callback=None):
+        return PortageConfigDirChecker(self, auto_fix, error_callback)
 
-class PortageConfigDirChecker(ConfigDirCheckerBase):
+
+class PortageConfigDirChecker:
 
     def __init__(self, parent, bAutoFix, errorCallback):
-        super().__init__(parent, bAutoFix, errorCallback)
+        self._obj = parent
+        self._bAutoFix = bAutoFix
+        self._errorCallback = errorCallback if errorCallback is not None else Util.doNothing
         self._fileSet = set()
+
+    def check_self(self):
+        self._basicCheck()
 
     def use_and_check_mirrors_file(self):
         if self._basicCheck():
@@ -553,3 +569,25 @@ class PortageConfigDirChecker(ConfigDirCheckerBase):
                     self._errorCallback("redundant file \"%s\" exists" % (fullfn))
 
         self._fileSet = set()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        pass
+
+    def _basicCheck(self):
+        # not exist, fix: create the directory
+        if not os.path.exists(self._obj.path):
+            if self._bAutoFix:
+                os.makedirs(self._obj.path, exist_ok=True)
+            else:
+                self._errorCallback("\"%s\" does not exist" % (self._obj.path))
+                return True         # returning True means there's fatal error
+
+        # not a directory, fix: no way to fix it
+        if not os.path.isdir(self._obj.path):
+            self._errorCallback("\"%s\" is not a directory" % (self._obj.path))
+            return True             # returning True means there's fatal error
+
+        return False                # returning False means there's no fatal error
