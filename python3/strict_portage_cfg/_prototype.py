@@ -215,6 +215,12 @@ class ConfigDirMemberFileBase(abc.ABC):
     def merge_content(self, new_content):
         pass
 
+    def merge_member_file(self, name, remove_original=False):
+        fullfn = os.path.join(os.path.dirname(self._path), name)
+        self.merge_content(pathlib.Path(fullfn).read_text())
+        if remove_original:
+            os.unlink(fullfn)
+
 
 class ConfigFileCheckerBase(abc.ABC):
 
