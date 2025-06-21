@@ -62,4 +62,6 @@ class RepoPostSyncDirMemberFile(ConfigDirMemberFileBase):
 
 
 class RepoPostSyncDirDirChecker(ConfigDirCheckerBase):
-    pass
+
+    def __init__(self, parent, bAutoFix, errorCallback):
+        super().__init__(parent, RepoPostSyncDirMemberFile, bAutoFix, errorCallback)
