@@ -69,6 +69,13 @@ class ConfigFileBase(abc.ABC):
     def get_content(self):
         return pathlib.Path(self._path).read_text()
 
+    def set_content(self, content):
+        pathlib.Path(self._path).write_text(content)
+
+    def clear_content(self):
+        if os.path.exists(self._path):
+            pathlib.Path(self._path).write_text("")
+
     @abc.abstractmethod
     def get_entries(self):
         pass
@@ -80,13 +87,6 @@ class ConfigFileBase(abc.ABC):
     @abc.abstractmethod
     def merge_content(self, content):
         pass
-
-    def write_content(self, content):
-        pathlib.Path(self._path).write_text(content)
-
-    def clear_content(self):
-        if os.path.exists(self._path):
-            pathlib.Path(self._path).write_text("")
 
     def create_checker(self, auto_fix=False, error_callback=None):
         return self._fileCheckerClass(self, auto_fix, error_callback)
@@ -177,6 +177,15 @@ class ConfigFileOrDirBase(abc.ABC):
                 buf = buf.rstrip("\n") + "\n\n" + pathlib.Path(fullfn).read_text().lstrip("\n")
             return buf
 
+    @enforceConfigFile
+    def set_content(self, content):
+        pathlib.Path(self._path).write_text(content)
+
+    @enforceConfigFile
+    def clear_content(self):
+        if os.path.exists(self._path):
+            pathlib.Path(self._path).write_text("")
+
     @abc.abstractmethod
     def get_entries(self):
         pass
@@ -190,15 +199,6 @@ class ConfigFileOrDirBase(abc.ABC):
     @enforceConfigFile
     def merge_content(self, content):
         pass
-
-    @enforceConfigFile
-    def write_content(self, content):
-        pathlib.Path(self._path).write_text(content)
-
-    @enforceConfigFile
-    def clear_content(self):
-        if os.path.exists(self._path):
-            pathlib.Path(self._path).write_text("")
 
     @enforceConfigDir
     def has_member_file(self, name):
@@ -238,6 +238,13 @@ class ConfigDirMemberFileBase(abc.ABC):
     def get_content(self):
         return pathlib.Path(self._path).read_text()
 
+    def set_content(self, content):
+        pathlib.Path(self._path).write_text(content)
+
+    def clear_content(self):
+        if os.path.exists(self._path):
+            pathlib.Path(self._path).write_text("")
+
     @abc.abstractmethod
     def get_entries(self):
         pass
@@ -256,13 +263,6 @@ class ConfigDirMemberFileBase(abc.ABC):
         self.merge_content(pathlib.Path(fullfn).read_text())
         if remove_original:
             os.unlink(fullfn)
-
-    def write_content(self, content):
-        pathlib.Path(self._path).write_text(content)
-
-    def clear_content(self):
-        if os.path.exists(self._path):
-            pathlib.Path(self._path).write_text("")
 
 
 class ConfigFileCheckerBase(abc.ABC):
