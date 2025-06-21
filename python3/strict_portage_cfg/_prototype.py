@@ -179,7 +179,7 @@ class ConfigFileOrDirBase(abc.ABC):
 
     @enforceConfigDir
     def get_member_obj(self, name):
-        return self._memberFileClass(os.path.join(self._path, name))
+        return self._memberFileClass(name, _path=os.path.join(self._path, name))
 
     def create_checker(self, auto_fix=False, error_callback=None):
         if self._bFileOrDir:
@@ -190,8 +190,13 @@ class ConfigFileOrDirBase(abc.ABC):
 
 class ConfigDirMemberFileBase(abc.ABC):
 
-    def __init__(self, path):
+    def __init__(self, name, path):
+        assert name == os.path.basename(path)
         self._path = path
+
+    @property
+    def name(self):
+        return os.path.basename(self._path)
 
     @property
     def path(self):
@@ -217,6 +222,7 @@ class ConfigDirMemberFileBase(abc.ABC):
 
     def merge_member_file(self, name, remove_original=False):
         fullfn = os.path.join(os.path.dirname(self._path), name)
+        assert fullfn != self._path
         self.merge_content(pathlib.Path(fullfn).read_text())
         if remove_original:
             os.unlink(fullfn)

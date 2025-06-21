@@ -63,14 +63,10 @@ class PackageUnmask(ConfigFileOrDirBase):
 
 class PackageUnmaskMemberFile(ConfigDirMemberFileBase):
 
-    def __init__(self, name=None, prefix="/", _path=None):
-        if name is not None:
-            assert _path is None
-            super().__init__(os.path.join(prefix, "etc", "portage", "package.unmask", name))
-        elif _path is not None:
-            super().__init__(_path)
-        else:
-            assert False
+    def __init__(self, name, prefix="/", _path=None):
+        if _path is None:
+            _path = os.path.join(prefix, "etc", "portage", "package.unmask", name)
+        super().__init__(name, _path)
 
     def get_entries(self):
         return sorted(_Util.readEntryList(self.path))
