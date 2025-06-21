@@ -96,6 +96,9 @@ class PackageUseMemberFile(ConfigDirMemberFileBase):
     def get_use_flag_mapping(self):
         return _FileUtil.readEntryDict(self.path)
 
+    def set_use_flag_mapping(self, mapping):
+        _FileUtil.writeEntryDict(self.path, mapping)
+
 
 class PackageUseFileChecker(ConfigFileCheckerBase):
     pass
