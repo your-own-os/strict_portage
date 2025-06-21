@@ -66,7 +66,9 @@ class ConfigFileBase(abc.ABC):
     def remove(self):
         Util.forceDelete(self._path)
 
-    @property
+    def get_content(self):
+        return pathlib.Path(self._path).read_text()
+
     @abc.abstractmethod
     def get_entries(self):
         pass
@@ -159,6 +161,9 @@ class ConfigFileOrDirBase(abc.ABC):
     def remove(self):
         Util.forceDelete(self._path)
 
+    def get_content(self):
+        return pathlib.Path(self._path).read_text()
+
     @abc.abstractmethod
     def get_entries(self):
         pass
@@ -207,6 +212,9 @@ class ConfigDirMemberFileBase(abc.ABC):
 
     def remove(self):
         Util.forceDelete(self._path)
+
+    def get_content(self):
+        return pathlib.Path(self._path).read_text()
 
     @abc.abstractmethod
     def get_entries(self):
