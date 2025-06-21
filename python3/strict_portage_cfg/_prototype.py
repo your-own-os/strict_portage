@@ -71,6 +71,14 @@ class ConfigFileBase(abc.ABC):
     def get_entries(self):
         pass
 
+    @abc.abstractmethod
+    def merge_entries(self, new_entries):
+        pass
+
+    @abc.abstractmethod
+    def merge_content(self, new_content):
+        pass
+
     def create_checker(self, auto_fix=False, error_callback=None):
         return self._fileCheckerClass(self, auto_fix, error_callback)
 
