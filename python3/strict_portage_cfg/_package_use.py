@@ -40,6 +40,11 @@ class PackageUse(ConfigFileOrDirBase):
                          PackageUseFileChecker,
                          PackageUseDirChecker)
 
+    def merge_content(self, content):
+        e = _FileUtil.readEntryDict(self.path)
+        e.mergeEntryDict(_FileUtil.parseEntryDict(content))
+        _FileUtil.writeEntryDict(self.path, e)
+
     def get_entries(self):
         if self.is_file_or_dir:
             e = _FileUtil.readEntryDict(self.path)
@@ -54,10 +59,8 @@ class PackageUse(ConfigFileOrDirBase):
         e.mergeEntryList(entries)
         _FileUtil.writeEntryDict(self.path, e)
 
-    def merge_content(self, content):
-        e = _FileUtil.readEntryDict(self.path)
-        e.mergeEntryDict(_FileUtil.parseEntryDict(content))
-        _FileUtil.writeEntryDict(self.path, e)
+    def set_entries(self, entries):
+        assert False
 
 
 class PackageUseMemberFile(ConfigDirMemberFileBase):
@@ -66,6 +69,11 @@ class PackageUseMemberFile(ConfigDirMemberFileBase):
         if _path is None:
             _path = os.path.join(prefix, "etc", "portage", "package.use", name)
         super().__init__(name, _path)
+
+    def merge_content(self, content):
+        e = _FileUtil.readEntryDict(self.path)
+        e.mergeEntryDict(_FileUtil.parseEntryDict(content))
+        _FileUtil.writeEntryDict(self.path, e)
 
     def get_entries(self):
         return _FileUtil.readEntryDict(self.path).toEntryList()
@@ -82,10 +90,8 @@ class PackageUseMemberFile(ConfigDirMemberFileBase):
         e.mergeEntryList(entries)
         _FileUtil.writeEntryDict(self.path, e)
 
-    def merge_content(self, content):
-        e = _FileUtil.readEntryDict(self.path)
-        e.mergeEntryDict(_FileUtil.parseEntryDict(content))
-        _FileUtil.writeEntryDict(self.path, e)
+    def set_entries(self, entries):
+        assert False
 
 
 class PackageUseFileChecker(ConfigFileCheckerBase):

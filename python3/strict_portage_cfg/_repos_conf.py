@@ -37,13 +37,16 @@ class ReposConf(ConfigFileOrDirBase):
                          ReposConfFileChecker,
                          ReposConfDirChecker)
 
+    def merge_content(self, content):
+        assert False
+
     def get_entries(self):
         assert False
 
     def merge_entries(self, entries):
         assert False
 
-    def merge_content(self, content):
+    def set_entries(self, entries):
         assert False
 
 
@@ -54,13 +57,16 @@ class ReposConfMemberFile(ConfigDirMemberFileBase):
             _path = os.path.join(prefix, "etc", "portage", "repos.conf", name)
         super().__init__(name, _path)
 
+    def merge_content(self, content):
+        assert False
+
     def get_entries(self):
         assert False
 
     def merge_entries(self, entries):
         assert False
 
-    def merge_content(self, content):
+    def set_entries(self, entries):
         assert False
 
 

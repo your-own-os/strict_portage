@@ -39,6 +39,11 @@ class PackageUnmask(ConfigFileOrDirBase):
                          PackageUnmaskFileChecker,
                          PackageUnmaskDirChecker)
 
+    def merge_content(self, content):
+        e = _Util.readEntryList(self.path)
+        _Util.mergeEntryList(e, Util.readListBuffer(content))
+        _Util.writeEntryList(self.path, e)
+
     def get_entries(self):
         if self.is_file_or_dir:
             e = _Util.readEntryList(self.path)
@@ -53,10 +58,8 @@ class PackageUnmask(ConfigFileOrDirBase):
         _Util.mergeEntryList(e, entries)
         _Util.writeEntryList(self.path, e)
 
-    def merge_content(self, content):
-        e = _Util.readEntryList(self.path)
-        _Util.mergeEntryList(e, Util.readListBuffer(content))
-        _Util.writeEntryList(self.path, e)
+    def set_entries(self, entries):
+        assert False
 
 
 class PackageUnmaskMemberFile(ConfigDirMemberFileBase):
@@ -66,6 +69,11 @@ class PackageUnmaskMemberFile(ConfigDirMemberFileBase):
             _path = os.path.join(prefix, "etc", "portage", "package.unmask", name)
         super().__init__(name, _path)
 
+    def merge_content(self, content):
+        e = _Util.readEntryList(self.path)
+        _Util.mergeEntryList(e, Util.readListBuffer(content))
+        _Util.writeEntryList(self.path, e)
+
     def get_entries(self):
         return sorted(_Util.readEntryList(self.path))
 
@@ -74,10 +82,8 @@ class PackageUnmaskMemberFile(ConfigDirMemberFileBase):
         _Util.mergeEntryList(e, entries)
         _Util.writeEntryList(self.path, e)
 
-    def merge_content(self, content):
-        e = _Util.readEntryList(self.path)
-        _Util.mergeEntryList(e, Util.readListBuffer(content))
-        _Util.writeEntryList(self.path, e)
+    def set_entries(self, entries):
+        assert False
 
 
 class PackageUnmaskFileChecker(ConfigFileCheckerBase):

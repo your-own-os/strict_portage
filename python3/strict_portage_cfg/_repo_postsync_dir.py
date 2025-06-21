@@ -34,13 +34,16 @@ class RepoPostSyncDir(ConfigDirBase):
                          RepoPostSyncDirMemberFile,
                          RepoPostSyncDirDirChecker)
 
+    def merge_content(self, content):
+        assert False
+
     def get_entries(self):
         assert False
 
     def merge_entries(self, entries):
         assert False
 
-    def merge_content(self, content):
+    def set_entries(self, entries):
         assert False
 
 
@@ -51,13 +54,16 @@ class RepoPostSyncDirMemberFile(ConfigDirMemberFileBase):
             _path = os.path.join(prefix, "etc", "portage", "repo.postsync.d", name)
         super().__init__(name, _path)
 
+    def merge_content(self, content):
+        assert False
+
     def get_entries(self):
         assert False
 
     def merge_entries(self, entries):
         assert False
 
-    def merge_content(self, content):
+    def set_entries(self, entries):
         assert False
 
 

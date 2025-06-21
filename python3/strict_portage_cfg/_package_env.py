@@ -41,6 +41,9 @@ class PackageEnv(ConfigFileOrDirBase):
                          PackageEnvDirChecker)
         self._envDataDir = os.path.join(prefix, "etc", "portage", "env")
 
+    def merge_content(self, content):
+        assert False
+
     def get_entries(self):
         # entry examples:
         #   ("sys-libs/glibc", "glibc.conf")
@@ -57,7 +60,7 @@ class PackageEnv(ConfigFileOrDirBase):
     def merge_entries(self, entries):
         assert False
 
-    def merge_content(self, content):
+    def set_entries(self, entries):
         assert False
 
 
@@ -68,13 +71,16 @@ class PackageEnvMemberFile(ConfigDirMemberFileBase):
             _path = os.path.join(prefix, "etc", "portage", "package.env", name)
         super().__init__(name, _path)
 
+    def merge_content(self, content):
+        assert False
+
     def get_entries(self):
         assert False
 
     def merge_entries(self, entries):
         assert False
 
-    def merge_content(self, content):
+    def set_entries(self, entries):
         assert False
 
 
@@ -101,6 +107,9 @@ class PackageEnvFileChecker(ConfigFileCheckerBase):
 
 
 class PackageEnvDirChecker(ConfigDirCheckerBase):
+
+    def __init__(self, parent, bAutoFix, errorCallback):
+        super().__init__(parent, PackageEnvMemberFile, bAutoFix, errorCallback)
 
     def check_member_file(self, file_name, content=None, env_data=None):
         super().check_member_file(file_name, content)

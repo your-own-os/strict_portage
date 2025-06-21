@@ -39,6 +39,11 @@ class PackageMask(ConfigFileOrDirBase):
                          PackageMaskFileChecker,
                          PackageMaskDirChecker)
 
+    def merge_content(self, content):
+        e = _Util.readEntryList(self.path)
+        _Util.mergeEntryList(e, Util.readListBuffer(content))
+        _Util.writeEntryList(self.path, e)
+
     def get_entries(self):
         if self.is_file_or_dir:
             e = _Util.readEntryList(self.path)
@@ -53,10 +58,8 @@ class PackageMask(ConfigFileOrDirBase):
         _Util.mergeEntryList(e, entries)
         _Util.writeEntryList(self.path, e)
 
-    def merge_content(self, content):
-        e = _Util.readEntryList(self.path)
-        _Util.mergeEntryList(e, Util.readListBuffer(content))
-        _Util.writeEntryList(self.path, e)
+    def set_entries(self, entries):
+        assert False
 
 
 class PackageMaskMemberFile(ConfigDirMemberFileBase):
@@ -66,6 +69,11 @@ class PackageMaskMemberFile(ConfigDirMemberFileBase):
             _path = os.path.join(prefix, "etc", "portage", "package.mask", name)
         super().__init__(name, _path)
 
+    def merge_content(self, content):
+        e = _Util.readEntryList(self.path)
+        _Util.mergeEntryList(e, Util.readListBuffer(content))
+        _Util.writeEntryList(self.path, e)
+
     def get_entries(self):
         return sorted(_Util.readEntryList(self.path))
 
@@ -74,10 +82,8 @@ class PackageMaskMemberFile(ConfigDirMemberFileBase):
         _Util.mergeEntryList(e, entries)
         _Util.writeEntryList(self.path, e)
 
-    def merge_content(self, content):
-        e = _Util.readEntryList(self.path)
-        _Util.mergeEntryList(e, Util.readListBuffer(content))
-        _Util.writeEntryList(self.path, e)
+    def set_entries(self, entries):
+        assert False
 
 
 class PackageMaskFileChecker(ConfigFileCheckerBase):

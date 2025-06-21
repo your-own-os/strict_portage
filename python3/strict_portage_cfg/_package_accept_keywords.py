@@ -39,6 +39,11 @@ class PackageAcceptKeywords(ConfigFileOrDirBase):
                          PackageAcceptKeywordsFileChecker,
                          PackageAcceptKeywordsDirChecker)
 
+    def merge_content(self, content):
+        e = _FileUtil.readEntryDict(self.path)
+        e.mergeEntryDict(_FileUtil.parseEntryDict(content))
+        _FileUtil.writeEntryDict(self.path, e)
+
     def get_entries(self):
         if self.is_file_or_dir:
             e = _FileUtil.readEntryDict(self.path)
@@ -53,10 +58,8 @@ class PackageAcceptKeywords(ConfigFileOrDirBase):
         e.mergeEntryList(entries)
         _FileUtil.writeEntryDict(self.path, e)
 
-    def merge_content(self, content):
-        e = _FileUtil.readEntryDict(self.path)
-        e.mergeEntryDict(_FileUtil.parseEntryDict(content))
-        _FileUtil.writeEntryDict(self.path, e)
+    def set_entries(self, entries):
+        assert False
 
 
 class PackageAcceptKeywordsMemberFile(ConfigDirMemberFileBase):
@@ -66,6 +69,11 @@ class PackageAcceptKeywordsMemberFile(ConfigDirMemberFileBase):
             _path = os.path.join(prefix, "etc", "portage", "package.accept_keywords", name)
         super().__init__(name, _path)
 
+    def merge_content(self, content):
+        e = _FileUtil.readEntryDict(self.path)
+        e.mergeEntryDict(_FileUtil.parseEntryDict(content))
+        _FileUtil.writeEntryDict(self.path, e)
+
     def get_entries(self):
         return _FileUtil.readEntryDict(self.path).toEntryList()
 
@@ -74,10 +82,8 @@ class PackageAcceptKeywordsMemberFile(ConfigDirMemberFileBase):
         e.mergeEntryList(entries)
         _FileUtil.writeEntryDict(self.path, e)
 
-    def merge_content(self, content):
-        e = _FileUtil.readEntryDict(self.path)
-        e.mergeEntryDict(_FileUtil.parseEntryDict(content))
-        _FileUtil.writeEntryDict(self.path, e)
+    def set_entries(self, entries):
+        assert False
 
 
 class PackageAcceptKeywordsFileChecker(ConfigFileCheckerBase):
