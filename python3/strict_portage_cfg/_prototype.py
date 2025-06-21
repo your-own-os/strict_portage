@@ -85,6 +85,20 @@ class ConfigDirBase(abc.ABC):
         return self._dirCheckerClass(self, auto_fix, error_callback)
 
 
+def enforceConfigFile(func):
+    def wrapper(self, *args, **kwargs):
+        assert self._bFileOrDir
+        return func(self, *args, **kwargs)
+    return wrapper
+
+
+def enforceConfigDir(func):
+    def wrapper(self, *args, **kwargs):
+        assert not self._bFileOrDir
+        return func(self, *args, **kwargs)
+    return wrapper
+
+
 class ConfigFileOrDirBase(abc.ABC):
 
     def __init__(self, path, bFileOrDir, memberFileClass, fileCheckerClass, dirCheckerClass):
@@ -116,18 +130,27 @@ class ConfigFileOrDirBase(abc.ABC):
     def is_file_or_dir(self):
         return self._bFileOrDir
 
-    @property
     @abc.abstractmethod
+    @enforceConfigFile
     def get_entries(self):
-        # this method should call self._assertGetEntries()
         pass
 
-    def has_member(self, name):
-        assert not self._bFileOrDir
+    @abc.abstractmethod
+    @enforceConfigFile
+    def merge_entries(self, new_entries):
+        pass
+
+    @abc.abstractmethod
+    @enforceConfigFile
+    def merge_content(self, new_content):
+        pass
+
+    @enforceConfigDir
+    def has_member_file(self, name):
         return os.path.exists(os.path.join(self._path, name))
 
+    @enforceConfigDir
     def get_member_obj(self, name):
-        assert not self._bFileOrDir
         return self._memberFileClass(os.path.join(self._path, name))
 
     def create_checker(self, auto_fix=False, error_callback=None):
@@ -135,9 +158,6 @@ class ConfigFileOrDirBase(abc.ABC):
             return self._fileCheckerClass(self, auto_fix, error_callback)
         else:
             return self._dirCheckerClass(self, auto_fix, error_callback)
-
-    def _assertGetEntries(self):
-        assert self._bFileOrDir
 
 
 class ConfigDirMemberFileBase(abc.ABC):
@@ -149,9 +169,16 @@ class ConfigDirMemberFileBase(abc.ABC):
     def path(self):
         return self._path
 
-    @property
     @abc.abstractmethod
     def get_entries(self):
+        pass
+
+    @abc.abstractmethod
+    def merge_entries(self, new_entries):
+        pass
+
+    @abc.abstractmethod
+    def merge_content(self, new_content):
         pass
 
 
