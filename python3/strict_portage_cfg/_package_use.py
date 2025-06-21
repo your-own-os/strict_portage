@@ -23,9 +23,11 @@
 
 import os
 import pathlib
+from fnmatch import fnmatch
 from ._util import Util
 from ._prototype import ConfigFileOrDirBase
 from ._prototype import ConfigDirMemberFileBase
+from ._prototype import ConfigFileCheckerBase
 from ._prototype import ConfigDirCheckerBase
 
 
@@ -86,7 +88,7 @@ class PackageUseMemberFile(ConfigDirMemberFileBase):
         _FileUtil.writeEntryDict(self.path, e)
 
 
-class PackageUseFileChecker:
+class PackageUseFileChecker(ConfigFileCheckerBase):
     pass
 
 

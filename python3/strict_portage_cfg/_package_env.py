@@ -26,6 +26,7 @@ import pathlib
 from ._util import Util
 from ._errors import FileFormatError
 from ._prototype import ConfigFileOrDirBase
+from ._prototype import ConfigDirMemberFileBase
 from ._prototype import ConfigFileCheckerBase
 from ._prototype import ConfigDirCheckerBase
 
@@ -35,7 +36,7 @@ class PackageEnv(ConfigFileOrDirBase):
     def __init__(self, prefix="/", file_or_dir=None):
         super().__init__(os.path.join(prefix, "etc", "portage", "package.env"),
                          file_or_dir,
-                         None,
+                         PackageEnvMemberFile,
                          PackageEnvFileChecker,
                          PackageEnvDirChecker)
         self._envDataDir = os.path.join(prefix, "etc", "portage", "env")
@@ -52,6 +53,29 @@ class PackageEnv(ConfigFileOrDirBase):
                     raise FileFormatError('format error at "%s" line %d' % (fullfn, i + 1))
                 ret.append((itemlist[0], itemlist[1]))
         return ret
+
+    def merge_entries(self, entries):
+        assert False
+
+    def merge_content(self, content):
+        assert False
+
+
+class PackageEnvMemberFile(ConfigDirMemberFileBase):
+
+    def __init__(self, name, prefix="/", _path=None):
+        if _path is None:
+            _path = os.path.join(prefix, "etc", "portage", "package.env", name)
+        super().__init__(name, _path)
+
+    def get_entries(self):
+        assert False
+
+    def merge_entries(self, entries):
+        assert False
+
+    def merge_content(self, content):
+        assert False
 
 
 class PackageEnvFileChecker(ConfigFileCheckerBase):
