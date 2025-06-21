@@ -47,7 +47,7 @@ class PackageUse(ConfigFileOrDirBase):
         else:
             e = _EntryDict()
             for fullfn in Util.fileOrDirGetFileList(p.path):
-                e.mergeEntryDict(_FileUtil.readEntryDict(fullfn))
+                e.mergeEntryDict(_FileUtil.readEntryDict(fullfn, bStrict=True))
         return e.toEntryList()
 
     def merge_entries(self, new_entries):
@@ -144,8 +144,14 @@ class _FileUtil:
         return ret
 
     @classmethod
-    def readEntryDict(cls, path):
-        return cls.parseEntryDict(pathlib.Path(path).read_text())
+    def readEntryDict(cls, path, bStrict=False):
+        try:
+            return cls.parseEntryDict(pathlib.Path(path).read_text())
+        except FileNotFoundError:
+            if not bStrict:
+                return _EntryDict()
+            else:
+                raise
 
     @classmethod
     def writeEntrDict(path, entryDict):

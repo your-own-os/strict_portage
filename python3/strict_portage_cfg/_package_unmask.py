@@ -43,20 +43,20 @@ class PackageUnmask(ConfigFileOrDirBase):
 
     def get_entries(self):
         if self.is_file_or_dir:
-            e = Util.readListFile(self.path)
+            e = _Util.readEntryList(self.path)
         else:
             e = []
             for fullfn in Util.fileOrDirGetFileList(p.path):
-                _Util.mergeEntryList(e, Util.readListFile(fullfn))
+                _Util.mergeEntryList(e, _Util.readEntryList(fullfn, bStrict=True))
         return sorted(e)
 
     def merge_entries(self, new_entries):
-        e = Util.readListFile(self.path)
+        e = _Util.readEntryList(self.path)
         _Util.mergeEntryList(e, new_entries)
         _Util.writeEntryList(self.path, e)
 
     def merge_content(self, new_content):
-        e = Util.readListFile(self.path)
+        e = _Util.readEntryList(self.path)
         _Util.mergeEntryList(e, Util.readListBuffer(new_content))
         _Util.writeEntryList(self.path, e)
 
@@ -73,15 +73,15 @@ class PackageUnmaskMemberFile(ConfigDirMemberFileBase):
             assert False
 
     def get_entries(self):
-        return sorted(Util.readListFile(self.path))
+        return sorted(_Util.readEntryList(self.path))
 
     def merge_entries(self, new_entries):
-        e = Util.readListFile(self.path)
+        e = _Util.readEntryList(self.path)
         _Util.mergeEntryList(e, new_entries)
         _Util.writeEntryList(self.path, e)
 
     def merge_content(self, new_content):
-        e = Util.readListFile(self.path)
+        e = _Util.readEntryList(self.path)
         _Util.mergeEntryList(e, Util.readListBuffer(new_content))
         _Util.writeEntryList(self.path, e)
 
@@ -114,6 +114,14 @@ class _Util:
             if x not in dst:
                 dst.append(x)
 
+    def readEntryList(path, bStrict=False):
+        try:
+            return Util.readListFile(path)
+        except FileNotFoundError:
+            if not bStrict:
+                return []
+            else:
+                raise
     def writeEntryList(path, entryList):
         buf = ""
         for entry in sorted(entryList):
