@@ -23,6 +23,7 @@
 
 import os
 from ._prototype import ConfigFileOrDirBase
+from ._prototype import ConfigDirMemberFileBase
 from ._prototype import ConfigDirCheckerBase
 
 
@@ -39,6 +40,51 @@ class ReposConf(ConfigFileOrDirBase):
                                      None,
                                      ReposConfDirChecker)
 
+    def get_entries(self):
+        assert False
+
+    def merge_entries(self, entries):
+        assert False
+
+    def merge_content(self, content):
+        assert False
+
+
+class ReposConfMemberFile(ConfigDirMemberFileBase):
+
+    def __init__(self, name, prefix="/", _path=None):
+        if _path is None:
+            _path = os.path.join(prefix, "etc", "portage", "repos.conf", name)
+        super().__init__(name, _path)
+
+    def get_entries(self):
+        assert False
+
+    def merge_entries(self, entries):
+        assert False
+
+    def merge_content(self, content):
+        assert False
+
+
+class ReposConfFileChecker:
+    pass
+
 
 class ReposConfDirChecker(ConfigDirCheckerBase):
+
+    def __init__(self, parent, bAutoFix, errorCallback):
+        super().__init__(parent, ReposConfMemberFile, bAutoFix, errorCallback)
+
+
+class _FileUtil:
+
+    # entry examples:
+    #   [beshenka]
+    #   auto-sync = no
+    #   priority = 7000
+    #   location = /var/lib/portage/overlay-3debuilds
+    #   overlay-type = transient
+    #   sync-type = git
+    #   sync-uri = mirror://github/beshenkaD/3debuilds
     pass
