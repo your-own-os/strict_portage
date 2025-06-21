@@ -43,12 +43,12 @@ class PackageUse(ConfigFileOrDirBase):
 
     def get_entries(self):
         if self.is_file_or_dir:
-            return _FileUtil.readEntryList(self)
+            e = _FileUtil.readEntryDict(self.path)
         else:
             e = _EntryDict()
             for fullfn in Util.fileOrDirGetFileList(p.path):
                 e.mergeEntryDict(_FileUtil.readEntryDict(fullfn))
-            return e.toEntryList()
+        return e.toEntryList()
 
     def merge_entries(self, new_entries):
         e = _FileUtil.readEntryDict(self.path)
@@ -64,7 +64,7 @@ class PackageUse(ConfigFileOrDirBase):
 class PackageUseMemberFile(ConfigDirMemberFileBase):
 
     def get_entries(self):
-        return _FileUtil.readEntryList(self)
+        return _FileUtil.readEntryDict(self.path).toEntryList()
 
     def merge_entries(self, new_entries):
         e = _FileUtil.readEntryDict(self.path)
@@ -122,19 +122,9 @@ class _EntryDict(dict):
 
 class _FileUtil:
 
-    # entry list example:
-    # [
-    #     ("sys-apps/systemd", ["-boot", "kernel-install"]),
-    #     (">sys-apps/systemd-256.10", ["-boot", "kernel-install"]),
-    # ]
-
-    @staticmethod
-    def parseEntryList(buf):
-        ret = []
-        for line in Util.readListBuffer(buf):
-            itemlist = line.split()
-            ret.append((itemlist[0], itemlist[1:]))
-        return ret
+    # entry examples:
+    #   ("sys-apps/systemd", ["-boot", "kernel-install"])
+    #   (">sys-apps/systemd-256.10", ["-boot", "kernel-install"])
 
     @staticmethod
     def parseEntryDict(buf):
@@ -145,20 +135,12 @@ class _FileUtil:
         return ret
 
     @classmethod
-    def readEntryList(cls, path):
-        return cls.parseEntryList(pathlib.Path(path).read_text())
-
-    @classmethod
     def readEntryDict(cls, path):
         return cls.parseEntryDict(pathlib.Path(path).read_text())
 
-    @staticmethod
-    def writeEntryList(path, entryList):
-        buf = ""
-        for pkgAtom, useList in entryList:
-            buf += "%s %s\n" % (pkgAtom, " ".join(useList))
-        pathlib.Path(path).write_text(buf)
-
     @classmethod
     def writeEntrDict(path, entryDict):
-        return cls.writeEntryList(path, entryDict.toEntryList())
+        buf = ""
+        for pkgAtom, useList in entryDict.toEntryList():
+            buf += "%s %s\n" % (pkgAtom, " ".join(useList))
+        pathlib.Path(path).write_text(buf)

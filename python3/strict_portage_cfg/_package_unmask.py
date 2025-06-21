@@ -37,26 +37,44 @@ class PackageUnmask(ConfigFileOrDirBase):
         ConfigFileOrDirBase.__init__(self,
                                      os.path.join(prefix, "etc", "portage", "package.unmask"),
                                      file_or_dir,
-                                     None,
+                                     PackageUnmaskMemberFile,
                                      PackageUnmaskFileChecker,
                                      PackageUnmaskDirChecker)
 
     def get_entries(self):
-        # entry examples:
-        #   "sys-kernel/gentoo-sources-2.6.37-r1"
-        #   "sys-kernel/gentoo-sources-2.6.37-r1::guru"
-        #   "=sys-kernel/gentoo-sources-2.6.37-r1"
-        #   ">=sys-kernel/gentoo-sources-2.6.37-r1"
-        #   "<=sys-kernel/gentoo-sources-2.6.37-r1"
-        #   "<sys-kernel/gentoo-sources-2.6.37-r1"
-        #   ">sys-kernel/gentoo-sources-2.6.37-r1"
-        #   "!sys-kernel/gentoo-sources-2.6.37-r1"
-        #   "~sys-kernel/gentoo-sources-2.6.37-r1"
+        if self.is_file_or_dir:
+            e = Util.readListFile(self.path)
+        else:
+            e = []
+            for fullfn in Util.fileOrDirGetFileList(p.path):
+                _Util.mergeEntryList(e, Util.readListFile(fullfn))
+        return sorted(e)
 
-        ret = []
-        for fullfn in Util.fileOrDirGetFileList(self._path):
-            ret += Util.readListFile(fullfn)
-        return ret
+    def merge_entries(self, new_entries):
+        e = Util.readListFile(self.path)
+        _Util.mergeEntryList(e, new_entries)
+        _Util.writeEntryList(self.path, e)
+
+    def merge_content(self, new_content):
+        e = Util.readListFile(self.path)
+        _Util.mergeEntryList(e, Util.readListBuffer(new_content))
+        _Util.writeEntryList(self.path, e)
+
+
+class PackageUnmaskMemberFile(ConfigDirMemberFileBase):
+
+    def get_entries(self):
+        return sorted(Util.readListFile(self.path))
+
+    def merge_entries(self, new_entries):
+        e = Util.readListFile(self.path)
+        _Util.mergeEntryList(e, new_entries)
+        _Util.writeEntryList(self.path, e)
+
+    def merge_content(self, new_content):
+        e = Util.readListFile(self.path)
+        _Util.mergeEntryList(e, Util.readListBuffer(new_content))
+        _Util.writeEntryList(self.path, e)
 
 
 class PackageUnmaskFileChecker(ConfigFileCheckerBase):
@@ -64,4 +82,31 @@ class PackageUnmaskFileChecker(ConfigFileCheckerBase):
 
 
 class PackageUnmaskDirChecker(FilesDirCheckerBase):
-    pass
+
+    def __init__(self, parent, bAutoFix, errorCallback):
+        super().__init__(parent, PackageUnmaskMemberFile, bAutoFix, errorCallback)
+
+
+class _Util:
+
+    # entry examples:
+    #   "sys-kernel/gentoo-sources-2.6.37-r1"
+    #   "sys-kernel/gentoo-sources-2.6.37-r1::guru"
+    #   "=sys-kernel/gentoo-sources-2.6.37-r1"
+    #   ">=sys-kernel/gentoo-sources-2.6.37-r1"
+    #   "<=sys-kernel/gentoo-sources-2.6.37-r1"
+    #   "<sys-kernel/gentoo-sources-2.6.37-r1"
+    #   ">sys-kernel/gentoo-sources-2.6.37-r1"
+    #   "!sys-kernel/gentoo-sources-2.6.37-r1"
+    #   "~sys-kernel/gentoo-sources-2.6.37-r1"
+
+    def mergeEntryList(dst, src):
+        for x in src:
+            if x not in dst:
+                dst.append(x)
+
+    def writeEntryList(path, entryList):
+        buf = ""
+        for entry in sorted(entryList):
+            buf += "%s\n" % (entry)
+        pathlib.Path(path).write_text(buf)

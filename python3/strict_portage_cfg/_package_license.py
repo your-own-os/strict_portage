@@ -37,21 +37,44 @@ class PackageLicense(ConfigFileOrDirBase):
         ConfigFileOrDirBase.__init__(self,
                                      os.path.join(prefix, "etc", "portage", "package.license"),
                                      file_or_dir,
-                                     None,
+                                     PackageLicenseMemberFile,
                                      PackageLicensesFileChecker,
                                      PackageLicensesDirChecker)
 
     def get_entries(self):
-        # entry examples:
-        #   "sys-kernel/gentoo-sources GPLv3 APL"
-        #   "*/* *"
+        if self.is_file_or_dir:
+            e = _FileUtil.readEntryDict(self.path)
+        else:
+            e = _EntryDict()
+            for fullfn in Util.fileOrDirGetFileList(p.path):
+                e.mergeEntryDict(_FileUtil.readEntryDict(fullfn))
+        return e.toEntryList()
 
-        ret = []
-        for fullfn in Util.fileOrDirGetFileList(self._path):
-            for line in Util.readListFile(fullfn):
-                itemlist = line.split()
-                ret.append((itemlist[0], itemlist[1:]))
-        return ret
+    def merge_entries(self, new_entries):
+        e = _FileUtil.readEntryDict(self.path)
+        e.mergeEntryList(new_entries)
+        _FileUtil.writeEntrDict(self.path, e)
+
+    def merge_content(self, new_content):
+        e = _FileUtil.readEntryDict(self.path)
+        e.mergeEntryDict(_FileUtil.parseEntryDict(new_content))
+        _FileUtil.writeEntrDict(self.path, e)
+
+
+class PackageLicenseMemberFile(ConfigDirMemberFileBase):
+
+    def get_entries(self):
+        return _FileUtil.readEntryDict(self.path).toEntryList()
+
+    def merge_entries(self, new_entries):
+        e = _FileUtil.readEntryDict(self.path)
+        e.mergeEntryList(new_entries)
+        _FileUtil.writeEntrDict(self.path, e)
+
+    def merge_content(self, new_content):
+        e = _FileUtil.readEntryDict(self.path)
+        e.mergeEntryDict(_FileUtil.parseEntryDict(new_content))
+        _FileUtil.writeEntrDict(self.path, e)
 
 
 class PackageLicensesFileChecker(ConfigFileCheckerBase):
@@ -59,4 +82,65 @@ class PackageLicensesFileChecker(ConfigFileCheckerBase):
 
 
 class PackageLicensesDirChecker(FilesDirCheckerBase):
-    pass
+
+    def __init__(self, parent, bAutoFix, errorCallback):
+        super().__init__(parent, PackageUseMemberFile, bAutoFix, errorCallback)
+
+
+class _EntryDict(dict):
+
+    def __init__(self, entryList=[]):
+        super().__init__()
+        for pkgAtom, useList in entryList:
+            assert pkgAtom not in self
+            assert len(set(useList)) == len(useList)
+            self[pkgAtom] = set(useList)
+
+    def mergeEntry(self, pkgAtom, useList):
+        if pkgAtom not in self:
+            self[pkgAtom] = set()
+        self[pkgAtom] |= set(useList)
+
+    def mergeEntryList(self, entryList):
+        for pkgAtom, useList in srcEntryList:
+            if pkgAtom not in self:
+                self[pkgAtom] = set()
+            self[pkgAtom] |= set(useList)
+
+    def mergeEntryDict(self, entryDict):
+        for pkgAtom, useList in entryDict.items():
+            if pkgAtom not in self:
+                self[pkgAtom] = set()
+            self[pkgAtom] |= set(useList)
+
+    def toEntryList(self):
+        ret = []
+        for k in sorted(self.keys()):
+            ret.append((k, sorted(self[k])))
+        return ret
+
+
+class _FileUtil:
+
+    # entry examples:
+    #   ("sys-kernel/gentoo-sources", ["GPLv3", "APL"])
+    #   ("*/*, ["*"])
+
+    @staticmethod
+    def parseEntryDict(buf):
+        ret = _EntryDict()
+        for line in Util.readListBuffer(buf):
+            itemlist = line.split()
+            ret.mergeEntry(itemlist[0], itemlist[1:])
+        return ret
+
+    @classmethod
+    def readEntryDict(cls, path):
+        return cls.parseEntryDict(pathlib.Path(path).read_text())
+
+    @classmethod
+    def writeEntrDict(path, entryDict):
+        buf = ""
+        for pkgAtom, useList in entryDict.toEntryList():
+            buf += "%s %s\n" % (pkgAtom, " ".join(useList))
+        pathlib.Path(path).write_text(buf)
