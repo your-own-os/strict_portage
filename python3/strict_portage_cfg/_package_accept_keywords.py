@@ -55,12 +55,12 @@ class PackageAcceptKeywords(ConfigFileOrDirBase):
     def merge_entries(self, entries):
         e = _FileUtil.readEntryDict(self.path)
         e.mergeEntryList(entries)
-        _FileUtil.writeEntrDict(self.path, e)
+        _FileUtil.writeEntryDict(self.path, e)
 
     def merge_content(self, content):
         e = _FileUtil.readEntryDict(self.path)
         e.mergeEntryDict(_FileUtil.parseEntryDict(content))
-        _FileUtil.writeEntrDict(self.path, e)
+        _FileUtil.writeEntryDict(self.path, e)
 
 
 class PackageAcceptKeywordsMemberFile(ConfigDirMemberFileBase):
@@ -76,12 +76,12 @@ class PackageAcceptKeywordsMemberFile(ConfigDirMemberFileBase):
     def merge_entries(self, entries):
         e = _FileUtil.readEntryDict(self.path)
         e.mergeEntryList(entries)
-        _FileUtil.writeEntrDict(self.path, e)
+        _FileUtil.writeEntryDict(self.path, e)
 
     def merge_content(self, content):
         e = _FileUtil.readEntryDict(self.path)
         e.mergeEntryDict(_FileUtil.parseEntryDict(content))
-        _FileUtil.writeEntrDict(self.path, e)
+        _FileUtil.writeEntryDict(self.path, e)
 
 
 class PackageAcceptKeywordsFileChecker(ConfigFileCheckerBase):
@@ -152,7 +152,7 @@ class _FileUtil:
                 raise
 
     @classmethod
-    def writeEntrDict(path, entryDict):
+    def writeEntryDict(path, entryDict):
         buf = ""
         for pkgAtom, flagList in entryDict.toEntryList():
             buf += "%s %s\n" % (pkgAtom, " ".join(flagList))
