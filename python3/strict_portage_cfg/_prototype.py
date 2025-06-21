@@ -60,6 +60,11 @@ class ConfigFileBase(abc.ABC):
     def path(self):
         return self._path
 
+    @property
+    @abc.abstractmethod
+    def get_entries(self):
+        pass
+
     def create_checker(self, auto_fix=False, error_callback=None):
         return self._fileCheckerClass(self, auto_fix, error_callback)
 
@@ -82,7 +87,7 @@ class ConfigDirBase(abc.ABC):
 
 class ConfigFileOrDirBase(abc.ABC):
 
-    def __init__(self, path, bFileOrDir, fileClass, fileCheckerClass, dirCheckerClass):
+    def __init__(self, path, bFileOrDir, memberFileClass, fileCheckerClass, dirCheckerClass):
         self._path = path
 
         if bFileOrDir is not None:
@@ -93,7 +98,8 @@ class ConfigFileOrDirBase(abc.ABC):
             else:
                 self._bFileOrDir = True
 
-        self._fileClass = fileClass
+        self._memberFileClass = memberFileClass
+        assert isinstance(self._memberFileClass, ConfigDirMemberFileBase)
 
         if self._bFileOrDir:
             assert issubclass(fileCheckerClass, ConfigFileCheckerBase)
@@ -110,15 +116,43 @@ class ConfigFileOrDirBase(abc.ABC):
     def is_file_or_dir(self):
         return self._bFileOrDir
 
+    @property
+    @abc.abstractmethod
+    def get_entries(self):
+        # this method should call self._assertGetEntries()
+        pass
+
     def has_member(self, name):
         assert not self._bFileOrDir
         return os.path.exists(os.path.join(self._path, name))
+
+    def get_member_obj(self, name):
+        assert not self._bFileOrDir
+        return self._memberFileClass(os.path.join(self._path, name))
 
     def create_checker(self, auto_fix=False, error_callback=None):
         if self._bFileOrDir:
             return self._fileCheckerClass(self, auto_fix, error_callback)
         else:
-            return self._dirCheckerClass(self, self._fileClass, auto_fix, error_callback)
+            return self._dirCheckerClass(self, auto_fix, error_callback)
+
+    def _assertGetEntries(self):
+        assert self._bFileOrDir
+
+
+class ConfigDirMemberFileBase(abc.ABC):
+
+    def __init__(self, path):
+        self._path = path
+
+    @property
+    def path(self):
+        return self._path
+
+    @property
+    @abc.abstractmethod
+    def get_entries(self):
+        pass
 
 
 class ConfigFileCheckerBase(abc.ABC):

@@ -24,6 +24,7 @@
 import os
 from ._util import Util
 from ._prototype import ConfigFileOrDirBase
+from ._prototype import ConfigDirMemberFileBase
 from ._prototype import FilesDirCheckerBase
 
 
@@ -36,25 +37,19 @@ class PackageUse(ConfigFileOrDirBase):
         ConfigFileOrDirBase.__init__(self,
                                      os.path.join(prefix, "etc", "portage", "package.use"),
                                      file_or_dir,
-                                     None,
+                                     PackageUseMemberFile,
                                      PackageUseFileChecker,
                                      PackageUseDirChecker)
 
     def get_entries(self):
-        # entry examples:
-        #   ("sys-apps/systemd", ["-boot", "kernel-install"])
-        #   (">sys-apps/systemd-256.10", ["-boot", "kernel-install"])
-
-        ret = []
-        for fullfn in Util.fileOrDirGetFileList(self._path):
-            for line in Util.readListFile(fullfn):
-                itemlist = line.split()
-                ret.append((itemlist[0], itemlist[1:]))
-        return ret
+        self._assertGetEntries()
+        _FileClass(self).get_entries()
 
 
-class FileClass:
-    pass
+class PackageUseMemberFile(ConfigDirMemberFileBase):
+
+    def get_entries(self):
+        _FileClass(self).get_entries()
 
 
 class PackageUseFileChecker:
@@ -62,4 +57,24 @@ class PackageUseFileChecker:
 
 
 class PackageUseDirChecker(FilesDirCheckerBase):
-    pass
+
+    def __init__(self, parent, bAutoFix, errorCallback):
+        super().__init__(parent, PackageUseMemberFile, bAutoFix, errorCallback)
+
+
+class _FileClass:
+
+    # entry examples:
+    #   ("sys-apps/systemd", ["-boot", "kernel-install"])
+    #   (">sys-apps/systemd-256.10", ["-boot", "kernel-install"])
+
+    def __init__(self, parent):
+        self._p = parent
+
+    def get_entries(self):
+        ret = []
+        for fullfn in Util.fileOrDirGetFileList(self._p.path):
+            for line in Util.readListFile(fullfn):
+                itemlist = line.split()
+                ret.append((itemlist[0], itemlist[1:]))
+        return ret
