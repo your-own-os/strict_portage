@@ -60,6 +60,9 @@ class ConfigFileBase(abc.ABC):
     def path(self):
         return self._path
 
+    def exists(self):
+        return os.path.isfile(self._path)
+
     @property
     @abc.abstractmethod
     def get_entries(self):
@@ -80,6 +83,9 @@ class ConfigDirBase(abc.ABC):
     @property
     def path(self):
         return self._path
+
+    def exists(self):
+        return os.path.isdir(self._path)
 
     def create_checker(self, auto_fix=False, error_callback=None):
         return self._dirCheckerClass(self, auto_fix, error_callback)
@@ -130,6 +136,12 @@ class ConfigFileOrDirBase(abc.ABC):
     def is_file_or_dir(self):
         return self._bFileOrDir
 
+    def exists(self):
+        if self._bFileOrDir:
+            return os.path.isfile(self._path)
+        else:
+            return os.path.isdir(self._path)
+
     @abc.abstractmethod
     def get_entries(self):
         pass
@@ -167,6 +179,9 @@ class ConfigDirMemberFileBase(abc.ABC):
     @property
     def path(self):
         return self._path
+
+    def exists(self):
+        return os.path.exists(self._path)
 
     @abc.abstractmethod
     def get_entries(self):
