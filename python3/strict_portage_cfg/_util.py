@@ -25,6 +25,7 @@ import os
 import re
 import time
 import shutil
+import pathlib
 import platform
 import itertools
 import subprocess
@@ -90,8 +91,8 @@ class Util:
             ret.append(line)
         return ret
 
-    @staticmethod
-    def readListFile(path):
+    @classmethod
+    def readListFile(cls, path):
         return cls.readListBuffer(pathlib.Path(path).read_text())
 
     @staticmethod

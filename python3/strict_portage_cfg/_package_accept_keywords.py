@@ -22,8 +22,10 @@
 
 
 import os
+import pathlib
 from ._util import Util
 from ._prototype import ConfigFileOrDirBase
+from ._prototype import ConfigDirMemberFileBase
 from ._prototype import ConfigFileCheckerBase
 from ._prototype import FilesDirCheckerBase
 
@@ -46,18 +48,18 @@ class PackageAcceptKeywords(ConfigFileOrDirBase):
             e = _FileUtil.readEntryDict(self.path)
         else:
             e = _EntryDict()
-            for fullfn in Util.fileOrDirGetFileList(p.path):
+            for fullfn in Util.fileOrDirGetFileList(self.path):
                 e.mergeEntryDict(_FileUtil.readEntryDict(fullfn, bStrict=True))
         return e.toEntryList()
 
-    def merge_entries(self, new_entries):
+    def merge_entries(self, entries):
         e = _FileUtil.readEntryDict(self.path)
-        e.mergeEntryList(new_entries)
+        e.mergeEntryList(entries)
         _FileUtil.writeEntrDict(self.path, e)
 
-    def merge_content(self, new_content):
+    def merge_content(self, content):
         e = _FileUtil.readEntryDict(self.path)
-        e.mergeEntryDict(_FileUtil.parseEntryDict(new_content))
+        e.mergeEntryDict(_FileUtil.parseEntryDict(content))
         _FileUtil.writeEntrDict(self.path, e)
 
 
@@ -71,14 +73,14 @@ class PackageAcceptKeywordsMemberFile(ConfigDirMemberFileBase):
     def get_entries(self):
         return _FileUtil.readEntryDict(self.path).toEntryList()
 
-    def merge_entries(self, new_entries):
+    def merge_entries(self, entries):
         e = _FileUtil.readEntryDict(self.path)
-        e.mergeEntryList(new_entries)
+        e.mergeEntryList(entries)
         _FileUtil.writeEntrDict(self.path, e)
 
-    def merge_content(self, new_content):
+    def merge_content(self, content):
         e = _FileUtil.readEntryDict(self.path)
-        e.mergeEntryDict(_FileUtil.parseEntryDict(new_content))
+        e.mergeEntryDict(_FileUtil.parseEntryDict(content))
         _FileUtil.writeEntrDict(self.path, e)
 
 
@@ -107,7 +109,7 @@ class _EntryDict(dict):
         self[pkgAtom] |= set(flagList)
 
     def mergeEntryList(self, entryList):
-        for pkgAtom, flagList in srcEntryList:
+        for pkgAtom, flagList in entryList:
             if pkgAtom not in self:
                 self[pkgAtom] = set()
             self[pkgAtom] |= set(flagList)

@@ -74,11 +74,11 @@ class ConfigFileBase(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def merge_entries(self, new_entries):
+    def merge_entries(self, entries):
         pass
 
     @abc.abstractmethod
-    def merge_content(self, new_content):
+    def merge_content(self, content):
         pass
 
     def write_content(self, content):
@@ -183,12 +183,12 @@ class ConfigFileOrDirBase(abc.ABC):
 
     @abc.abstractmethod
     @enforceConfigFile
-    def merge_entries(self, new_entries):
+    def merge_entries(self, entries):
         pass
 
     @abc.abstractmethod
     @enforceConfigFile
-    def merge_content(self, new_content):
+    def merge_content(self, content):
         pass
 
     @enforceConfigFile
@@ -243,11 +243,11 @@ class ConfigDirMemberFileBase(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def merge_entries(self, new_entries):
+    def merge_entries(self, entries):
         pass
 
     @abc.abstractmethod
-    def merge_content(self, new_content):
+    def merge_content(self, content):
         pass
 
     def merge_member_file(self, name, remove_original=False):

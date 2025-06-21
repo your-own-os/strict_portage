@@ -22,8 +22,10 @@
 
 
 import os
+import pathlib
 from ._util import Util
 from ._prototype import ConfigFileOrDirBase
+from ._prototype import ConfigDirMemberFileBase
 from ._prototype import ConfigFileCheckerBase
 from ._prototype import FilesDirCheckerBase
 
@@ -46,18 +48,18 @@ class PackageMask(ConfigFileOrDirBase):
             e = _Util.readEntryList(self.path)
         else:
             e = []
-            for fullfn in Util.fileOrDirGetFileList(p.path):
+            for fullfn in Util.fileOrDirGetFileList(self.path):
                 _Util.mergeEntryList(e, _Util.readEntryList(fullfn, bStrict=True))
         return sorted(e)
 
-    def merge_entries(self, new_entries):
+    def merge_entries(self, entries):
         e = _Util.readEntryList(self.path)
-        _Util.mergeEntryList(e, new_entries)
+        _Util.mergeEntryList(e, entries)
         _Util.writeEntryList(self.path, e)
 
-    def merge_content(self, new_content):
+    def merge_content(self, content):
         e = _Util.readEntryList(self.path)
-        _Util.mergeEntryList(e, Util.readListBuffer(new_content))
+        _Util.mergeEntryList(e, Util.readListBuffer(content))
         _Util.writeEntryList(self.path, e)
 
 
@@ -71,14 +73,14 @@ class PackageMaskMemberFile(ConfigDirMemberFileBase):
     def get_entries(self):
         return sorted(_Util.readEntryList(self.path))
 
-    def merge_entries(self, new_entries):
+    def merge_entries(self, entries):
         e = _Util.readEntryList(self.path)
-        _Util.mergeEntryList(e, new_entries)
+        _Util.mergeEntryList(e, entries)
         _Util.writeEntryList(self.path, e)
 
-    def merge_content(self, new_content):
+    def merge_content(self, content):
         e = _Util.readEntryList(self.path)
-        _Util.mergeEntryList(e, Util.readListBuffer(new_content))
+        _Util.mergeEntryList(e, Util.readListBuffer(content))
         _Util.writeEntryList(self.path, e)
 
 
