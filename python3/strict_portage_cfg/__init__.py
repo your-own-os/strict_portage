@@ -35,12 +35,23 @@ from ._portage_cfg_dir import PortageConfigDir
 from ._make_conf import MakeConf
 from ._repos_conf import ReposConf
 from ._repo_postsync_dir import RepoPostSyncDir
+
 from ._package_accept_keywords import PackageAcceptKeywords
+from ._package_accept_keywords import PackageAcceptKeywordsMemberFile
+
 from ._package_env import PackageEnv
+
 from ._package_license import PackageLicense
+from ._package_license import PackageLicenseMemberFile
+
 from ._package_mask import PackageMask
+from ._package_mask import PackageMaskMemberFile
+
 from ._package_unmask import PackageUnmask
+from ._package_unmask import PackageUnmaskMemberFile
+
 from ._package_use import PackageUse
+from ._package_use import PackageUseMemberFile
 
 from ._sets import Sets
 from ._sets import CustomSet
@@ -55,11 +66,16 @@ __all__ = [
     "ReposConf",
     "RepoPostSyncDir",
     "PackageAcceptKeywords",
+    "PackageAcceptKeywordsMemberFile",
     "PackageEnv",
     "PackageLicense",
+    "PackageLicenseMemberFile",
     "PackageMask",
+    "PackageMaskMemberFile",
     "PackageUnmask",
+    "PackageUnmaskMemberFile",
     "PackageUse",
+    "PackageUseMemberFile",
     "Sets",
     "CustomSet",
     "World",

@@ -63,6 +63,15 @@ class PackageAcceptKeywords(ConfigFileOrDirBase):
 
 class PackageAcceptKeywordsMemberFile(ConfigDirMemberFileBase):
 
+    def __init__(self, name=None, prefix="/", _path=None):
+        if name is not None:
+            assert _path is None
+            super().__init__(os.path.join(prefix, "etc", "portage", "package.accept_keywords", name))
+        elif _path is not None:
+            super().__init__(_path)
+        else:
+            assert False
+
     def get_entries(self):
         return _FileUtil.readEntryDict(self.path).toEntryList()
 
