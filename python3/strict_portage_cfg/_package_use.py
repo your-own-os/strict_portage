@@ -68,6 +68,13 @@ class PackageUseMemberFile(ConfigDirMemberFileBase):
     def get_entries(self):
         return _FileUtil.readEntryDict(self.path).toEntryList()
 
+    def has_use_flag(self, name, use_flag):
+        e = _FileUtil.readEntryDict(self.path)
+        for pkgName2, useFlagList2 in e.items():
+            if fnmatch.fnmatch(name, pkgName2):
+                return use_flag in useFlagList2
+        return False
+
     def merge_entries(self, entries):
         e = _FileUtil.readEntryDict(self.path)
         e.mergeEntryList(entries)
