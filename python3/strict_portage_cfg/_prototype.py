@@ -162,7 +162,13 @@ class ConfigFileOrDirBase(abc.ABC):
         Util.forceDelete(self._path)
 
     def get_content(self):
-        return pathlib.Path(self._path).read_text()
+        if self._bFileOrDir:
+            return pathlib.Path(self._path).read_text()
+        else:
+            buf = ""
+            for fullfn in Util.fileOrDirGetFileList(self._path):
+                buf = buf.rstrip("\n") + "\n\n" + pathlib.Path(fullfn).read_text().lstrip("\n")
+            return buf
 
     @abc.abstractmethod
     def get_entries(self):
