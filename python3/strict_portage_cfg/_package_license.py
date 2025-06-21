@@ -33,15 +33,11 @@ from ._prototype import ConfigDirCheckerBase
 class PackageLicense(ConfigFileOrDirBase):
 
     def __init__(self, prefix="/", file_or_dir=None):
-        # user should guarantee existence when calling other methods
-        # but checker is compatible with non-existence senario
-
-        ConfigFileOrDirBase.__init__(self,
-                                     os.path.join(prefix, "etc", "portage", "package.license"),
-                                     file_or_dir,
-                                     PackageLicenseMemberFile,
-                                     PackageLicensesFileChecker,
-                                     PackageLicensesDirChecker)
+        super().__init__(os.path.join(prefix, "etc", "portage", "package.license"),
+                         file_or_dir,
+                         PackageLicenseMemberFile,
+                         PackageLicensesFileChecker,
+                         PackageLicensesDirChecker)
 
     def get_entries(self):
         if self.is_file_or_dir:

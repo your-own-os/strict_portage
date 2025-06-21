@@ -31,10 +31,8 @@ from ._prototype import ConfigFileCheckerBase
 class MakeConf(ConfigFileBase):
 
     def __init__(self, prefix="/"):
-        # user should guarantee existence when calling other methods
-        # but checker is compatible with non-existence senario
-
-        super().__init__(os.path.join(prefix, "etc", "portage", "make.conf"), MakeConfChecker)
+        super().__init__(os.path.join(prefix, "etc", "portage", "make.conf"),
+                         MakeConfChecker)
 
     def has_var(self, var_name):
         buf = pathlib.Path(self._path).read_text()

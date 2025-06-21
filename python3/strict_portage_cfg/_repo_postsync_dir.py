@@ -22,21 +22,43 @@
 
 
 import os
-from ._prototype import ConfigFileOrDirBase
+from ._prototype import ConfigDirBase
+from ._prototype import ConfigDirMemberFileBase
 from ._prototype import ConfigDirCheckerBase
 
 
-class RepoPostSyncDir(ConfigFileOrDirBase):
+class RepoPostSyncDir(ConfigDirBase):
 
     def __init__(self, prefix="/"):
-        # user should guarantee existence when calling other methods
-        # but checker is compatible with non-existence senario
-        ConfigFileOrDirBase.__init__(self,
-                                     os.path.join(prefix, "etc", "portage", "repo.postsync.d"),
-                                     False,
-                                     None,
-                                     None,
-                                     RepoPostSyncDirDirChecker)
+        super().__init__(os.path.join(prefix, "etc", "portage", "repo.postsync.d"),
+                         RepoPostSyncDirMemberFile,
+                         RepoPostSyncDirDirChecker)
+
+    def get_entries(self):
+        assert False
+
+    def merge_entries(self, entries):
+        assert False
+
+    def merge_content(self, content):
+        assert False
+
+
+class RepoPostSyncDirMemberFile(ConfigDirMemberFileBase):
+
+    def __init__(self, name, prefix="/", _path=None):
+        if _path is None:
+            _path = os.path.join(prefix, "etc", "portage", "repo.postsync.d", name)
+        super().__init__(name, _path)
+
+    def get_entries(self):
+        assert False
+
+    def merge_entries(self, entries):
+        assert False
+
+    def merge_content(self, content):
+        assert False
 
 
 class RepoPostSyncDirDirChecker(ConfigDirCheckerBase):

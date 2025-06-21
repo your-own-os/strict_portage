@@ -82,10 +82,13 @@ class ConfigFileBase(abc.ABC):
 
 class ConfigDirBase(abc.ABC):
 
-    def __init__(self, path, dirCheckerClass):
-        assert issubclass(dirCheckerClass, ConfigDirCheckerBase)
-
+    def __init__(self, path, memberFileClass, dirCheckerClass):
         self._path = path
+
+        assert issubclass(memberFileClass, ConfigDirMemberFileBase)
+        self._memberFileClass = memberFileClass
+
+        assert issubclass(dirCheckerClass, ConfigDirCheckerBase)
         self._dirCheckerClass = dirCheckerClass
 
     @property
@@ -129,8 +132,8 @@ class ConfigFileOrDirBase(abc.ABC):
             else:
                 self._bFileOrDir = True
 
+        assert issubclass(memberFileClass, ConfigDirMemberFileBase)
         self._memberFileClass = memberFileClass
-        assert isinstance(self._memberFileClass, ConfigDirMemberFileBase)
 
         if self._bFileOrDir:
             assert issubclass(fileCheckerClass, ConfigFileCheckerBase)

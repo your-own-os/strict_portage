@@ -39,9 +39,6 @@ from ._sets import Sets
 class PortageConfigDir:
 
     def __init__(self, prefix="/"):
-        # user should guarantee existence when calling other methods
-        # but checker is compatible with non-existence senario
-
         self._prefix = prefix
         self._path = os.path.join(self._prefix, "etc", "portage")
 

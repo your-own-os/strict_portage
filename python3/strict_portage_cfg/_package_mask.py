@@ -33,15 +33,11 @@ from ._prototype import ConfigDirCheckerBase
 class PackageMask(ConfigFileOrDirBase):
 
     def __init__(self, prefix="/", file_or_dir=None):
-        # user should guarantee existence when calling other methods
-        # but checker is compatible with non-existence senario
-
-        ConfigFileOrDirBase.__init__(self,
-                                     os.path.join(prefix, "etc", "portage", "package.mask"),
-                                     file_or_dir,
-                                     PackageMaskMemberFile,
-                                     PackageMaskFileChecker,
-                                     PackageMaskDirChecker)
+        super().__init__(os.path.join(prefix, "etc", "portage", "package.mask"),
+                         file_or_dir,
+                         PackageMaskMemberFile,
+                         PackageMaskFileChecker,
+                         PackageMaskDirChecker)
 
     def get_entries(self):
         if self.is_file_or_dir:
