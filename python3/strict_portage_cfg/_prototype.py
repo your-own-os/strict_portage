@@ -76,18 +76,6 @@ class ConfigFileBase(abc.ABC):
         if os.path.exists(self._path):
             pathlib.Path(self._path).write_text("")
 
-    @abc.abstractmethod
-    def get_entries(self):
-        pass
-
-    @abc.abstractmethod
-    def merge_entries(self, entries):
-        pass
-
-    @abc.abstractmethod
-    def merge_content(self, content):
-        pass
-
     def create_checker(self, auto_fix=False, error_callback=None):
         return self._fileCheckerClass(self, auto_fix, error_callback)
 
