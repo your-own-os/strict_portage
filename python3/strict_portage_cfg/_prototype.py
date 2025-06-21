@@ -63,6 +63,9 @@ class ConfigFileBase(abc.ABC):
     def exists(self):
         return os.path.isfile(self._path)
 
+    def remove(self):
+        Util.forceDelete(self._path)
+
     @property
     @abc.abstractmethod
     def get_entries(self):
@@ -86,6 +89,9 @@ class ConfigDirBase(abc.ABC):
 
     def exists(self):
         return os.path.isdir(self._path)
+
+    def remove(self):
+        Util.forceDelete(self._path)
 
     def create_checker(self, auto_fix=False, error_callback=None):
         return self._dirCheckerClass(self, auto_fix, error_callback)
@@ -142,6 +148,9 @@ class ConfigFileOrDirBase(abc.ABC):
         else:
             return os.path.isdir(self._path)
 
+    def remove(self):
+        Util.forceDelete(self._path)
+
     @abc.abstractmethod
     def get_entries(self):
         pass
@@ -182,6 +191,9 @@ class ConfigDirMemberFileBase(abc.ABC):
 
     def exists(self):
         return os.path.exists(self._path)
+
+    def remove(self):
+        Util.forceDelete(self._path)
 
     @abc.abstractmethod
     def get_entries(self):
