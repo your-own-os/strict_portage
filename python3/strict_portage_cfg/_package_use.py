@@ -55,7 +55,9 @@ class PackageUse(ConfigFileOrDirBase):
 
     def merge_entries(self, entries):
         e = _FileUtil.readEntryDict(self.path)
-        e.mergeEntryList(entries)
+        for pkgAtom, flagList in entries:
+            pkgName = Util.portagePkgNameFromPkgAtom(pkgAtom)
+            e.mergeEntry(pkgName, flagList)
         _FileUtil.entryDictToFile(self.path, e)
 
     def set_entries(self, entries):
@@ -79,12 +81,16 @@ class PackageUseMemberFile(ConfigDirMemberFileBase):
 
     def merge_entries(self, entries):
         e = _FileUtil.readEntryDict(self.path)
-        e.mergeEntryList(entries)
+        for pkgAtom, flagList in entries:
+            pkgName = Util.portagePkgNameFromPkgAtom(pkgAtom)
+            e.mergeEntry(pkgName, flagList)
         _FileUtil.entryDictToFile(self.path, e)
 
     def set_entries(self, entries):
         e = _EntryDict()
-        e.mergeEntryList(entries)
+        for pkgAtom, flagList in entries:
+            pkgName = Util.portagePkgNameFromPkgAtom(pkgAtom)
+            e.mergeEntry(pkgName, flagList)
         _FileUtil.entryDictToFile(self.path, e)
 
     def get_use_flag_mapping(self):
@@ -126,12 +132,6 @@ class _EntryDict(dict):
             self[pkgName] = set()
         self[pkgName] |= set(flagList)
 
-    def mergeEntryList(self, entryList):
-        for pkgName, flagList in entryList:
-            if pkgName not in self:
-                self[pkgName] = set()
-            self[pkgName] |= set(flagList)
-
     def mergeEntryDict(self, entryDict):
         for pkgName, flagList in entryDict.items():
             if pkgName not in self:
@@ -141,7 +141,6 @@ class _EntryDict(dict):
     def toEntryList(self):
         ret = []
         for k in sorted(self.keys()):
-            assert _FileUtil.isPkgName(k)
             ret.append((k, sorted(self[k])))
         return ret
 
@@ -182,10 +181,7 @@ class _FileUtil:
     def entryDictToStr(entryDict):
         ret = ""
         for pkgName, flagList in entryDict.toEntryList():
-            ret += pkgName
-            ret += " "
-            ret += " ".join(flagList)
-            ret += "\n"
+            ret += "%s %s\n" % (pkgName, " ".join(flagList))
         return ret
 
     @classmethod

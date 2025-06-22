@@ -55,7 +55,9 @@ class PackageAcceptKeywords(ConfigFileOrDirBase):
 
     def merge_entries(self, entries):
         e = _FileUtil.readEntryDict(self.path)
-        e.mergeEntryList(entries)
+        for pkgAtom, flagList in entries:
+            pkgName = Util.portagePkgNameFromPkgAtom(pkgAtom)
+            e.mergeEntry(pkgName, flagList)
         _FileUtil.entryDictToFile(self.path, e)
 
     def set_entries(self, entries):
@@ -79,11 +81,17 @@ class PackageAcceptKeywordsMemberFile(ConfigDirMemberFileBase):
 
     def merge_entries(self, entries):
         e = _FileUtil.readEntryDict(self.path)
-        e.mergeEntryList(entries)
+        for pkgAtom, flagList in entries:
+            pkgName = Util.portagePkgNameFromPkgAtom(pkgAtom)
+            e.mergeEntry(pkgName, flagList)
         _FileUtil.entryDictToFile(self.path, e)
 
     def set_entries(self, entries):
-        assert False
+        e = _EntryDict()
+        for pkgAtom, flagList in entries:
+            pkgName = Util.portagePkgNameFromPkgAtom(pkgAtom)
+            e.mergeEntry(pkgName, flagList)
+        _FileUtil.entryDictToFile(self.path, e)
 
 
 class PackageAcceptKeywordsFileChecker(ConfigFileCheckerBase):
@@ -117,12 +125,6 @@ class _EntryDict(dict):
         if pkgName not in self:
             self[pkgName] = set()
         self[pkgName] |= set(flagList)
-
-    def mergeEntryList(self, entryList):
-        for pkgName, flagList in entryList:
-            if pkgName not in self:
-                self[pkgName] = set()
-            self[pkgName] |= set(flagList)
 
     def mergeEntryDict(self, entryDict):
         for pkgName, flagList in entryDict.items():
