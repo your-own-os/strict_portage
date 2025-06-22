@@ -23,7 +23,6 @@
 
 import os
 import pathlib
-from fnmatch import fnmatch
 from ._util import Util
 from ._prototype import ConfigFileOrDirBase
 from ._prototype import ConfigDirMemberFileBase
@@ -107,27 +106,27 @@ class _EntryDict(dict):
 
     def __init__(self, entryList=[]):
         super().__init__()
-        for pkgAtom, flagList in entryList:
-            assert pkgAtom not in self
+        for pkgName, flagList in entryList:
+            assert pkgName not in self
             assert len(set(flagList)) == len(flagList)
-            self[pkgAtom] = set(flagList)
+            self[pkgName] = set(flagList)
 
-    def mergeEntry(self, pkgAtom, flagList):
-        if pkgAtom not in self:
-            self[pkgAtom] = set()
-        self[pkgAtom] |= set(flagList)
+    def mergeEntry(self, pkgName, flagList):
+        if pkgName not in self:
+            self[pkgName] = set()
+        self[pkgName] |= set(flagList)
 
     def mergeEntryList(self, entryList):
-        for pkgAtom, flagList in entryList:
-            if pkgAtom not in self:
-                self[pkgAtom] = set()
-            self[pkgAtom] |= set(flagList)
+        for pkgName, flagList in entryList:
+            if pkgName not in self:
+                self[pkgName] = set()
+            self[pkgName] |= set(flagList)
 
     def mergeEntryDict(self, entryDict):
-        for pkgAtom, flagList in entryDict.items():
-            if pkgAtom not in self:
-                self[pkgAtom] = set()
-            self[pkgAtom] |= set(flagList)
+        for pkgName, flagList in entryDict.items():
+            if pkgName not in self:
+                self[pkgName] = set()
+            self[pkgName] |= set(flagList)
 
     def toEntryList(self):
         ret = []
@@ -142,12 +141,14 @@ class _FileUtil:
     #   ("sys-apps/systemd", ["-boot", "kernel-install"])
     #   (">sys-apps/systemd-256.10", ["-boot", "kernel-install"])
 
-    @staticmethod
-    def parseEntryDict(buf):
+    @classmethod
+    def parseEntryDict(cls, buf):
         ret = _EntryDict()
         for line in Util.readListBuffer(buf):
             itemlist = line.split()
-            ret.mergeEntry(itemlist[0], itemlist[1:])
+            pkgName = cls.pkgNameFromPkgAtom(itemlist[0])
+            flagList = itemlist[1:]
+            ret.mergeEntry(pkgName, flagList)
         return ret
 
     @classmethod
@@ -160,9 +161,27 @@ class _FileUtil:
             else:
                 raise
 
-    @classmethod
+    @staticmethod
     def writeEntryDict(path, entryDict):
-        buf = ""
-        for pkgAtom, flagList in entryDict.toEntryList():
-            buf += "%s %s\n" % (pkgAtom, " ".join(flagList))
-        pathlib.Path(path).write_text(buf)
+        with open(path, "w") as f:
+            for pkgName, flagList in entryDict.toEntryList():
+                f.write(pkgName)
+                f.write(" ")
+                f.write(" ".join(flagList))
+                f.write("\n")
+
+    @staticmethod
+    def pkgNameFromPkgAtom(pkgAtom):
+        pkgName = pkgAtom
+
+        while pkgName[0] in ["<", ">", "=", "!", "~"]:
+            pkgName = pkgName[1:]
+
+        i = 0
+        while i < len(pkgName):
+            if pkgName[i] == "-" and i < len(pkgName) - 1 and pkgName[i + 1].isdigit():
+                pkgName = pkgName[:i]
+                break
+            i = i + 1
+
+        return pkgName
