@@ -412,7 +412,7 @@ class ConfigFileCheckerBase(abc.ABC):
         return None
 
 
-class ConfigDirCheckerBase(abc.ABC):         # FIXME: name is bad
+class ConfigDirCheckerBase(abc.ABC):
 
     def __init__(self, parent, fileClass, bAutoFix, errorCallback):
         assert isinstance(parent, ConfigDirBase) or (isinstance(parent, ConfigFileOrDirBase) and not parent.is_file_or_dir)
