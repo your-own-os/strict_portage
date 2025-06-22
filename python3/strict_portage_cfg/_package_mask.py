@@ -87,7 +87,9 @@ class PackageMaskMemberFile(ConfigDirMemberFileBase):
 
 
 class PackageMaskFileChecker(ConfigFileCheckerBase):
-    pass
+
+    def _checkContentFormat(self, content, bAutoFix, errorClass):
+        return None
 
 
 class PackageMaskDirChecker(ConfigDirCheckerBase):

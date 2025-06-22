@@ -87,7 +87,9 @@ class PackageLicenseMemberFile(ConfigDirMemberFileBase):
 
 
 class PackageLicensesFileChecker(ConfigFileCheckerBase):
-    pass
+
+    def _checkContentFormat(self, content, bAutoFix, errorClass):
+        return None
 
 
 class PackageLicensesDirChecker(ConfigDirCheckerBase):

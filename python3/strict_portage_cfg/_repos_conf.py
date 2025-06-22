@@ -71,7 +71,9 @@ class ReposConfMemberFile(ConfigDirMemberFileBase):
 
 
 class ReposConfFileChecker(ConfigFileCheckerBase):
-    pass
+
+    def _checkContentFormat(self, content, errorClass):
+        pass
 
 
 class ReposConfDirChecker(ConfigDirCheckerBase):

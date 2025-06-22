@@ -87,7 +87,9 @@ class PackageUnmaskMemberFile(ConfigDirMemberFileBase):
 
 
 class PackageUnmaskFileChecker(ConfigFileCheckerBase):
-    pass
+
+    def _checkContentFormat(self, content, bAutoFix, errorClass):
+        return None
 
 
 class PackageUnmaskDirChecker(ConfigDirCheckerBase):

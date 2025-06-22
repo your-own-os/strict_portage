@@ -87,7 +87,9 @@ class PackageAcceptKeywordsMemberFile(ConfigDirMemberFileBase):
 
 
 class PackageAcceptKeywordsFileChecker(ConfigFileCheckerBase):
-    pass
+
+    def _checkContentFormat(self, content, bAutoFix, errorClass):
+        return None
 
 
 class PackageAcceptKeywordsDirChecker(ConfigDirCheckerBase):

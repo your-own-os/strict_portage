@@ -23,3 +23,7 @@
 
 class FileFormatError(Exception):
     pass
+
+
+class _CheckError(Exception):
+    pass

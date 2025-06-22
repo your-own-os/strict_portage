@@ -105,6 +105,9 @@ class PackageEnvFileChecker(ConfigFileCheckerBase):
 
         return False                # returning False means there's no fatal error
 
+    def _checkContentFormat(self, content, bAutoFix, errorClass):
+        return None
+
 
 class PackageEnvDirChecker(ConfigDirCheckerBase):
 

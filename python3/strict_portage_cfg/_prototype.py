@@ -25,6 +25,7 @@ import os
 import abc
 import pathlib
 from ._util import Util
+from ._errors import _CheckError
 
 
 class SetBase(abc.ABC):
@@ -279,8 +280,10 @@ class ConfigFileCheckerBase(abc.ABC):
             return
 
         if content is not None:
-            # FIXME: check content format
-            pass
+            try:
+                self._checkContentFormat(content, False, _CheckError)
+            except _CheckError:
+                assert False
 
         # is a symlink, fix: remove the symlink and create a file
         if os.path.islink(self._obj.path):
@@ -305,16 +308,23 @@ class ConfigFileCheckerBase(abc.ABC):
                     self._errorCallback("\"%s\" has invalid content" % (self._obj.path))
                     return
         else:
-            # FIXME: read file content check format
-            pass
+            try:
+                newContent = self._checkContentFormat(pathlib.Path(self._obj.path).read_text(), self._bAutoFix, _CheckError)
+                if newContent is not None:
+                    pathlib.Path(self._obj.path).write_text(newContent)
+            except _CheckError as e:
+                self._errorCallback("\"%s\" has invalid content: %s" % (self._obj.path, str(e)))
+                return
 
     def check_link(self, content=None, target=None):
         if self._basicCheck():
             return
 
         if content is not None:
-            # FIXME: check content format
-            pass
+            try:
+                self._checkContentFormat(content, False, _CheckError)
+            except _CheckError:
+                assert False
 
         if target is not None:
             assert os.path.exists(target)
@@ -340,22 +350,27 @@ class ConfigFileCheckerBase(abc.ABC):
                     self._errorCallback("\"%s\" must be a symlink to \"%s\"" % (self._obj.path, target))
                     return
 
-        # content is invalid, fix: re-write content
+        # content is invalid, no way to fix
         if content is not None:
             if pathlib.Path(self._obj.path).read_text() != content:
                 self._errorCallback("\"%s\" has invalid content" % (self._obj.path))
                 return
         else:
-            # FIXME: read file content check format
-            pass
+            try:
+                self._checkContentFormat(pathlib.Path(self._obj.path).read_text(), False, _CheckError)
+            except _CheckError as e:
+                self._errorCallback("\"%s\" has invalid content: %s" % (self._obj.path, str(e)))
+                return
 
     def check_file_or_link(self, content=None):
         if self._basicCheck():
             return
 
-        # content is invalid, fix: re-write content
         if content is not None:
-            # FIXME: check content format
+            try:
+                self._checkContentFormat(content, False, _CheckError)
+            except _CheckError:
+                assert False
 
             if pathlib.Path(self._obj.path).read_text() != content:
                 if os.path.islink(self._obj.path):
@@ -368,8 +383,16 @@ class ConfigFileCheckerBase(abc.ABC):
                         self._errorCallback("\"%s\" has invalid content" % (self._obj.path))
                         return
         else:
-            # FIXME: read file content check format
-            pass
+            try:
+                if os.path.islink(self._obj.path):
+                    self._checkContentFormat(pathlib.Path(self._obj.path).read_text(), False, _CheckError)
+                else:
+                    newContent = self._checkContentFormat(pathlib.Path(self._obj.path).read_text(), self._bAutoFix, _CheckError)
+                    if newContent is not None:
+                        pathlib.Path(self._obj.path).write_text(newContent)
+            except _CheckError as e:
+                self._errorCallback("\"%s\" has invalid content: %s" % (self._obj.path, str(e)))
+                return
 
     def __enter__(self):
         return self
@@ -384,6 +407,9 @@ class ConfigFileCheckerBase(abc.ABC):
             return True
 
         return False
+
+    def _checkContentFormat(self, content, bAutoFix, errorClass):
+        return None
 
 
 class ConfigDirCheckerBase(abc.ABC):         # FIXME: name is bad

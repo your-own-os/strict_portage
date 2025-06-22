@@ -42,7 +42,7 @@ class PackageUse(ConfigFileOrDirBase):
     def merge_content(self, content):
         e = _FileUtil.readEntryDict(self.path)
         e.mergeEntryDict(_FileUtil.parseEntryDict(content))
-        _FileUtil.writeEntryDict(self.path, e)
+        _FileUtil.entryDictToFile(self.path, e)
 
     def get_entries(self):
         if self.is_file_or_dir:
@@ -50,13 +50,13 @@ class PackageUse(ConfigFileOrDirBase):
         else:
             e = _EntryDict()
             for fullfn in Util.fileOrDirGetFileList(self.path):
-                e.mergeEntryDict(_FileUtil.readEntryDict(fullfn, bStrict=True))
+                e.mergeEntryDict(_FileUtil.readEntryDict(fullfn, bRaiseFileNotFoundError=True))
         return e.toEntryList()
 
     def merge_entries(self, entries):
         e = _FileUtil.readEntryDict(self.path)
         e.mergeEntryList(entries)
-        _FileUtil.writeEntryDict(self.path, e)
+        _FileUtil.entryDictToFile(self.path, e)
 
     def set_entries(self, entries):
         assert False
@@ -72,7 +72,7 @@ class PackageUseMemberFile(ConfigDirMemberFileBase):
     def merge_content(self, content):
         e = _FileUtil.readEntryDict(self.path)
         e.mergeEntryDict(_FileUtil.parseEntryDict(content))
-        _FileUtil.writeEntryDict(self.path, e)
+        _FileUtil.entryDictToFile(self.path, e)
 
     def get_entries(self):
         return _FileUtil.readEntryDict(self.path).toEntryList()
@@ -80,20 +80,30 @@ class PackageUseMemberFile(ConfigDirMemberFileBase):
     def merge_entries(self, entries):
         e = _FileUtil.readEntryDict(self.path)
         e.mergeEntryList(entries)
-        _FileUtil.writeEntryDict(self.path, e)
+        _FileUtil.entryDictToFile(self.path, e)
 
     def set_entries(self, entries):
-        assert False
+        e = _EntryDict()
+        e.mergeEntryList(entries)
+        _FileUtil.entryDictToFile(self.path, e)
 
     def get_use_flag_mapping(self):
         return _FileUtil.readEntryDict(self.path)
 
     def set_use_flag_mapping(self, mapping):
-        _FileUtil.writeEntryDict(self.path, mapping)
+        _FileUtil.entryDictToFile(self.path, mapping)
 
 
 class PackageUseFileChecker(ConfigFileCheckerBase):
-    pass
+
+    def _checkContentFormat(self, content, bAutoFix, errorClass):
+        if bAutoFix:
+            e = _FileUtil.parseEntryDict(content)
+            s = _FileUtil.entryDictToStr(e)
+            return None if s == content else s
+        else:
+            _FileUtil.parseEntryDict(content, valueErrorClass=errorClass)
+            return None
 
 
 class PackageUseDirChecker(ConfigDirCheckerBase):
@@ -131,6 +141,7 @@ class _EntryDict(dict):
     def toEntryList(self):
         ret = []
         for k in sorted(self.keys()):
+            assert _FileUtil.isPkgName(k)
             ret.append((k, sorted(self[k])))
         return ret
 
@@ -139,36 +150,52 @@ class _FileUtil:
 
     # entry examples:
     #   ("sys-apps/systemd", ["-boot", "kernel-install"])
+    #
+    # we don't support this kind of entries:
     #   (">sys-apps/systemd-256.10", ["-boot", "kernel-install"])
+    #
 
     @classmethod
-    def parseEntryDict(cls, buf):
+    def parseEntryDict(cls, buf, valueErrorClass=None):
         ret = _EntryDict()
         for line in Util.readListBuffer(buf):
             itemlist = line.split()
+            if valueErrorClass is not None:
+                if not cls.isPkgName(itemlist[0]):
+                    raise ValueError("only package name can be specified: %s" % (itemlist[0]))
             pkgName = cls.pkgNameFromPkgAtom(itemlist[0])
             flagList = itemlist[1:]
             ret.mergeEntry(pkgName, flagList)
         return ret
 
     @classmethod
-    def readEntryDict(cls, path, bStrict=False):
+    def readEntryDict(cls, path, bRaiseFileNotFoundError=False, valueErrorClass=False):
         try:
-            return cls.parseEntryDict(pathlib.Path(path).read_text())
+            return cls.parseEntryDict(pathlib.Path(path).read_text(), valueErrorClass=valueErrorClass)
         except FileNotFoundError:
-            if not bStrict:
+            if not bRaiseFileNotFoundError:
                 return _EntryDict()
             else:
                 raise
 
     @staticmethod
-    def writeEntryDict(path, entryDict):
+    def entryDictToStr(entryDict):
+        ret = ""
+        for pkgName, flagList in entryDict.toEntryList():
+            ret += pkgName
+            ret += " "
+            ret += " ".join(flagList)
+            ret += "\n"
+        return ret
+
+    @staticmethod
+    def entryDictToFile(path, entryDict):
         with open(path, "w") as f:
-            for pkgName, flagList in entryDict.toEntryList():
-                f.write(pkgName)
-                f.write(" ")
-                f.write(" ".join(flagList))
-                f.write("\n")
+            f.write(_FileUtil.entryDictToStr(entryDict))
+
+    @staticmethod
+    def isPkgName(pkgAtom):
+        return pkgAtom[0] in ["<", ">", "=", "!", "~"]
 
     @staticmethod
     def pkgNameFromPkgAtom(pkgAtom):
