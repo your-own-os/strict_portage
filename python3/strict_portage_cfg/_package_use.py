@@ -195,7 +195,7 @@ class _FileUtil:
 
     @staticmethod
     def isPkgName(pkgAtom):
-        return pkgAtom[0] in ["<", ">", "=", "!", "~"]
+        return pkgAtom[0] not in ["<", ">", "=", "!", "~"]
 
     @staticmethod
     def pkgNameFromPkgAtom(pkgAtom):
