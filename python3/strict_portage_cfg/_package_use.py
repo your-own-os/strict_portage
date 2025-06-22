@@ -86,13 +86,6 @@ class PackageUseMemberFile(ConfigDirMemberFileBase):
     def set_entries(self, entries):
         assert False
 
-    def has_use_flag(self, name, use_flag):
-        e = _FileUtil.readEntryDict(self.path)
-        for pkgName2, useFlagList2 in e.items():
-            if fnmatch.fnmatch(name, pkgName2):
-                return use_flag in useFlagList2
-        return False
-
     def get_use_flag_mapping(self):
         return _FileUtil.readEntryDict(self.path)
 
