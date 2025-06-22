@@ -155,15 +155,15 @@ class _FileUtil:
     #   (">sys-apps/systemd-256.10", ["-boot", "kernel-install"])
     #
 
-    @classmethod
-    def parseEntryDict(cls, buf, valueErrorClass=None):
+    @staticmethod
+    def parseEntryDict(buf, valueErrorClass=None):
         ret = _EntryDict()
         for line in Util.readListBuffer(buf):
             itemlist = line.split()
             if valueErrorClass is not None:
-                if not cls.isPkgName(itemlist[0]):
+                if not Util.portageIsPkgName(itemlist[0]):
                     raise ValueError("only package name can be specified: %s" % (itemlist[0]))
-            pkgName = cls.pkgNameFromPkgAtom(itemlist[0])
+            pkgName = Util.portagePkgNameFromPkgAtom(itemlist[0])
             flagList = itemlist[1:]
             ret.mergeEntry(pkgName, flagList)
         return ret
@@ -188,27 +188,6 @@ class _FileUtil:
             ret += "\n"
         return ret
 
-    @staticmethod
-    def entryDictToFile(path, entryDict):
-        with open(path, "w") as f:
-            f.write(_FileUtil.entryDictToStr(entryDict))
-
-    @staticmethod
-    def isPkgName(pkgAtom):
-        return pkgAtom[0] not in ["<", ">", "=", "!", "~"]
-
-    @staticmethod
-    def pkgNameFromPkgAtom(pkgAtom):
-        pkgName = pkgAtom
-
-        while pkgName[0] in ["<", ">", "=", "!", "~"]:
-            pkgName = pkgName[1:]
-
-        i = 0
-        while i < len(pkgName):
-            if pkgName[i] == "-" and i < len(pkgName) - 1 and pkgName[i + 1].isdigit():
-                pkgName = pkgName[:i]
-                break
-            i = i + 1
-
-        return pkgName
+    @classmethod
+    def entryDictToFile(cls, path, entryDict):
+        pathlib.Path(path).write_text(cls.entryDictToStr(entryDict))

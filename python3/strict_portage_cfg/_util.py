@@ -250,3 +250,23 @@ class Util:
                 if fn.startswith(os.path.basename(pkg)):
                     return True
         return False
+
+    @staticmethod
+    def portageIsPkgName(pkgAtom):
+        return pkgAtom[0] not in ["<", ">", "=", "!", "~"]
+
+    @staticmethod
+    def portagePkgNameFromPkgAtom(pkgAtom):
+        pkgName = pkgAtom
+
+        while pkgName[0] in ["<", ">", "=", "!", "~"]:
+            pkgName = pkgName[1:]
+
+        i = 0
+        while i < len(pkgName):
+            if pkgName[i] == "-" and i < len(pkgName) - 1 and pkgName[i + 1].isdigit():
+                pkgName = pkgName[:i]
+                break
+            i = i + 1
+
+        return pkgName

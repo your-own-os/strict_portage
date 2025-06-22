@@ -42,7 +42,7 @@ class PackageAcceptKeywords(ConfigFileOrDirBase):
     def merge_content(self, content):
         e = _FileUtil.readEntryDict(self.path)
         e.mergeEntryDict(_FileUtil.parseEntryDict(content))
-        _FileUtil.writeEntryDict(self.path, e)
+        _FileUtil.entryDictToFile(self.path, e)
 
     def get_entries(self):
         if self.is_file_or_dir:
@@ -50,13 +50,13 @@ class PackageAcceptKeywords(ConfigFileOrDirBase):
         else:
             e = _EntryDict()
             for fullfn in Util.fileOrDirGetFileList(self.path):
-                e.mergeEntryDict(_FileUtil.readEntryDict(fullfn, bStrict=True))
+                e.mergeEntryDict(_FileUtil.readEntryDict(fullfn, bRaiseFileNotFoundError=True))
         return e.toEntryList()
 
     def merge_entries(self, entries):
         e = _FileUtil.readEntryDict(self.path)
         e.mergeEntryList(entries)
-        _FileUtil.writeEntryDict(self.path, e)
+        _FileUtil.entryDictToFile(self.path, e)
 
     def set_entries(self, entries):
         assert False
@@ -72,7 +72,7 @@ class PackageAcceptKeywordsMemberFile(ConfigDirMemberFileBase):
     def merge_content(self, content):
         e = _FileUtil.readEntryDict(self.path)
         e.mergeEntryDict(_FileUtil.parseEntryDict(content))
-        _FileUtil.writeEntryDict(self.path, e)
+        _FileUtil.entryDictToFile(self.path, e)
 
     def get_entries(self):
         return _FileUtil.readEntryDict(self.path).toEntryList()
@@ -80,7 +80,7 @@ class PackageAcceptKeywordsMemberFile(ConfigDirMemberFileBase):
     def merge_entries(self, entries):
         e = _FileUtil.readEntryDict(self.path)
         e.mergeEntryList(entries)
-        _FileUtil.writeEntryDict(self.path, e)
+        _FileUtil.entryDictToFile(self.path, e)
 
     def set_entries(self, entries):
         assert False
@@ -89,7 +89,13 @@ class PackageAcceptKeywordsMemberFile(ConfigDirMemberFileBase):
 class PackageAcceptKeywordsFileChecker(ConfigFileCheckerBase):
 
     def _checkContentFormat(self, content, bAutoFix, errorClass):
-        return None
+        if bAutoFix:
+            e = _FileUtil.parseEntryDict(content)
+            s = _FileUtil.entryDictToStr(e)
+            return None if s == content else s
+        else:
+            _FileUtil.parseEntryDict(content, valueErrorClass=errorClass)
+            return None
 
 
 class PackageAcceptKeywordsDirChecker(ConfigDirCheckerBase):
@@ -102,27 +108,27 @@ class _EntryDict(dict):
 
     def __init__(self, entryList=[]):
         super().__init__()
-        for pkgAtom, flagList in entryList:
-            assert pkgAtom not in self
+        for pkgName, flagList in entryList:
+            assert pkgName not in self
             assert len(set(flagList)) == len(flagList)
-            self[pkgAtom] = set(flagList)
+            self[pkgName] = set(flagList)
 
-    def mergeEntry(self, pkgAtom, flagList):
-        if pkgAtom not in self:
-            self[pkgAtom] = set()
-        self[pkgAtom] |= set(flagList)
+    def mergeEntry(self, pkgName, flagList):
+        if pkgName not in self:
+            self[pkgName] = set()
+        self[pkgName] |= set(flagList)
 
     def mergeEntryList(self, entryList):
-        for pkgAtom, flagList in entryList:
-            if pkgAtom not in self:
-                self[pkgAtom] = set()
-            self[pkgAtom] |= set(flagList)
+        for pkgName, flagList in entryList:
+            if pkgName not in self:
+                self[pkgName] = set()
+            self[pkgName] |= set(flagList)
 
     def mergeEntryDict(self, entryDict):
-        for pkgAtom, flagList in entryDict.items():
-            if pkgAtom not in self:
-                self[pkgAtom] = set()
-            self[pkgAtom] |= set(flagList)
+        for pkgName, flagList in entryDict.items():
+            if pkgName not in self:
+                self[pkgName] = set()
+            self[pkgName] |= set(flagList)
 
     def toEntryList(self):
         ret = []
@@ -136,28 +142,41 @@ class _FileUtil:
     # entry examples:
     #   ("sys-kernel/gentoo-sources", ["~x86", "~amd64"])
     #   ("sys-kernel/gentoo-sources", ["**"])
+    #
+    # we don't support this kind of entries:
+    #   (">sys-apps/systemd-256.10", ["-~x86"])
+    #
 
     @staticmethod
-    def parseEntryDict(buf):
+    def parseEntryDict(buf, valueErrorClass=None):
         ret = _EntryDict()
         for line in Util.readListBuffer(buf):
             itemlist = line.split()
-            ret.mergeEntry(itemlist[0], itemlist[1:])
+            if valueErrorClass is not None:
+                if not Util.portageIsPkgName(itemlist[0]):
+                    raise ValueError("only package name can be specified: %s" % (itemlist[0]))
+            pkgName = Util.portagePkgNameFromPkgAtom(itemlist[0])
+            flagList = itemlist[1:]
+            ret.mergeEntry(pkgName, flagList)
         return ret
 
     @classmethod
-    def readEntryDict(cls, path, bStrict=False):
+    def readEntryDict(cls, path, bRaiseFileNotFoundError=False, valueErrorClass=False):
         try:
-            return cls.parseEntryDict(pathlib.Path(path).read_text())
+            return cls.parseEntryDict(pathlib.Path(path).read_text(), valueErrorClass=valueErrorClass)
         except FileNotFoundError:
-            if not bStrict:
+            if not bRaiseFileNotFoundError:
                 return _EntryDict()
             else:
                 raise
 
+    @staticmethod
+    def entryDictToStr(entryDict):
+        ret = ""
+        for pkgName, flagList in entryDict.toEntryList():
+            ret += "%s %s\n" % (pkgName, " ".join(flagList))
+        return ret
+
     @classmethod
-    def writeEntryDict(path, entryDict):
-        buf = ""
-        for pkgAtom, flagList in entryDict.toEntryList():
-            buf += "%s %s\n" % (pkgAtom, " ".join(flagList))
-        pathlib.Path(path).write_text(buf)
+    def entryDictToFile(cls, path, entryDict):
+        pathlib.Path(path).write_text(cls.entryDictToStr(entryDict))
