@@ -7,7 +7,7 @@ import distutils.util
 from setuptools import setup, find_packages
 
 # package metadata
-__package__ = 'strict_portage_cfg'
+__package__ = 'strict_portage'
 __version__ = '0.0.1'
 __author__ = 'Fpemud <fpemud@sina.com>'
 
@@ -21,10 +21,10 @@ if not platform.startswith('linux'):
 setup(
     name=__package__,
     version=__version__,
-    description="Python module for strictly manipulating portage config files.",
+    description="Python module for strictly manipulating portage config files and data files.",
     author=email.utils.parseaddr(__author__)[0],
     author_email=email.utils.parseaddr(__author__)[1],
-    url='https://gitee.com/your-own-os/strict_portage_cfg',
+    url='https://gitee.com/your-own-os/strict_portage',
     license='GNU General Public License (GPL)',
     platforms=['Linux'],
     classifiers=[
