@@ -23,13 +23,6 @@
 # THE SOFTWARE.
 
 
-__package__ = 'strict_portage_cfg'
-
-__version__ = '0.0.1'
-
-__author__ = 'Fpemud <fpemud@sina.com>'
-
-
 from ._portage_cfg_dir import PortageConfigDir
 
 from ._make_conf import MakeConf
@@ -57,8 +50,6 @@ from ._sets import Sets
 from ._sets import CustomSet
 from ._sets import World
 
-from ._errors import FileFormatError
-
 
 __all__ = [
     "PortageConfigDir",
@@ -79,5 +70,4 @@ __all__ = [
     "Sets",
     "CustomSet",
     "World",
-    "FileFormatError",
 ]
