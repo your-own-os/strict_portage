@@ -23,9 +23,7 @@
 # THE SOFTWARE.
 
 
-from ._pkd_db_dir import PortagePkgDbDir
+class DistfilesDir:
 
-
-__all__ = [
-    "PortagePkgDbDir",
-]
+    def __init__(self):
+        pass
