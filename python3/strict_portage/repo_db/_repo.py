@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-# gstage4 - gentoo stage4 building
-#
 # Copyright (c) 2020-2021 Fpemud <fpemud@sina.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,34 +21,7 @@
 # THE SOFTWARE.
 
 
-import os
+class Repository:
 
-
-class DistfilesDir:
-
-    def __init__(self, prefix="/", path=None):
-        self._prefix = prefix
-        if path is None:
-            self._path = os.path.join(self._prefix, "var", "cache", "distfiles")
-        else:
-            assert not path.startswith("/")
-            self._path = os.path.join(self._prefix, path)
-
-    @property
-    def path(self):
-        return self._path
-
-
-class DistfilesMirrorDir:
-
-    def __init__(self, prefix="/", path=None):
-        self._prefix = prefix
-        if path is None:
-            self._path = os.path.join(self._prefix, "var", "cache", "distfiles-mirror")
-        else:
-            assert not path.startswith("/")
-            self._path = os.path.join(self._prefix, path)
-
-    @property
-    def path(self):
-        return self._path
+    def __init__(self, conf):
+        pass

@@ -26,27 +26,12 @@
 import os
 
 
-class DistfilesDir:
+class BinPkgsDir:
 
     def __init__(self, prefix="/", path=None):
         self._prefix = prefix
         if path is None:
-            self._path = os.path.join(self._prefix, "var", "cache", "distfiles")
-        else:
-            assert not path.startswith("/")
-            self._path = os.path.join(self._prefix, path)
-
-    @property
-    def path(self):
-        return self._path
-
-
-class DistfilesMirrorDir:
-
-    def __init__(self, prefix="/", path=None):
-        self._prefix = prefix
-        if path is None:
-            self._path = os.path.join(self._prefix, "var", "cache", "distfiles-mirror")
+            self._path = os.path.join(self._prefix, "var", "cache", "binpkgs")
         else:
             assert not path.startswith("/")
             self._path = os.path.join(self._prefix, path)

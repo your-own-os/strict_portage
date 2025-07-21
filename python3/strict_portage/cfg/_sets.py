@@ -54,8 +54,7 @@ class Sets:
 class CustomSet(SetBase):
 
     def __init__(self, name, prefix="/"):
-        # user should guarantee existence
-
+        self._prefix = prefix
         self._path = os.path.join(self._prefix, "etc", "portage", "sets", name)
 
     @property
