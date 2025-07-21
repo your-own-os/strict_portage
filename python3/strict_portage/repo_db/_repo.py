@@ -23,5 +23,9 @@
 
 class Repository:
 
-    def __init__(self, conf):
-        pass
+    def __init__(self, cfg_filepath):
+        self._cfgPath = cfg_filepath
+        self._path = None
+
+
+
