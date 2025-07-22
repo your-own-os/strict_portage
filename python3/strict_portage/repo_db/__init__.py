@@ -23,7 +23,7 @@
 # THE SOFTWARE.
 
 
-from ._repo_db_dir import PortageRepoDbDir
+from ._var_dir import PortageRepoDbDir
 
 
 __all__ = [

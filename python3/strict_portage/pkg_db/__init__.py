@@ -23,7 +23,7 @@
 # THE SOFTWARE.
 
 
-from ._pkd_db_dir import PortagePkgDbDir
+from ._var_dir import PortagePkgDbDir
 
 
 __all__ = [
