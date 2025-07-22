@@ -22,10 +22,3 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-
-from ._pkd_db_dir import PortagePkgDbDir
-
-
-__all__ = [
-    "PortagePkgDbDir",
-]
