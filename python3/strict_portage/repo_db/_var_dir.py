@@ -23,7 +23,7 @@
 
 import os
 import pathlib
-from ._util import Util
+from .._util import Util
 from ._make_conf import MakeConf
 from ._repos_conf import ReposConf
 from ._repo_postsync_dir import RepoPostSyncDir

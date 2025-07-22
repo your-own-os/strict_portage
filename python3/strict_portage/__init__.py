@@ -31,13 +31,19 @@ __author__ = 'Fpemud <fpemud@sina.com>'
 
 
 from . import cfg
+from . import cache
 from . import data
+from . import pkg_db
+from . import repo_db
 
 from ._errors import FileFormatError
 
 
 __all__ = [
     "cfg",
+    "cache",
     "data",
+    "pkg_db",
+    "repo_db",
     "FileFormatError",
 ]

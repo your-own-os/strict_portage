@@ -23,7 +23,7 @@
 
 import os
 import pathlib
-from ._util import Util
+from .._util import Util
 from ._prototype import ConfigFileOrDirBase
 from ._prototype import ConfigDirMemberFileBase
 from ._prototype import ConfigFileCheckerBase

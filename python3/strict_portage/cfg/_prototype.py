@@ -24,8 +24,8 @@
 import os
 import abc
 import pathlib
-from ._util import Util
-from ._errors import _CheckError
+from .._util import Util
+from .._errors import _CheckError
 
 
 class SetBase(abc.ABC):
