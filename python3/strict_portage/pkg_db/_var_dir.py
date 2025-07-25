@@ -35,3 +35,23 @@ class PortagePkgDbDir:
     @property
     def path(self):
         return self._path
+
+    def get_installed_list(self):
+        ret = []
+        for fbasename in sorted(Util.advGetFileList(self._path, 2, "d")):
+            if Util.repoIsSysFile(fbasename):
+                continue
+            if fbasename.split("/")[1].startswith("-MERGING"):
+                continue
+            ret.append(fbasename)
+        return ret
+
+    def get_merging_list(self):
+        ret = []
+        for fbasename in sorted(Util.advGetFileList(self._path, 2, "d")):
+            if Util.repoIsSysFile(fbasename):
+                continue
+            if not fbasename.split("/")[1].startswith("-MERGING"):
+                continue
+            ret.append(fbasename.replace("-MERGING", ""))
+        return ret

@@ -79,6 +79,46 @@ class Util:
         return fullfnList
 
     @staticmethod
+    def advGetFileList(dirName, level, typeList):
+        """typeList is a string, value range is "d,f,l,a"
+           returns basename"""
+
+        ret = []
+        for fbasename in os.listdir(dirName):
+            fname = os.path.join(dirName, fbasename)
+
+            if os.path.isdir(fname) and level - 1 > 0:
+                for i in Util.advGetFileList(fname, level - 1, typeList):
+                    ret.append(os.path.join(fbasename, i))
+                continue
+
+            appended = False
+            if not appended and ("a" in typeList or "d" in typeList) and os.path.isdir(fname):         # directory
+                ret.append(fbasename)
+            if not appended and ("a" in typeList or "f" in typeList) and os.path.isfile(fname):        # file
+                ret.append(fbasename)
+            if not appended and ("a" in typeList or "l" in typeList) and os.path.islink(fname):        # soft-link
+                ret.append(fbasename)
+
+        return ret
+
+    @staticmethod
+    def repoIsSysFile(fbasename):
+        """fbasename value is like "sys-devel", "sys-devel/gcc", "profiles", etc"""
+
+        if fbasename.startswith("."):
+            return True
+        if fbasename == "licenses" or fbasename.startswith("licenses/"):
+            return True
+        if fbasename == "metadata" or fbasename.startswith("metadata/"):
+            return True
+        if fbasename == "profiles" or fbasename.startswith("profiles/"):
+            return True
+        if fbasename == "eclass" or fbasename.startswith("eclass/"):
+            return True
+        return False
+
+    @staticmethod
     def readListBuffer(buf):
         ret = []
         for line in buf.split("\n"):
