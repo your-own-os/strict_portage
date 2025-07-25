@@ -22,7 +22,6 @@
 
 
 import os
-import pathlib
 from .._util import Util
 
 
