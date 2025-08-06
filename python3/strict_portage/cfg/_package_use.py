@@ -150,6 +150,8 @@ class _FileUtil:
 
     # entry examples:
     #   ("sys-apps/systemd", ["-boot", "kernel-install"])
+    #   ("sys-apps/*, ["boot"])
+    #   ("*/*, ["boot"])
     #
     # we don't support this kind of entries:
     #   (">sys-apps/systemd-256.10", ["-boot", "kernel-install"])

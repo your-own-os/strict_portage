@@ -42,24 +42,30 @@ class PackageLicense(ConfigFileOrDirBase):
     def merge_content(self, content):
         e = _FileUtil.readEntryDict(self.path)
         e.mergeEntryDict(_FileUtil.parseEntryDict(content))
-        _FileUtil.writeEntryDict(self.path, e)
+        _FileUtil.entryDictToFile(self.path, e)
 
-    def get_entries(self):
+    def get_license_mapping(self):
         if self.is_file_or_dir:
             e = _FileUtil.readEntryDict(self.path)
         else:
             e = _EntryDict()
             for fullfn in Util.fileOrDirGetFileList(self.path):
                 e.mergeEntryDict(_FileUtil.readEntryDict(fullfn, bRaiseFileNotFoundError=True))
-        return e.toEntryList()
+        return e
 
-    def merge_entries(self, entries):
+    def merge_license_mapping(self, mapping):
         e = _FileUtil.readEntryDict(self.path)
-        e.mergeEntryList(entries)
-        _FileUtil.writeEntryDict(self.path, e)
+        for pkgAtom, licList in mapping.items():
+            pkgName = Util.portagePkgNameFromPkgAtom(pkgAtom)
+            e.mergeEntry(pkgName, licList)
+        _FileUtil.entryDictToFile(self.path, e)
 
-    def set_entries(self, entries):
-        assert False
+    def set_license_mapping(self, mapping):
+        e = _EntryDict()
+        for pkgAtom, licList in mapping.items():
+            pkgName = Util.portagePkgNameFromPkgAtom(pkgAtom)
+            e.mergeEntry(pkgName, licList)
+        _FileUtil.entryDictToFile(self.path, e)
 
 
 class PackageLicenseMemberFile(ConfigDirMemberFileBase):
@@ -72,18 +78,24 @@ class PackageLicenseMemberFile(ConfigDirMemberFileBase):
     def merge_content(self, content):
         e = _FileUtil.readEntryDict(self.path)
         e.mergeEntryDict(_FileUtil.parseEntryDict(content))
-        _FileUtil.writeEntryDict(self.path, e)
+        _FileUtil.entryDictToFile(self.path, e)
 
-    def get_entries(self):
+    def get_license_mapping(self):
         return _FileUtil.readEntryDict(self.path).toEntryList()
 
-    def merge_entries(self, entries):
+    def merge_license_mapping(self, mapping):
         e = _FileUtil.readEntryDict(self.path)
-        e.mergeEntryList(entries)
-        _FileUtil.writeEntryDict(self.path, e)
+        for pkgAtom, licList in mapping.items():
+            pkgName = Util.portagePkgNameFromPkgAtom(pkgAtom)
+            e.mergeEntry(pkgName, licList)
+        _FileUtil.entryDictToFile(self.path, e)
 
-    def set_entries(self, entries):
-        assert False
+    def set_license_mapping(self, mapping):
+        e = _EntryDict()
+        for pkgAtom, licList in mapping.items():
+            pkgName = Util.portagePkgNameFromPkgAtom(pkgAtom)
+            e.mergeEntry(pkgName, licList)
+        _FileUtil.entryDictToFile(self.path, e)
 
 
 class PackageLicensesFileChecker(ConfigFileCheckerBase):
@@ -102,27 +114,27 @@ class _EntryDict(dict):
 
     def __init__(self, entryList=[]):
         super().__init__()
-        for pkgAtom, flagList in entryList:
-            assert pkgAtom not in self
+        for pkgName, flagList in entryList:
+            assert pkgName not in self
             assert len(set(flagList)) == len(flagList)
-            self[pkgAtom] = set(flagList)
+            self[pkgName] = set(flagList)
 
-    def mergeEntry(self, pkgAtom, flagList):
-        if pkgAtom not in self:
-            self[pkgAtom] = set()
-        self[pkgAtom] |= set(flagList)
+    def mergeEntry(self, pkgName, flagList):
+        if pkgName not in self:
+            self[pkgName] = set()
+        self[pkgName] |= set(flagList)
 
     def mergeEntryList(self, entryList):
-        for pkgAtom, flagList in entryList:
-            if pkgAtom not in self:
-                self[pkgAtom] = set()
-            self[pkgAtom] |= set(flagList)
+        for pkgName, flagList in entryList:
+            if pkgName not in self:
+                self[pkgName] = set()
+            self[pkgName] |= set(flagList)
 
     def mergeEntryDict(self, entryDict):
-        for pkgAtom, flagList in entryDict.items():
-            if pkgAtom not in self:
-                self[pkgAtom] = set()
-            self[pkgAtom] |= set(flagList)
+        for pkgName, flagList in entryDict.items():
+            if pkgName not in self:
+                self[pkgName] = set()
+            self[pkgName] |= set(flagList)
 
     def toEntryList(self):
         ret = []
@@ -135,6 +147,7 @@ class _FileUtil:
 
     # entry examples:
     #   ("sys-kernel/gentoo-sources", ["GPLv3", "APL"])
+    #   ("sys-kernel/*, ["*"])
     #   ("*/*, ["*"])
 
     @staticmethod
@@ -155,9 +168,13 @@ class _FileUtil:
             else:
                 raise
 
+    @staticmethod
+    def entryDictToStr(entryDict):
+        ret = ""
+        for pkgName, licList in entryDict.toEntryList():
+            ret += "%s %s\n" % (pkgName, " ".join(licList))
+        return ret
+
     @classmethod
-    def writeEntryDict(path, entryDict):
-        buf = ""
-        for pkgAtom, flagList in entryDict.toEntryList():
-            buf += "%s %s\n" % (pkgAtom, " ".join(flagList))
-        pathlib.Path(path).write_text(buf)
+    def entryDictToFile(cls, path, entryDict):
+        pathlib.Path(path).write_text(cls.entryDictToStr(entryDict))
