@@ -34,11 +34,11 @@ class Mirrors(ConfigFileBase):
         super().__init__(os.path.join(prefix, "etc", "portage", "mirrors"),
                          MirrorsChecker)
 
-    def get_mirrors(self):
+    def get_mirror_mapping(self):
         return _FileUtil.readEntryDict(self.path)
 
-    def set_mirrors(self, mirrors):
-        _FileUtil.entryDictToFile(self.path, mirrors)
+    def set_mirror_mapping(self, mapping):
+        _FileUtil.entryDictToFile(self.path, mapping)
 
 
 class MirrorsChecker(ConfigFileCheckerBase):
