@@ -25,6 +25,7 @@ import os
 import pathlib
 from .._util import Util
 from ._make_conf import MakeConf
+from ._mirrors import Mirrors
 from ._repos_conf import ReposConf
 from ._repo_postsync_dir import RepoPostSyncDir
 from ._package_accept_keywords import PackageAcceptKeywords
@@ -189,6 +190,9 @@ class PortageConfigDir:
     def get_make_conf_obj(self):
         return MakeConf(prefix=self._prefix)
 
+    def get_mirrors_obj(self):
+        return Mirrors(prefix=self._prefix)
+
     def get_repos_conf_obj(self, file_or_dir=None):
         return ReposConf(prefix=self._prefix, file_or_dir=file_or_dir)
 
@@ -231,7 +235,7 @@ class PortageConfigDirChecker:
     def check_self(self):
         self._basicCheck()
 
-    def use_and_check_mirrors_file(self):
+    def use_mirrors_file(self):
         if self._basicCheck():
             return
 

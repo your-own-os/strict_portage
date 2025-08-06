@@ -168,7 +168,7 @@ class _FileUtil:
         return ret
 
     @classmethod
-    def readEntryDict(cls, path, bRaiseFileNotFoundError=False, valueErrorClass=False):
+    def readEntryDict(cls, path, bRaiseFileNotFoundError=False, valueErrorClass=None):
         try:
             return cls.parseEntryDict(pathlib.Path(path).read_text(), valueErrorClass=valueErrorClass)
         except FileNotFoundError:
