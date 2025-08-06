@@ -34,9 +34,6 @@ class RepoPostSyncDir(ConfigDirBase):
                          RepoPostSyncDirMemberFile,
                          RepoPostSyncDirDirChecker)
 
-    def merge_content(self, content):
-        assert False
-
 
 class RepoPostSyncDirMemberFile(ConfigDirMemberFileBase):
 
