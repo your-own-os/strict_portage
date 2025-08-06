@@ -34,6 +34,9 @@ class MakeConf(ConfigFileBase):
         super().__init__(os.path.join(prefix, "etc", "portage", "make.conf"),
                          MakeConfChecker)
 
+    def merge_content(self, content):
+        assert False
+
     def has_var(self, var_name):
         buf = pathlib.Path(self._path).read_text()
         m = re.search("^%s=\"(.*)\"$" % (var_name), buf, re.MULTILINE)

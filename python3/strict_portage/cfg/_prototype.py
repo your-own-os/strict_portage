@@ -70,6 +70,10 @@ class ConfigFileBase(abc.ABC):
     def get_content(self):
         return pathlib.Path(self._path).read_text()
 
+    @abc.abstractmethod
+    def merge_content(self, content):
+        pass
+
     def set_content(self, content):
         pathlib.Path(self._path).write_text(content)
 

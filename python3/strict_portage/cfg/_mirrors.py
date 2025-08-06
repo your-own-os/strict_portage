@@ -34,6 +34,11 @@ class Mirrors(ConfigFileBase):
         super().__init__(os.path.join(prefix, "etc", "portage", "mirrors"),
                          MirrorsChecker)
 
+    def merge_content(self, content):
+        e = _FileUtil.readEntryDict(self.path)
+        e.mergeEntryDict(_FileUtil.parseEntryDict(content))
+        _FileUtil.entryDictToFile(self.path, e)
+
     def get_mirror_mapping(self):
         return _FileUtil.readEntryDict(self.path)
 
