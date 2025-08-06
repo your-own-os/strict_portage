@@ -37,6 +37,11 @@ class Mirrors(ConfigFileBase):
     def get_mirror_mapping(self):
         return _FileUtil.readEntryDict(self.path)
 
+    def merge_use_flag_mapping(self, mapping):
+        e = _FileUtil.readEntryDict(self.path)
+        e.mergeEntryDict(mapping)
+        _FileUtil.entryDictToFile(self.path, e)
+
     def set_mirror_mapping(self, mapping):
         _FileUtil.entryDictToFile(self.path, mapping)
 
