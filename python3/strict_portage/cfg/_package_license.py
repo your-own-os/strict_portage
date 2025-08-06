@@ -48,12 +48,12 @@ class PackageLicense(ConfigFileOrDirBase):
 
     def get_license_mapping(self):
         if self.is_file_or_dir:
-            e = _FileUtil.readEntryDict(self.path)
+            return _FileUtil.readEntryDict(self.path)
         else:
             e = EntryDict()
             for fullfn in Util.fileOrDirGetFileList(self.path):
                 e.mergeEntryDict(_FileUtil.readEntryDict(fullfn, bRaiseFileNotFoundError=True))
-        return e
+            return e
 
     @enforceConfigFile
     def merge_license_mapping(self, mapping):

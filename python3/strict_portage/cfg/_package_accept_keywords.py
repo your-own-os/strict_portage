@@ -25,6 +25,7 @@ import os
 import pathlib
 from .._util import Util
 from .._util import EntryDict
+from ._prototype import enforceConfigFile
 from ._prototype import ConfigFileOrDirBase
 from ._prototype import ConfigDirMemberFileBase
 from ._prototype import ConfigFileCheckerBase
@@ -45,23 +46,25 @@ class PackageAcceptKeywords(ConfigFileOrDirBase):
         e.mergeEntryDict(_FileUtil.parseEntryDict(content))
         _FileUtil.entryDictToFile(self.path, e)
 
-    def get_entries(self):
+    def get_accept_keywords_mapping(self):
         if self.is_file_or_dir:
-            e = _FileUtil.readEntryDict(self.path)
+            return _FileUtil.readEntryDict(self.path)
         else:
             e = EntryDict()
             for fullfn in Util.fileOrDirGetFileList(self.path):
                 e.mergeEntryDict(_FileUtil.readEntryDict(fullfn, bRaiseFileNotFoundError=True))
-        return e.toEntryList()
+            return e
 
-    def merge_entries(self, entries):
+    @enforceConfigFile
+    def merge_accept_keywords_mapping(self, mapping):
         e = _FileUtil.readEntryDict(self.path)
-        for pkgAtom, flagList in entries:
+        for pkgAtom, keywordList in mapping.items():
             pkgName = Util.portagePkgNameFromPkgAtom(pkgAtom)
-            e.mergeEntry(pkgName, flagList)
+            e.mergeEntry(pkgName, keywordList)
         _FileUtil.entryDictToFile(self.path, e)
 
-    def set_entries(self, entries):
+    @enforceConfigFile
+    def set_accept_keywords_mapping(self, mapping):
         assert False
 
 
@@ -77,21 +80,21 @@ class PackageAcceptKeywordsMemberFile(ConfigDirMemberFileBase):
         e.mergeEntryDict(_FileUtil.parseEntryDict(content))
         _FileUtil.entryDictToFile(self.path, e)
 
-    def get_entries(self):
+    def get_accept_keywords_mapping(self):
         return _FileUtil.readEntryDict(self.path).toEntryList()
 
-    def merge_entries(self, entries):
+    def merge_accept_keywords_mapping(self, mapping):
         e = _FileUtil.readEntryDict(self.path)
-        for pkgAtom, flagList in entries:
+        for pkgAtom, keywordList in mapping.items():
             pkgName = Util.portagePkgNameFromPkgAtom(pkgAtom)
-            e.mergeEntry(pkgName, flagList)
+            e.mergeEntry(pkgName, keywordList)
         _FileUtil.entryDictToFile(self.path, e)
 
-    def set_entries(self, entries):
+    def set_accept_keywords_mapping(self, mapping):
         e = EntryDict()
-        for pkgAtom, flagList in entries:
+        for pkgAtom, keywordList in mapping.items():
             pkgName = Util.portagePkgNameFromPkgAtom(pkgAtom)
-            e.mergeEntry(pkgName, flagList)
+            e.mergeEntry(pkgName, keywordList)
         _FileUtil.entryDictToFile(self.path, e)
 
 
@@ -132,8 +135,8 @@ class _FileUtil:
                 if not Util.portageIsPkgName(itemlist[0]):
                     raise ValueError("only package name can be specified: %s" % (itemlist[0]))
             pkgName = Util.portagePkgNameFromPkgAtom(itemlist[0])
-            flagList = itemlist[1:]
-            ret.mergeEntry(pkgName, flagList)
+            keywordList = itemlist[1:]
+            ret.mergeEntry(pkgName, keywordList)
         return ret
 
     @classmethod
@@ -149,8 +152,8 @@ class _FileUtil:
     @staticmethod
     def entryDictToStr(entryDict):
         ret = ""
-        for pkgName, flagList in entryDict.toEntryList():
-            ret += "%s %s\n" % (pkgName, " ".join(flagList))
+        for pkgName, keywordList in entryDict.toEntryList():
+            ret += "%s %s\n" % (pkgName, " ".join(keywordList))
         return ret
 
     @classmethod
