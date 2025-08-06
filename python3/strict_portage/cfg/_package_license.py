@@ -50,7 +50,7 @@ class PackageLicense(ConfigFileOrDirBase):
         else:
             e = _EntryDict()
             for fullfn in Util.fileOrDirGetFileList(self.path):
-                e.mergeEntryDict(_FileUtil.readEntryDict(fullfn, bStrict=True))
+                e.mergeEntryDict(_FileUtil.readEntryDict(fullfn, bRaiseFileNotFoundError=True))
         return e.toEntryList()
 
     def merge_entries(self, entries):
@@ -146,11 +146,11 @@ class _FileUtil:
         return ret
 
     @classmethod
-    def readEntryDict(cls, path, bStrict=False):
+    def readEntryDict(cls, path, bRaiseFileNotFoundError=False):
         try:
             return cls.parseEntryDict(pathlib.Path(path).read_text())
         except FileNotFoundError:
-            if not bStrict:
+            if not bRaiseFileNotFoundError:
                 return _EntryDict()
             else:
                 raise

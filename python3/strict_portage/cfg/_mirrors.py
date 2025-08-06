@@ -88,9 +88,9 @@ class _FileUtil:
         return ret
 
     @classmethod
-    def readEntryDict(cls, path, bRaiseFileNotFoundError=False, valueErrorClass=None):
+    def readEntryDict(cls, path, bRaiseFileNotFoundError=False):
         try:
-            return cls.parseEntryDict(pathlib.Path(path).read_text(), valueErrorClass=valueErrorClass)
+            return cls.parseEntryDict(pathlib.Path(path).read_text())
         except FileNotFoundError:
             if not bRaiseFileNotFoundError:
                 return _EntryDict()
