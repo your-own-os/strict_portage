@@ -182,20 +182,6 @@ class ConfigFileOrDirBase(abc.ABC):
     def set_content(self, content):
         pathlib.Path(self._path).write_text(content)
 
-    @abc.abstractmethod
-    def get_entries(self):
-        pass
-
-    @abc.abstractmethod
-    @enforceConfigFile
-    def merge_entries(self, entries):
-        pass
-
-    @abc.abstractmethod
-    @enforceConfigFile
-    def set_entries(self, entries):
-        pass
-
     @enforceConfigFile
     def clear(self):
         if os.path.exists(self._path):

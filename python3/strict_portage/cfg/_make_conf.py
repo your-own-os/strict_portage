@@ -35,6 +35,7 @@ class MakeConf(ConfigFileBase):
                          MakeConfChecker)
 
     def merge_content(self, content):
+        # FIXME
         assert False
 
     def has_var(self, var_name):

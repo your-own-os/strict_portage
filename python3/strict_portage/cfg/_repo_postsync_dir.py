@@ -37,15 +37,6 @@ class RepoPostSyncDir(ConfigDirBase):
     def merge_content(self, content):
         assert False
 
-    def get_entries(self):
-        assert False
-
-    def merge_entries(self, entries):
-        assert False
-
-    def set_entries(self, entries):
-        assert False
-
 
 class RepoPostSyncDirMemberFile(ConfigDirMemberFileBase):
 
@@ -55,15 +46,6 @@ class RepoPostSyncDirMemberFile(ConfigDirMemberFileBase):
         super().__init__(name, _path)
 
     def merge_content(self, content):
-        assert False
-
-    def get_entries(self):
-        assert False
-
-    def merge_entries(self, entries):
-        assert False
-
-    def set_entries(self, entries):
         assert False
 
 

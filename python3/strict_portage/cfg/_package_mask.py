@@ -24,6 +24,7 @@
 import os
 import pathlib
 from .._util import Util
+from ._prototype import enforceConfigFile
 from ._prototype import ConfigFileOrDirBase
 from ._prototype import ConfigDirMemberFileBase
 from ._prototype import ConfigFileCheckerBase
@@ -44,22 +45,24 @@ class PackageMask(ConfigFileOrDirBase):
         _Util.mergeEntryList(e, Util.readListBuffer(content))
         _Util.writeEntryList(self.path, e)
 
-    def get_entries(self):
+    def get_mask_pkgatoms(self):
         if self.is_file_or_dir:
             e = _Util.readEntryList(self.path)
         else:
             e = []
             for fullfn in Util.fileOrDirGetFileList(self.path):
-                _Util.mergeEntryList(e, _Util.readEntryList(fullfn, bStrict=True))
+                _Util.mergeEntryList(e, _Util.readEntryList(fullfn, bRaiseFileNotFoundError=True))
         return sorted(e)
 
-    def merge_entries(self, entries):
+    @enforceConfigFile
+    def merge_mask_pkgatoms(self, pkgatoms):
         e = _Util.readEntryList(self.path)
-        _Util.mergeEntryList(e, entries)
+        _Util.mergeEntryList(e, pkgatoms)
         _Util.writeEntryList(self.path, e)
 
-    def set_entries(self, entries):
-        assert False
+    @enforceConfigFile
+    def set_mask_pkgatoms(self, pkgatoms):
+        _Util.writeEntryList(self.path, pkgatoms)
 
 
 class PackageMaskMemberFile(ConfigDirMemberFileBase):
@@ -74,16 +77,16 @@ class PackageMaskMemberFile(ConfigDirMemberFileBase):
         _Util.mergeEntryList(e, Util.readListBuffer(content))
         _Util.writeEntryList(self.path, e)
 
-    def get_entries(self):
+    def get_mask_pkgatoms(self):
         return sorted(_Util.readEntryList(self.path))
 
-    def merge_entries(self, entries):
+    def merge_mask_pkgatoms(self, pkgatoms):
         e = _Util.readEntryList(self.path)
-        _Util.mergeEntryList(e, entries)
+        _Util.mergeEntryList(e, pkgatoms)
         _Util.writeEntryList(self.path, e)
 
-    def set_entries(self, entries):
-        assert False
+    def set_mask_pkgatoms(self, pkgatoms):
+        _Util.writeEntryList(self.path, pkgatoms)
 
 
 class PackageMaskFileChecker(ConfigFileCheckerBase):
@@ -116,11 +119,11 @@ class _Util:
             if x not in dst:
                 dst.append(x)
 
-    def readEntryList(path, bStrict=False):
+    def readEntryList(path, bRaiseFileNotFoundError=False):
         try:
             return Util.readListFile(path)
         except FileNotFoundError:
-            if not bStrict:
+            if not bRaiseFileNotFoundError:
                 return []
             else:
                 raise

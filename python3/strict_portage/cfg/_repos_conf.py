@@ -40,15 +40,6 @@ class ReposConf(ConfigFileOrDirBase):
     def merge_content(self, content):
         assert False
 
-    def get_entries(self):
-        assert False
-
-    def merge_entries(self, entries):
-        assert False
-
-    def set_entries(self, entries):
-        assert False
-
 
 class ReposConfMemberFile(ConfigDirMemberFileBase):
 
@@ -58,15 +49,6 @@ class ReposConfMemberFile(ConfigDirMemberFileBase):
         super().__init__(name, _path)
 
     def merge_content(self, content):
-        assert False
-
-    def get_entries(self):
-        assert False
-
-    def merge_entries(self, entries):
-        assert False
-
-    def set_entries(self, entries):
         assert False
 
 
