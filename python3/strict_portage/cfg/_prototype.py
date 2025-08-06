@@ -242,18 +242,6 @@ class ConfigDirMemberFileBase(abc.ABC):
     def set_content(self, content):
         pathlib.Path(self._path).write_text(content)
 
-    @abc.abstractmethod
-    def get_entries(self):
-        pass
-
-    @abc.abstractmethod
-    def merge_entries(self, entries):
-        pass
-
-    @abc.abstractmethod
-    def set_entries(self, entries):
-        pass
-
     def merge_member_file(self, name, remove_original=False):
         fullfn = os.path.join(os.path.dirname(self._path), name)
         assert fullfn != self._path

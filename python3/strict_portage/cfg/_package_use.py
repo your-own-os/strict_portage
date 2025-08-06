@@ -24,6 +24,7 @@
 import os
 import pathlib
 from .._util import Util
+from ._prototype import enforceConfigFile
 from ._prototype import ConfigFileOrDirBase
 from ._prototype import ConfigDirMemberFileBase
 from ._prototype import ConfigFileCheckerBase
@@ -44,24 +45,30 @@ class PackageUse(ConfigFileOrDirBase):
         e.mergeEntryDict(_FileUtil.parseEntryDict(content))
         _FileUtil.entryDictToFile(self.path, e)
 
-    def get_entries(self):
+    def get_use_flag_mapping(self):
         if self.is_file_or_dir:
-            e = _FileUtil.readEntryDict(self.path)
+            return _FileUtil.readEntryDict(self.path)
         else:
             e = _EntryDict()
             for fullfn in Util.fileOrDirGetFileList(self.path):
                 e.mergeEntryDict(_FileUtil.readEntryDict(fullfn, bRaiseFileNotFoundError=True))
-        return e.toEntryList()
+            return e
 
-    def merge_entries(self, entries):
+    @enforceConfigFile
+    def merge_use_flag_mapping(self, mapping):
         e = _FileUtil.readEntryDict(self.path)
-        for pkgAtom, flagList in entries:
+        for pkgAtom, flagList in mapping.items():
             pkgName = Util.portagePkgNameFromPkgAtom(pkgAtom)
             e.mergeEntry(pkgName, flagList)
         _FileUtil.entryDictToFile(self.path, e)
 
-    def set_entries(self, entries):
-        assert False
+    @enforceConfigFile
+    def set_use_flag_mapping(self, mapping):
+        e = _EntryDict()
+        for pkgAtom, flagList in mapping.items():
+            pkgName = Util.portagePkgNameFromPkgAtom(pkgAtom)
+            e.mergeEntry(pkgName, flagList)
+        _FileUtil.entryDictToFile(self.path, e)
 
 
 class PackageUseMemberFile(ConfigDirMemberFileBase):
@@ -76,28 +83,22 @@ class PackageUseMemberFile(ConfigDirMemberFileBase):
         e.mergeEntryDict(_FileUtil.parseEntryDict(content))
         _FileUtil.entryDictToFile(self.path, e)
 
-    def get_entries(self):
-        return _FileUtil.readEntryDict(self.path).toEntryList()
-
-    def merge_entries(self, entries):
-        e = _FileUtil.readEntryDict(self.path)
-        for pkgAtom, flagList in entries:
-            pkgName = Util.portagePkgNameFromPkgAtom(pkgAtom)
-            e.mergeEntry(pkgName, flagList)
-        _FileUtil.entryDictToFile(self.path, e)
-
-    def set_entries(self, entries):
-        e = _EntryDict()
-        for pkgAtom, flagList in entries:
-            pkgName = Util.portagePkgNameFromPkgAtom(pkgAtom)
-            e.mergeEntry(pkgName, flagList)
-        _FileUtil.entryDictToFile(self.path, e)
-
     def get_use_flag_mapping(self):
         return _FileUtil.readEntryDict(self.path)
 
+    def merge_use_flag_mapping(self, mapping):
+        e = _FileUtil.readEntryDict(self.path)
+        for pkgAtom, flagList in mapping.items():
+            pkgName = Util.portagePkgNameFromPkgAtom(pkgAtom)
+            e.mergeEntry(pkgName, flagList)
+        _FileUtil.entryDictToFile(self.path, e)
+
     def set_use_flag_mapping(self, mapping):
-        _FileUtil.entryDictToFile(self.path, mapping)
+        e = _EntryDict()
+        for pkgAtom, flagList in mapping.items():
+            pkgName = Util.portagePkgNameFromPkgAtom(pkgAtom)
+            e.mergeEntry(pkgName, flagList)
+        _FileUtil.entryDictToFile(self.path, e)
 
 
 class PackageUseFileChecker(ConfigFileCheckerBase):
