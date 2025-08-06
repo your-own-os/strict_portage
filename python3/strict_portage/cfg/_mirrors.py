@@ -24,6 +24,7 @@
 import os
 import pathlib
 from .._util import Util
+from .._util import EntryDict
 from ._prototype import ConfigFileBase
 from ._prototype import ConfigFileCheckerBase
 
@@ -57,33 +58,6 @@ class MirrorsChecker(ConfigFileCheckerBase):
         pass
 
 
-class _EntryDict(dict):
-
-    def __init__(self, entryList=[]):
-        super().__init__()
-        for mirrorName, mirrorSiteList in entryList:
-            assert mirrorName not in self
-            assert len(set(mirrorSiteList)) == len(mirrorSiteList)
-            self[mirrorName] = set(mirrorSiteList)
-
-    def mergeEntry(self, mirrorName, mirrorSiteList):
-        if mirrorName not in self:
-            self[mirrorName] = set()
-        self[mirrorName] |= set(mirrorSiteList)
-
-    def mergeEntryDict(self, entryDict):
-        for mirrorName, mirrorSiteList in entryDict.items():
-            if mirrorName not in self:
-                self[mirrorName] = set()
-            self[mirrorName] |= set(mirrorSiteList)
-
-    def toEntryList(self):
-        ret = []
-        for k in sorted(self.keys()):
-            ret.append((k, sorted(self[k])))
-        return ret
-
-
 class _FileUtil:
 
     # entry examples:
@@ -91,7 +65,7 @@ class _FileUtil:
 
     @staticmethod
     def parseEntryDict(buf):
-        ret = _EntryDict()
+        ret = EntryDict()
         for line in Util.readListBuffer(buf):
             itemlist = line.split()
             ret.mergeEntry(itemlist[0], itemlist[1:])
@@ -103,7 +77,7 @@ class _FileUtil:
             return cls.parseEntryDict(pathlib.Path(path).read_text())
         except FileNotFoundError:
             if not bRaiseFileNotFoundError:
-                return _EntryDict()
+                return EntryDict()
             else:
                 raise
 

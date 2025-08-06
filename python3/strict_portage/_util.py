@@ -136,6 +136,13 @@ class Util:
         return cls.readListBuffer(pathlib.Path(path).read_text())
 
     @staticmethod
+    def genListBuffer(lines):
+        ret = ""
+        for line in sorted(lines):
+            ret += "%s\n" % (line)
+        return ret
+
+    @staticmethod
     def realPathSplit(path):
         """os.path.split() only split a path into 2 component, I believe there are reasons, but it is really inconvenient.
            So I write this function to split a unix path into basic components.
@@ -310,3 +317,30 @@ class Util:
             i = i + 1
 
         return pkgName
+
+
+class EntryDict(dict):
+
+    def __init__(self, entryList=[]):
+        super().__init__()
+        for k, vAsList in entryList:
+            assert k not in self
+            assert len(set(vAsList)) == len(vAsList)
+            self[k] = set(vAsList)
+
+    def mergeEntry(self, k, vAsList):
+        if k not in self:
+            self[k] = set()
+        self[k] |= set(vAsList)
+
+    def mergeEntryDict(self, entryDict):
+        for k, vAsList in entryDict.items():
+            if k not in self:
+                self[k] = set()
+            self[k] |= set(vAsList)
+
+    def toEntryList(self):
+        ret = []
+        for k in sorted(self.keys()):
+            ret.append((k, sorted(self[k])))
+        return ret

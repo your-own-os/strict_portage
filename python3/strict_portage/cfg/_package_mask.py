@@ -41,28 +41,28 @@ class PackageMask(ConfigFileOrDirBase):
                          PackageMaskDirChecker)
 
     def merge_content(self, content):
-        e = _Util.readEntryList(self.path)
-        _Util.mergeEntryList(e, Util.readListBuffer(content))
-        _Util.writeEntryList(self.path, e)
+        e = _FileUtil.readEntryList(self.path)
+        _FileUtil.mergeEntryList(e, Util.readListBuffer(content))
+        _FileUtil.writeEntryList(self.path, e)
 
     def get_mask_pkgatoms(self):
         if self.is_file_or_dir:
-            e = _Util.readEntryList(self.path)
+            e = _FileUtil.readEntryList(self.path)
         else:
             e = []
             for fullfn in Util.fileOrDirGetFileList(self.path):
-                _Util.mergeEntryList(e, _Util.readEntryList(fullfn, bRaiseFileNotFoundError=True))
+                _FileUtil.mergeEntryList(e, _FileUtil.readEntryList(fullfn, bRaiseFileNotFoundError=True))
         return sorted(e)
 
     @enforceConfigFile
     def merge_mask_pkgatoms(self, pkgatoms):
-        e = _Util.readEntryList(self.path)
-        _Util.mergeEntryList(e, pkgatoms)
-        _Util.writeEntryList(self.path, e)
+        e = _FileUtil.readEntryList(self.path)
+        _FileUtil.mergeEntryList(e, pkgatoms)
+        _FileUtil.writeEntryList(self.path, e)
 
     @enforceConfigFile
     def set_mask_pkgatoms(self, pkgatoms):
-        _Util.writeEntryList(self.path, pkgatoms)
+        _FileUtil.writeEntryList(self.path, pkgatoms)
 
 
 class PackageMaskMemberFile(ConfigDirMemberFileBase):
@@ -73,26 +73,31 @@ class PackageMaskMemberFile(ConfigDirMemberFileBase):
         super().__init__(name, _path)
 
     def merge_content(self, content):
-        e = _Util.readEntryList(self.path)
-        _Util.mergeEntryList(e, Util.readListBuffer(content))
-        _Util.writeEntryList(self.path, e)
+        e = _FileUtil.readEntryList(self.path)
+        _FileUtil.mergeEntryList(e, Util.readListBuffer(content))
+        _FileUtil.writeEntryList(self.path, e)
 
     def get_mask_pkgatoms(self):
-        return sorted(_Util.readEntryList(self.path))
+        return sorted(_FileUtil.readEntryList(self.path))
 
     def merge_mask_pkgatoms(self, pkgatoms):
-        e = _Util.readEntryList(self.path)
-        _Util.mergeEntryList(e, pkgatoms)
-        _Util.writeEntryList(self.path, e)
+        e = _FileUtil.readEntryList(self.path)
+        _FileUtil.mergeEntryList(e, pkgatoms)
+        _FileUtil.writeEntryList(self.path, e)
 
     def set_mask_pkgatoms(self, pkgatoms):
-        _Util.writeEntryList(self.path, pkgatoms)
+        _FileUtil.writeEntryList(self.path, pkgatoms)
 
 
 class PackageMaskFileChecker(ConfigFileCheckerBase):
 
     def _checkContentFormat(self, content, bAutoFix, errorClass):
-        return None
+        if bAutoFix:
+            e = Util.readListBuffer(content)
+            s = Util.genListBuffer(e)
+            return None if s == content else s
+        else:
+            return None
 
 
 class PackageMaskDirChecker(ConfigDirCheckerBase):
@@ -101,7 +106,7 @@ class PackageMaskDirChecker(ConfigDirCheckerBase):
         super().__init__(parent, PackageMaskMemberFile, bAutoFix, errorCallback)
 
 
-class _Util:
+class _FileUtil:
 
     # entry examples:
     #   "sys-kernel/gentoo-sources-2.6.37-r1"
@@ -114,11 +119,7 @@ class _Util:
     #   "!sys-kernel/gentoo-sources-2.6.37-r1"
     #   "~sys-kernel/gentoo-sources-2.6.37-r1"
 
-    def mergeEntryList(dst, src):
-        for x in src:
-            if x not in dst:
-                dst.append(x)
-
+    @staticmethod
     def readEntryList(path, bRaiseFileNotFoundError=False):
         try:
             return Util.readListFile(path)
@@ -128,8 +129,12 @@ class _Util:
             else:
                 raise
 
+    @staticmethod
+    def mergeEntryList(dst, src):
+        for x in src:
+            if x not in dst:
+                dst.append(x)
+
+    @staticmethod
     def writeEntryList(path, entryList):
-        buf = ""
-        for entry in sorted(entryList):
-            buf += "%s\n" % (entry)
-        pathlib.Path(path).write_text(buf)
+        pathlib.Path(path).write_text(Util.genListBuffer(entryList))

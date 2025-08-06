@@ -24,6 +24,8 @@
 import os
 import pathlib
 from .._util import Util
+from .._util import EntryDict
+from ._prototype import enforceConfigFile
 from ._prototype import ConfigFileOrDirBase
 from ._prototype import ConfigDirMemberFileBase
 from ._prototype import ConfigFileCheckerBase
@@ -48,11 +50,12 @@ class PackageLicense(ConfigFileOrDirBase):
         if self.is_file_or_dir:
             e = _FileUtil.readEntryDict(self.path)
         else:
-            e = _EntryDict()
+            e = EntryDict()
             for fullfn in Util.fileOrDirGetFileList(self.path):
                 e.mergeEntryDict(_FileUtil.readEntryDict(fullfn, bRaiseFileNotFoundError=True))
         return e
 
+    @enforceConfigFile
     def merge_license_mapping(self, mapping):
         e = _FileUtil.readEntryDict(self.path)
         for pkgAtom, licList in mapping.items():
@@ -60,8 +63,9 @@ class PackageLicense(ConfigFileOrDirBase):
             e.mergeEntry(pkgName, licList)
         _FileUtil.entryDictToFile(self.path, e)
 
+    @enforceConfigFile
     def set_license_mapping(self, mapping):
-        e = _EntryDict()
+        e = EntryDict()
         for pkgAtom, licList in mapping.items():
             pkgName = Util.portagePkgNameFromPkgAtom(pkgAtom)
             e.mergeEntry(pkgName, licList)
@@ -91,7 +95,7 @@ class PackageLicenseMemberFile(ConfigDirMemberFileBase):
         _FileUtil.entryDictToFile(self.path, e)
 
     def set_license_mapping(self, mapping):
-        e = _EntryDict()
+        e = EntryDict()
         for pkgAtom, licList in mapping.items():
             pkgName = Util.portagePkgNameFromPkgAtom(pkgAtom)
             e.mergeEntry(pkgName, licList)
@@ -101,46 +105,19 @@ class PackageLicenseMemberFile(ConfigDirMemberFileBase):
 class PackageLicensesFileChecker(ConfigFileCheckerBase):
 
     def _checkContentFormat(self, content, bAutoFix, errorClass):
-        return None
+        if bAutoFix:
+            e = _FileUtil.parseEntryDict(content)
+            s = _FileUtil.entryDictToStr(e)
+            return None if s == content else s
+        else:
+            _FileUtil.parseEntryDict(content, valueErrorClass=errorClass)
+            return None
 
 
 class PackageLicensesDirChecker(ConfigDirCheckerBase):
 
     def __init__(self, parent, bAutoFix, errorCallback):
         super().__init__(parent, PackageLicenseMemberFile, bAutoFix, errorCallback)
-
-
-class _EntryDict(dict):
-
-    def __init__(self, entryList=[]):
-        super().__init__()
-        for pkgName, flagList in entryList:
-            assert pkgName not in self
-            assert len(set(flagList)) == len(flagList)
-            self[pkgName] = set(flagList)
-
-    def mergeEntry(self, pkgName, flagList):
-        if pkgName not in self:
-            self[pkgName] = set()
-        self[pkgName] |= set(flagList)
-
-    def mergeEntryList(self, entryList):
-        for pkgName, flagList in entryList:
-            if pkgName not in self:
-                self[pkgName] = set()
-            self[pkgName] |= set(flagList)
-
-    def mergeEntryDict(self, entryDict):
-        for pkgName, flagList in entryDict.items():
-            if pkgName not in self:
-                self[pkgName] = set()
-            self[pkgName] |= set(flagList)
-
-    def toEntryList(self):
-        ret = []
-        for k in sorted(self.keys()):
-            ret.append((k, sorted(self[k])))
-        return ret
 
 
 class _FileUtil:
@@ -151,20 +128,25 @@ class _FileUtil:
     #   ("*/*, ["*"])
 
     @staticmethod
-    def parseEntryDict(buf):
-        ret = _EntryDict()
+    def parseEntryDict(buf, valueErrorClass=None):
+        ret = EntryDict()
         for line in Util.readListBuffer(buf):
             itemlist = line.split()
-            ret.mergeEntry(itemlist[0], itemlist[1:])
+            if valueErrorClass is not None:
+                if not Util.portageIsPkgName(itemlist[0]):
+                    raise ValueError("only package name can be specified: %s" % (itemlist[0]))
+            pkgName = Util.portagePkgNameFromPkgAtom(itemlist[0])
+            licList = itemlist[1:]
+            ret.mergeEntry(pkgName, licList)
         return ret
 
     @classmethod
-    def readEntryDict(cls, path, bRaiseFileNotFoundError=False):
+    def readEntryDict(cls, path, bRaiseFileNotFoundError=False, valueErrorClass=None):
         try:
-            return cls.parseEntryDict(pathlib.Path(path).read_text())
+            return cls.parseEntryDict(pathlib.Path(path).read_text(), valueErrorClass=valueErrorClass)
         except FileNotFoundError:
             if not bRaiseFileNotFoundError:
-                return _EntryDict()
+                return EntryDict()
             else:
                 raise
 

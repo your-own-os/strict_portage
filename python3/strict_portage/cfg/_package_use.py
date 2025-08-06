@@ -24,6 +24,7 @@
 import os
 import pathlib
 from .._util import Util
+from .._util import EntryDict
 from ._prototype import enforceConfigFile
 from ._prototype import ConfigFileOrDirBase
 from ._prototype import ConfigDirMemberFileBase
@@ -49,7 +50,7 @@ class PackageUse(ConfigFileOrDirBase):
         if self.is_file_or_dir:
             return _FileUtil.readEntryDict(self.path)
         else:
-            e = _EntryDict()
+            e = EntryDict()
             for fullfn in Util.fileOrDirGetFileList(self.path):
                 e.mergeEntryDict(_FileUtil.readEntryDict(fullfn, bRaiseFileNotFoundError=True))
             return e
@@ -64,7 +65,7 @@ class PackageUse(ConfigFileOrDirBase):
 
     @enforceConfigFile
     def set_use_flag_mapping(self, mapping):
-        e = _EntryDict()
+        e = EntryDict()
         for pkgAtom, flagList in mapping.items():
             pkgName = Util.portagePkgNameFromPkgAtom(pkgAtom)
             e.mergeEntry(pkgName, flagList)
@@ -94,7 +95,7 @@ class PackageUseMemberFile(ConfigDirMemberFileBase):
         _FileUtil.entryDictToFile(self.path, e)
 
     def set_use_flag_mapping(self, mapping):
-        e = _EntryDict()
+        e = EntryDict()
         for pkgAtom, flagList in mapping.items():
             pkgName = Util.portagePkgNameFromPkgAtom(pkgAtom)
             e.mergeEntry(pkgName, flagList)
@@ -119,33 +120,6 @@ class PackageUseDirChecker(ConfigDirCheckerBase):
         super().__init__(parent, PackageUseMemberFile, bAutoFix, errorCallback)
 
 
-class _EntryDict(dict):
-
-    def __init__(self, entryList=[]):
-        super().__init__()
-        for pkgName, flagList in entryList:
-            assert pkgName not in self
-            assert len(set(flagList)) == len(flagList)
-            self[pkgName] = set(flagList)
-
-    def mergeEntry(self, pkgName, flagList):
-        if pkgName not in self:
-            self[pkgName] = set()
-        self[pkgName] |= set(flagList)
-
-    def mergeEntryDict(self, entryDict):
-        for pkgName, flagList in entryDict.items():
-            if pkgName not in self:
-                self[pkgName] = set()
-            self[pkgName] |= set(flagList)
-
-    def toEntryList(self):
-        ret = []
-        for k in sorted(self.keys()):
-            ret.append((k, sorted(self[k])))
-        return ret
-
-
 class _FileUtil:
 
     # entry examples:
@@ -159,7 +133,7 @@ class _FileUtil:
 
     @staticmethod
     def parseEntryDict(buf, valueErrorClass=None):
-        ret = _EntryDict()
+        ret = EntryDict()
         for line in Util.readListBuffer(buf):
             itemlist = line.split()
             if valueErrorClass is not None:
@@ -176,7 +150,7 @@ class _FileUtil:
             return cls.parseEntryDict(pathlib.Path(path).read_text(), valueErrorClass=valueErrorClass)
         except FileNotFoundError:
             if not bRaiseFileNotFoundError:
-                return _EntryDict()
+                return EntryDict()
             else:
                 raise
 
