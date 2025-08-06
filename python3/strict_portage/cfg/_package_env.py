@@ -25,6 +25,7 @@ import os
 import pathlib
 from .._util import Util
 from .._errors import FileFormatError
+from ._prototype import enforceConfigFile
 from ._prototype import ConfigFileOrDirBase
 from ._prototype import ConfigDirMemberFileBase
 from ._prototype import ConfigFileCheckerBase
@@ -57,9 +58,11 @@ class PackageEnv(ConfigFileOrDirBase):
                 ret.append((itemlist[0], itemlist[1]))
         return ret
 
+    @enforceConfigFile
     def merge_entries(self, entries):
         assert False
 
+    @enforceConfigFile
     def set_entries(self, entries):
         assert False
 
