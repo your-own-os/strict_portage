@@ -47,6 +47,15 @@ class PackageUse(ConfigFileOrDirBase):
         _FileUtil.entryDictToFile(self.path, e)
 
     def get_use_flag_mapping(self):
+        # entry examples:
+        #   ("sys-apps/systemd", ["-boot", "kernel-install"])
+        #   ("sys-apps/*, ["boot"])
+        #   ("*/*, ["boot"])
+        #
+        # we don't support this kind of entries:
+        #   (">sys-apps/systemd-256.10", ["-boot", "kernel-install"])
+        #
+
         if self.is_file_or_dir:
             return _FileUtil.readEntryDict(self.path)
         else:
@@ -121,15 +130,6 @@ class PackageUseDirChecker(ConfigDirCheckerBase):
 
 
 class _FileUtil:
-
-    # entry examples:
-    #   ("sys-apps/systemd", ["-boot", "kernel-install"])
-    #   ("sys-apps/*, ["boot"])
-    #   ("*/*, ["boot"])
-    #
-    # we don't support this kind of entries:
-    #   (">sys-apps/systemd-256.10", ["-boot", "kernel-install"])
-    #
 
     @staticmethod
     def parseEntryDict(buf, valueErrorClass=None):

@@ -46,6 +46,17 @@ class PackageMask(ConfigFileOrDirBase):
         _FileUtil.writeEntryList(self.path, e)
 
     def get_mask_pkgatoms(self):
+        # entry examples:
+        #   "sys-kernel/gentoo-sources-2.6.37-r1"
+        #   "sys-kernel/gentoo-sources-2.6.37-r1::guru"
+        #   "=sys-kernel/gentoo-sources-2.6.37-r1"
+        #   ">=sys-kernel/gentoo-sources-2.6.37-r1"
+        #   "<=sys-kernel/gentoo-sources-2.6.37-r1"
+        #   "<sys-kernel/gentoo-sources-2.6.37-r1"
+        #   ">sys-kernel/gentoo-sources-2.6.37-r1"
+        #   "!sys-kernel/gentoo-sources-2.6.37-r1"
+        #   "~sys-kernel/gentoo-sources-2.6.37-r1"
+
         if self.is_file_or_dir:
             e = _FileUtil.readEntryList(self.path)
         else:
@@ -107,17 +118,6 @@ class PackageMaskDirChecker(ConfigDirCheckerBase):
 
 
 class _FileUtil:
-
-    # entry examples:
-    #   "sys-kernel/gentoo-sources-2.6.37-r1"
-    #   "sys-kernel/gentoo-sources-2.6.37-r1::guru"
-    #   "=sys-kernel/gentoo-sources-2.6.37-r1"
-    #   ">=sys-kernel/gentoo-sources-2.6.37-r1"
-    #   "<=sys-kernel/gentoo-sources-2.6.37-r1"
-    #   "<sys-kernel/gentoo-sources-2.6.37-r1"
-    #   ">sys-kernel/gentoo-sources-2.6.37-r1"
-    #   "!sys-kernel/gentoo-sources-2.6.37-r1"
-    #   "~sys-kernel/gentoo-sources-2.6.37-r1"
 
     @staticmethod
     def readEntryList(path, bRaiseFileNotFoundError=False):
