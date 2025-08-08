@@ -504,9 +504,6 @@ class ConfigDirCheckerBase(abc.ABC):
         self._memberFullfnSet.add(fullfn)
 
     def finialize(self):
-        if self._basicCheck():
-            return
-
         for fn in os.listdir(self._obj.path):
             fullfn = os.path.join(self._obj.path, fn)
             if fullfn not in self._memberFullfnSet:

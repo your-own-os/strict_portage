@@ -116,7 +116,8 @@ class PackageEnvFileChecker(ConfigFileCheckerBase):
             self._errorCallback("\"%s\" is not a directory" % (self._obj._envDataDir))
             return True             # returning True means there's fatal error
 
-        return False                # returning False means there's no fatal error
+        # returning False means there's no fatal error
+        return False
 
 
 class PackageEnvDirChecker(ConfigDirCheckerBase):
