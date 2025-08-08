@@ -125,18 +125,33 @@ class PackageEnvDirChecker(ConfigDirCheckerBase):
     def __init__(self, parent, bAutoFix, errorCallback):
         super().__init__(parent, PackageEnvMemberFile, bAutoFix, errorCallback)
 
+    def check_self(self):
+        if self._checkDataEnvDir():
+            return
+        super().check_self()
+
     def check_member_file(self, file_name, content=None, env_data=None):
+        if self._checkDataEnvDir():
+            return
         super().check_member_file(file_name, content)
         self._checkEnvData(file_name, env_data, True)
 
     def check_member_link(self, link_name, target=None, env_data=None):
+        if self._checkDataEnvDir():
+            return
         super().check_member_link(link_name, target)
         self._checkEnvData(link_name, env_data, False)
 
-    def _basicCheck(self):
-        if super()._basicCheck():
-            return True
+    def check_extra_file(self, dir_name):
+        assert False
 
+    def check_extra_link(self, dir_name):
+        assert False
+
+    def check_extra_dir(self, dir_name):
+        assert False
+
+    def _checkDataEnvDir(self):
         # /etc/portage/env does not exist, fix: create the directory
         if not os.path.exists(self._obj._envDataDir):
             if self._bAutoFix:
