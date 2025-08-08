@@ -254,64 +254,62 @@ class ConfigFileCheckerBase(abc.ABC):
         self._errorCallback = errorCallback if errorCallback is not None else Util.doNothing
 
     def check_file(self, content=None):
-        if self._basicCheck():
-            return
+        self._assertContent(content)
 
-        if content is not None:
-            try:
-                self._checkContentFormat(content, False, _CheckError)
-            except _CheckError:
-                assert False
-
-        # is a symlink, fix: remove the symlink and create a file
-        if os.path.islink(self._obj.path):
+        # does not exist, fix: create file
+        if not os.path.exists(self._obj.path):
             if content is not None:
                 if self._bAutoFix:
-                    os.unlink(self._obj.path)
                     pathlib.Path(self._obj.path).write_text(content)
                     return
                 else:
-                    self._errorCallback("\"%s\" should not be a symlink" % (self._obj.path))
+                    self._errorCallback("%s does not exist" % (self._obj.path))
                     return
             else:
-                self._errorCallback("\"%s\" should not be a symlink" % (self._obj.path))
+                # not exist is totally ok
+                return
+
+        # is not a file, fix: remove the original and create a file
+        if os.path.islink(self._obj.path) or not os.path.isfile(self._obj.path):
+            if self._bAutoFix and content is not None:
+                Util.forceDelete(self._obj.path)
+                pathlib.Path(self._obj.path).write_text(content)
+                return
+            else:
+                self._errorCallback("\"%s\" should be a file" % (self._obj.path))
                 return
 
         # content is invalid, fix: re-write content
-        if content is not None:
-            if pathlib.Path(self._obj.path).read_text() != content:
-                if self._bAutoFix:
+        if True:
+            bBad, excp = False, None
+            if content is not None:
+                bBad = (pathlib.Path(self._obj.path).read_text() != content)
+            else:
+                # this part is a bit complex, see comment of self._checkContentFormat()
+                try:
+                    content = self._checkContentFormat(pathlib.Path(self._obj.path).read_text(), self._bAutoFix, _CheckError)
+                    if content is not None:
+                        bBad = True
+                except _CheckError as e:
+                    bBad, excp = True, e
+            if bBad:
+                if self._bAutoFix and content is not None:
                     pathlib.Path(self._obj.path).write_text(content)
-                else:
-                    self._errorCallback("\"%s\" has invalid content" % (self._obj.path))
                     return
-        else:
-            try:
-                newContent = self._checkContentFormat(pathlib.Path(self._obj.path).read_text(), self._bAutoFix, _CheckError)
-                if newContent is not None:
-                    pathlib.Path(self._obj.path).write_text(newContent)
-            except _CheckError as e:
-                self._errorCallback("\"%s\" has invalid content: %s" % (self._obj.path, str(e)))
-                return
+                else:
+                    self._errorCallback("\"%s\" has invalid content%s" % (self._obj.path, f": {excp}" if excp is not None else ""))
+                    return
 
     def check_link(self, content=None, target=None):
-        if self._basicCheck():
-            return
+        self._assertContent(content)
+        assert os.path.exists(target) if target is not None else False
 
-        if content is not None:
-            try:
-                self._checkContentFormat(content, False, _CheckError)
-            except _CheckError:
-                assert False
-
-        if target is not None:
-            assert os.path.exists(target)
-
-        # is not a symlink, fix: remove the file and create a symlink
+        # is not a symlink, fix: remove the original and create a symlink
         if not os.path.islink(self._obj.path):
             if target is not None:
                 if self._bAutoFix:
                     Util.forceSymlink(target, self._obj.path)
+                    target = None                                   # go to content check directly
                 else:
                     self._errorCallback("\"%s\" must be a symlink to \"%s\"" % (self._obj.path, target))
                     return
@@ -328,49 +326,28 @@ class ConfigFileCheckerBase(abc.ABC):
                     self._errorCallback("\"%s\" must be a symlink to \"%s\"" % (self._obj.path, target))
                     return
 
-        # content is invalid, no way to fix
-        if content is not None:
-            if pathlib.Path(self._obj.path).read_text() != content:
-                self._errorCallback("\"%s\" has invalid content" % (self._obj.path))
-                return
-        else:
-            try:
-                self._checkContentFormat(pathlib.Path(self._obj.path).read_text(), False, _CheckError)
-            except _CheckError as e:
-                self._errorCallback("\"%s\" has invalid content: %s" % (self._obj.path, str(e)))
+        # content is invalid, fix: none
+        if True:
+            bBad, excp = False, None
+            if content is not None:
+                bBad = (pathlib.Path(self._obj.path).read_text() != content)
+            else:
+                try:
+                    bBad = (self._checkContentFormat(pathlib.Path(self._obj.path).read_text(), False, _CheckError) is not None)
+                except _CheckError as e:
+                    bBad = True
+                    excp = e
+            if bBad:
+                self._errorCallback("\"%s\" has invalid content%s" % (self._obj.path, f": {excp}" if excp is not None else ""))
                 return
 
     def check_file_or_link(self, content=None):
-        if self._basicCheck():
-            return
+        self._assertContent(content)
 
-        if content is not None:
-            try:
-                self._checkContentFormat(content, False, _CheckError)
-            except _CheckError:
-                assert False
-
-            if pathlib.Path(self._obj.path).read_text() != content:
-                if os.path.islink(self._obj.path):
-                    self._errorCallback("\"%s\" has invalid content" % (self._obj.path))
-                    return
-                else:
-                    if self._bAutoFix:
-                        pathlib.Path(self._obj.path).write_text(content)
-                    else:
-                        self._errorCallback("\"%s\" has invalid content" % (self._obj.path))
-                        return
+        if os.path.islink(self._obj.path):
+            self.check_link(content)
         else:
-            try:
-                if os.path.islink(self._obj.path):
-                    self._checkContentFormat(pathlib.Path(self._obj.path).read_text(), False, _CheckError)
-                else:
-                    newContent = self._checkContentFormat(pathlib.Path(self._obj.path).read_text(), self._bAutoFix, _CheckError)
-                    if newContent is not None:
-                        pathlib.Path(self._obj.path).write_text(newContent)
-            except _CheckError as e:
-                self._errorCallback("\"%s\" has invalid content: %s" % (self._obj.path, str(e)))
-                return
+            self.check_file(content)
 
     def __enter__(self):
         return self
@@ -378,15 +355,17 @@ class ConfigFileCheckerBase(abc.ABC):
     def __exit__(self, type, value, traceback):
         pass
 
-    def _basicCheck(self):
-        # check existence
-        if not os.path.isfile(self._obj.path):
-            self._errorCallback("%s must be a file" % (self._obj.path))
-            return True
-
-        return False
+    def _assertContent(self, content):
+        if content is not None:
+            try:
+                self._checkContentFormat(content, False, _CheckError)
+            except _CheckError:
+                assert False
 
     def _checkContentFormat(self, content, bAutoFix, errorClass):
+        # return None means no error in content
+        # return "XXXX" means error found in content and a fixed version is given
+        # raise _CheckError means unfixable error found
         return None
 
 
