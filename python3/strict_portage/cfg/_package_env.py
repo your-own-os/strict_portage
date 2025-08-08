@@ -97,7 +97,7 @@ class PackageEnvFileChecker(ConfigFileCheckerBase):
     def check_link(self, content=None, target=None):
         if _checkDataEnvDir(self):
             return
-        super().check_file(content)
+        super().check_link(content, target)
 
     def _checkContentFormat(self, content, bAutoFix, errorClass):
         return None

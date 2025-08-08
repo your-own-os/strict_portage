@@ -361,9 +361,9 @@ class ConfigFileCheckerBase(abc.ABC):
         self._assertContent(content)
 
         if os.path.islink(self._obj.path):
-            self.check_link(content)
+            self.check_link(content=content, target=None)
         else:
-            self.check_file(content)
+            self.check_file(content=content)
 
     def __enter__(self):
         return self

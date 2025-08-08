@@ -53,9 +53,7 @@ class Mirrors(ConfigFileBase):
 
 
 class MirrorsChecker(ConfigFileCheckerBase):
-
-    def check(self):
-        pass
+    pass
 
 
 class _FileUtil:
