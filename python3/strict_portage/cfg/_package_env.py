@@ -180,4 +180,3 @@ def _checkEnvData(obj, fileName, envData, bCanAutoFix):
             else:
                 obj._errorCallback("\"%s\" does not exist" % (fullfn2))
                 continue
-
