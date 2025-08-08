@@ -89,10 +89,20 @@ class PackageEnvMemberFile(ConfigDirMemberFileBase):
 
 class PackageEnvFileChecker(ConfigFileCheckerBase):
 
-    def _basicCheck(self):
-        if super()._basicCheck():
-            return True
+    def check_file(self, content=None):
+        if self._checkDataEnvDir():
+            return
+        super().check_file(content)
 
+    def check_link(self, content=None, target=None):
+        if self._checkDataEnvDir():
+            return
+        super().check_file(content)
+
+    def _checkContentFormat(self, content, bAutoFix, errorClass):
+        return None
+
+    def _checkDataEnvDir(self):
         # /etc/portage/env does not exist, fix: create the directory
         if not os.path.exists(self._obj._envDataDir):
             if self._bAutoFix:
@@ -107,9 +117,6 @@ class PackageEnvFileChecker(ConfigFileCheckerBase):
             return True             # returning True means there's fatal error
 
         return False                # returning False means there's no fatal error
-
-    def _checkContentFormat(self, content, bAutoFix, errorClass):
-        return None
 
 
 class PackageEnvDirChecker(ConfigDirCheckerBase):
