@@ -276,7 +276,7 @@ class ConfigFileCheckerBase(abc.ABC):
                 pathlib.Path(self._obj.path).write_text(content)
                 return
             else:
-                self._errorCallback("\"%s\" should be a file" % (self._obj.path))
+                self._errorCallback("\"%s\" must be a file" % (self._obj.path))
                 return
 
         # content is invalid, fix: re-write content
@@ -304,12 +304,28 @@ class ConfigFileCheckerBase(abc.ABC):
         self._assertContent(content)
         assert os.path.exists(target) if target is not None else False
 
+        # does not exist, fix: create symlink
+        if not os.path.exists(self._obj.path):
+            if target is not None:
+                if self._bAutoFix:
+                    os.symlink(target, self._obj.path)
+                    target = None                                   # bypass the if block(s) below, go to content check directly
+                else:
+                    self._errorCallback("%s does not exist" % (self._obj.path))
+                    return
+            elif content is not None:
+                self._errorCallback("%s does not exist" % (self._obj.path))
+                return
+            else:
+                # not exist is totally ok
+                return
+
         # is not a symlink, fix: remove the original and create a symlink
         if not os.path.islink(self._obj.path):
             if target is not None:
                 if self._bAutoFix:
                     Util.forceSymlink(target, self._obj.path)
-                    target = None                                   # go to content check directly
+                    target = None                                   # bypass the if block(s) below, go to content check directly
                 else:
                     self._errorCallback("\"%s\" must be a symlink to \"%s\"" % (self._obj.path, target))
                     return
