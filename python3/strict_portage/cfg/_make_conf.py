@@ -164,28 +164,18 @@ class MakeConfChecker(ConfigFileCheckerBase):
         super().__init__(parent, bAutoFix, errorCallback)
 
     def check_file(self, content=None):
-        if self._fileMustExist():
+        if self._mustExist():
             return
         self._additionalCheck()
         super().check_file(content)
 
     def check_link(self, content=None, target=None):
-        if self._linkMustExist():
+        if self._mustExist():
             return
         self._additionalCheck()
         super().check_link(content, target)
 
-    def _fileMustExist(self):
-        # does not exist, fix: create file
-        if not os.path.exists(self._obj.path):
-            if self._bAutoFix:
-                pathlib.Path(self._obj.path).write_text(content)
-            else:
-                self._errorCallback("%s does not exist" % (self._obj.path))
-                return True
-        return False
-
-    def _linkMustExist(self):
+    def _mustExist(self):
         # does not exist, fix: none
         if not os.path.exists(self._obj.path):
             self._errorCallback("%s does not exist" % (self._obj.path))
@@ -193,11 +183,11 @@ class MakeConfChecker(ConfigFileCheckerBase):
         return False
 
     def _additionalCheck(self):
-        # check CHOST variable
+        # check CHOST variable, fix: none
         if self._obj.has_var("CHOST"):
             self._errorCallback("variable CHOST should not exist in %s" % (self._obj.path))
 
-        # check/fix DISTDIR variable
+        # check/fix DISTDIR variable, fix: FIXME
         if self._obj.has_var("DISTDIR"):
             if not os.path.isdir(self._obj.path):
                 # FIXME
