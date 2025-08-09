@@ -272,6 +272,7 @@ class PortageConfigDirChecker:
                             if idx == -1:
                                 break
                             if dn[:idx] in [".", ".."]:
+                                dn = dn[idx+1:]
                                 continue
                             dn = dn[idx+1:]
                             if os.path.exists(os.path.join(gentoo_repository_dir_path, dn)):        # FIXME: should also check it is a real profile dir
