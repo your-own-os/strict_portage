@@ -247,6 +247,9 @@ class PortageConfigDirChecker:
             if not os.path.islink(self._obj.make_profile_link_path):
                 self._errorCallback("%s must be a symlink" % (self._obj.make_profile_link_path))
                 return
+            print(os.readlink(self._obj.make_profile_link_path))
+            print(os.path.abspath(os.readlink(self._obj.make_profile_link_path)))
+            print(gentoo_repository_dir_path)
             if not Util.isUnderDir(os.readlink(self._obj.make_profile_link_path), gentoo_repository_dir_path):
                 self._errorCallback("%s points to an invalid location" % (self._obj.make_profile_link_path))
                 return
