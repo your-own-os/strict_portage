@@ -52,6 +52,7 @@ class Util:
             if not os.path.exists(path2):
                 return path2
 
+    @staticmethod
     def getInnerFileFullfn(dirpath, innerFileName):
         fullfn = os.path.join(dirpath, innerFileName)
         if not os.path.exists(fullfn):
@@ -60,6 +61,26 @@ class Util:
             fullfn = os.path.join(dirpath, "%s-%d" % (innerFileName, i))
             if not os.path.exists(fullfn):
                 return fullfn
+
+    @staticmethod
+    def isDirOrIsUnderDir(path, dir, abspath=False):
+        if dir == "/":
+            return path.startswith("/")
+        else:
+            if not abspath:
+                dir = os.path.abspath(dir)
+                path = os.path.abspath(path)
+            return path == dir or path.startswith(dir + "/")
+
+    @staticmethod
+    def isUnderDir(path, dir, abspath=False):
+        if dir == "/":
+            return path.startswith("/") and len(path) > 1
+        else:
+            if not abspath:
+                dir = os.path.abspath(dir)
+                path = os.path.abspath(path)
+            return path.startswith(dir + "/")
 
     @classmethod
     def safeFileToDir(cls, path, innerFileName):

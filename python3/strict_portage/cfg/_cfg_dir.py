@@ -237,20 +237,17 @@ class PortageConfigDirChecker:
         self._fileSet.add(self._obj.make_profile_link_path)
 
     def check_make_profile_link(self, gentoo_repository_dir_path):
+        assert Util.isUnderDir(gentoo_repository_dir_path, self._obj._prefix)
+
         if self._basicCheck():
             return
-
-        if self._obj._prefix == "/":
-            assert gentoo_repository_dir_path.startswith(self._obj._prefix)
-        else:
-            assert gentoo_repository_dir_path.startswith(self._obj._prefix + "/")
 
         # check /etc/portage/make.profile if exist
         if os.path.exists(self._obj.make_profile_link_path):
             if not os.path.islink(self._obj.make_profile_link_path):
                 self._errorCallback("%s must be a symlink" % (self._obj.make_profile_link_path))
                 return
-            if not os.path.abspath(os.readlink(self._obj.make_profile_link_path)).startswith(os.path.abspath(gentoo_repository_dir_path)):
+            if not Util.isUnderDir(os.readlink(self._obj.make_profile_link_path), gentoo_repository_dir_path):
                 self._errorCallback("%s points to an invalid location" % (self._obj.make_profile_link_path))
                 return
 
@@ -445,7 +442,7 @@ class PortageConfigDirChecker:
         if self._basicCheck():
             return
 
-        assert path.startswith(self._obj.path + "/")
+        assert Util.isUnderDir(path, self._obj.path, abspath=True)
 
         if not os.path.exists(path):
             if content is not None:
@@ -486,8 +483,8 @@ class PortageConfigDirChecker:
         if self._basicCheck():
             return
 
-        assert target is not None                           # FIXME
-        assert path.startswith(self._obj.path + "/")
+        assert target is not None                                           # FIXME
+        assert Util.isUnderDir(path, self._obj.path, abspath=True)
 
         if not os.path.islink(path) or os.readlink(path) != target:
             if self._bAutoFix:
@@ -501,7 +498,7 @@ class PortageConfigDirChecker:
         if self._basicCheck():
             return
 
-        assert path.startswith(self._obj.path + "/")
+        assert Util.isUnderDir(path, self._obj.path, abspath=True)
 
         if not os.path.exists(path):
             if self._bAutoFix:
