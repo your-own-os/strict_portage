@@ -230,11 +230,25 @@ class PortageConfigDirChecker:
         self._obj = parent
         self._bAutoFix = bAutoFix
         self._errorCallback = errorCallback if errorCallback is not None else Util.doNothing
-        self._fileSet = set()
+
+        self._fileSet = {
+            self._obj.make_profile_link_path,
+            self._obj.make_conf_file_path,
+            self._obj.mirrors_file_path,
+            self._obj.repos_conf_dir_path,
+            self._obj.repo_postsync_dir_path,
+            self._obj.package_accept_keywords_file_path,
+            self._obj.package_env_file_path,
+            self._obj.env_data_dir_path,
+            self._obj.package_license_file_path,
+            self._obj.package_mask_file_path,
+            self._obj.package_unmask_file_path,
+            self._obj.package_use_file_path,
+            self._obj.custom_sets_dir_path,
+        }
 
     def check_self(self):
         self._basicCheck()
-        self._fileSet.add(self._obj.make_profile_link_path)
 
     def check_make_profile_link(self, gentoo_repository_dir_path):
         assert os.path.isabs(gentoo_repository_dir_path)
@@ -252,186 +266,38 @@ class PortageConfigDirChecker:
                 self._errorCallback("%s points to an invalid location" % (self._obj.make_profile_link_path))
                 return
 
-    def allow_make_conf_file(self):
-        if self._basicCheck():
-            return
-
-        self._fileSet.add(self._obj.make_conf_file_path)
-
     def disallow_make_conf_file(self):
-        if self._basicCheck():
-            return
-
-        if self._obj.has_make_conf_file():
-            self._errorCallback("\"%s\" should not exist" % (self._obj.make_conf_file_path))
-            return
-
         self._fileSet.discard(self._obj.make_conf_file_path)
 
-    def allow_mirrors_file(self):
-        if self._basicCheck():
-            return
-
-        self._fileSet.add(self._obj.mirrors_file_path)
-
     def disallow_mirrors_file(self):
-        if self._basicCheck():
-            return
-
-        if self._obj.has_mirrors_file():
-            self._errorCallback("\"%s\" should not exist" % (self._obj.mirrors_file_path))
-            return
-
         self._fileSet.discard(self._obj.mirrors_file_path)
 
-    def allow_repos_conf_file_or_dir(self):
-        if self._basicCheck():
-            return
-
-        self._fileSet.add(self._obj.repos_conf_dir_path)
-
     def disallow_repos_conf_file_or_dir(self):
-        if self._basicCheck():
-            return
-
-        if self._obj.has_repos_conf_dir():
-            self._errorCallback("\"%s\" should not exist" % (self._obj.repos_conf_dir_path))
-            return
-
         self._fileSet.discard(self._obj.repos_conf_dir_path)
 
-    def allow_repo_postsync_dir(self):
-        if self._basicCheck():
-            return
-
-        self._fileSet.add(self._obj.repo_postsync_dir_path)
-
     def disallow_repo_postsync_dir(self):
-        if self._basicCheck():
-            return
-
-        if self._obj.has_repo_postsync_dir():
-            self._errorCallback("\"%s\" should not exist" % (self._obj.repo_postsync_dir_path))
-            return
-
         self._fileSet.discard(self._obj.repo_postsync_dir_path)
 
-    def allow_package_accept_keywords_file_or_dir(self):
-        if self._basicCheck():
-            return
-
-        self._fileSet.add(self._obj.package_accept_keywords_file_path)
-
     def disallow_package_accept_keywords_file_or_dir(self):
-        if self._basicCheck():
-            return
-
-        if self._obj.has_package_accept_keywords_file_or_dir():
-            self._errorCallback("\"%s\" should not exist" % (self._obj.package_accept_keywords_file_path))
-            return
-
         self._fileSet.discard(self._obj.package_accept_keywords_file_path)
 
-    def allow_package_env_file_or_dir(self):
-        if self._basicCheck():
-            return
-
-        self._fileSet.add(self._obj.package_env_file_path)
-        self._fileSet.add(self._obj.env_data_dir_path)
-
     def disallow_package_env_file_or_dir(self):
-        if self._basicCheck():
-            return
-
-        if self._obj.has_package_env_file_or_dir():
-            self._errorCallback("\"%s\" should not exist" % (self._obj.package_env_file_path))
-            return
-
-        if self._obj.has_env_data_dir():
-            self._errorCallback("\"%s\" should not exist" % (self._obj.env_data_dir_path))
-            return
-
         self._fileSet.discard(self._obj.package_env_file_path)
         self._fileSet.discard(self._obj.env_data_dir_path)
 
-    def allow_package_license_file_or_dir(self):
-        if self._basicCheck():
-            return
-
-        self._fileSet.add(self._obj.package_license_file_path)
-
     def disallow_package_license_file_or_dir(self):
-        if self._basicCheck():
-            return
-
-        if self._obj.has_package_license_file_or_dir():
-            self._errorCallback("\"%s\" should not exist" % (self._obj.package_license_file_path))
-            return
-
         self._fileSet.discard(self._obj.package_license_file_path)
 
-    def allow_package_mask_file_or_dir(self):
-        if self._basicCheck():
-            return
-
-        self._fileSet.add(self._obj.package_mask_file_path)
-
     def disallow_package_mask_file_or_dir(self):
-        if self._basicCheck():
-            return
-
-        if self._obj.has_package_mask_file_or_dir():
-            self._errorCallback("\"%s\" should not exist" % (self._obj.package_mask_file_path))
-            return
-
         self._fileSet.discard(self._obj.package_mask_file_path)
 
-    def allow_package_unmask_file_or_dir(self):
-        if self._basicCheck():
-            return
-
-        self._fileSet.add(self._obj.package_unmask_file_path)
-
     def disallow_package_unmask_file_or_dir(self):
-        if self._basicCheck():
-            return
-
-        if self._obj.has_package_unmask_file_or_dir():
-            self._errorCallback("\"%s\" should not exist" % (self._obj.package_unmask_file_path))
-            return
-
         self._fileSet.discard(self._obj.package_unmask_file_path)
 
-    def allow_package_use_file_or_dir(self):
-        if self._basicCheck():
-            return
-
-        self._fileSet.add(self._obj.package_use_file_path)
-
     def disallow_package_use_file_or_dir(self):
-        if self._basicCheck():
-            return
-
-        if self._obj.has_package_use_file_or_dir():
-            self._errorCallback("\"%s\" should not exist" % (self._obj.package_use_file_path))
-            return
-
         self._fileSet.discard(self._obj.package_use_file_path)
 
-    def allow_custom_sets_dir(self):
-        if self._basicCheck():
-            return
-
-        self._fileSet.add(self._obj.custom_sets_dir_path)
-
     def disallow_custom_sets_dir(self):
-        if self._basicCheck():
-            return
-
-        if self._obj.has_custom_sets_dir():
-            self._errorCallback("\"%s\" should not exist" % (self._obj.custom_sets_dir_path))
-            return
-
         self._fileSet.discard(self._obj.custom_sets_dir_path)
 
     def use_and_check_extra_file(self, path, content=None, checker=None, default_content_generator=None):
