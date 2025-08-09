@@ -262,9 +262,23 @@ class PortageConfigDirChecker:
             if not os.path.islink(self._obj.make_profile_link_path):
                 self._errorCallback("%s must be a symlink" % (self._obj.make_profile_link_path))
                 return
-            if not Util.isUnderDir(os.path.normpath(os.path.join(self._obj.path, os.readlink(self._obj.make_profile_link_path))), gentoo_repository_dir_path):
-                self._errorCallback("%s points to an invalid location" % (self._obj.make_profile_link_path))
-                return
+            if True:
+                dn = os.readlink(self._obj.make_profile_link_path)
+                if not Util.isUnderDir(os.path.normpath(os.path.join(self._obj.path, dn)), gentoo_repository_dir_path):
+                    if self._bAutoFix:
+                        # we can fix it if only repository directory is wrong
+                        while dn != "":
+                            idx = dn.find("/")
+                            if idx == -1:
+                                break
+                            if dn[:idx] in [".", ".."]:
+                                continue
+                            dn = dn[idx+1:]
+                            if os.path.exists(os.path.join(gentoo_repository_dir_path, dn)):        # FIXME: should also check it is a real profile dir
+                                Util.forceSymlink(os.path.join("..", "..", gentoo_repository_dir_path, dn), self._obj.make_profile_link_path)
+                                return
+                    self._errorCallback("%s points to an invalid location" % (self._obj.make_profile_link_path))
+                    return
 
     def disallow_make_conf_file(self):
         self._fileSet.discard(self._obj.make_conf_file_path)
