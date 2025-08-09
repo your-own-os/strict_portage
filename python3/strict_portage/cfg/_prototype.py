@@ -519,7 +519,7 @@ class ConfigDirCheckerBase(abc.ABC):
 
         self._memberFullfnSet.add(fullfn)
 
-    def finialize(self):
+    def finalize(self):
         for fn in os.listdir(self._obj.path):
             fullfn = os.path.join(self._obj.path, fn)
             if fullfn not in self._memberFullfnSet:
@@ -536,7 +536,7 @@ class ConfigDirCheckerBase(abc.ABC):
         return self
 
     def __exit__(self, type, value, traceback):
-        self.finialize()
+        self.finalize()
 
     def _basicCheck(self):
         # not exist, fix: create the directory

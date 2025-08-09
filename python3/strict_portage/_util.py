@@ -63,20 +63,19 @@ class Util:
                 return fullfn
 
     @staticmethod
-    def isDirOrIsUnderDir(path, dir):
+    def isUnderDir(path, dir, bAllowSame=False):
         assert os.path.isabs(path) and os.path.isabs(dir)
-        if dir == "/":
-            return path.startswith("/")
-        else:
-            return path == dir or path.startswith(dir + "/")
 
-    @staticmethod
-    def isUnderDir(path, dir):
-        assert os.path.isabs(path) and os.path.isabs(dir)
-        if dir == "/":
-            return len(path) > 1 and path[0] == "/"
+        if bAllowSame:
+            if dir == "/":
+                return path.startswith("/")
+            else:
+                return path == dir or path.startswith(dir + "/")
         else:
-            return path.startswith(dir + "/")
+            if dir == "/":
+                return len(path) > 1 and path.startswith("/")
+            else:
+                return path.startswith(dir + "/")
 
     @classmethod
     def safeFileToDir(cls, path, innerFileName):

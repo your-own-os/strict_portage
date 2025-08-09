@@ -520,7 +520,7 @@ class PortageConfigDirChecker:
             for fn in os.listdir(path):
                 self._fileSet.add(os.path.join(path, fn))
 
-    def finialize(self):
+    def finalize(self):
         for fn in os.listdir(self._obj.path):
             fullfn = os.path.join(self._obj.path, fn)
             if fullfn not in self._fileSet:
