@@ -63,23 +63,19 @@ class Util:
                 return fullfn
 
     @staticmethod
-    def isDirOrIsUnderDir(path, dir, abspath=False):
+    def isDirOrIsUnderDir(path, dir):
+        assert os.path.isabs(path) and os.path.isabs(dir)
         if dir == "/":
             return path.startswith("/")
         else:
-            if not abspath:
-                dir = os.path.abspath(dir)
-                path = os.path.abspath(path)
             return path == dir or path.startswith(dir + "/")
 
     @staticmethod
-    def isUnderDir(path, dir, abspath=False):
+    def isUnderDir(path, dir):
+        assert os.path.isabs(path) and os.path.isabs(dir)
         if dir == "/":
-            return path.startswith("/") and len(path) > 1
+            return len(path) > 1 and path[0] == "/"
         else:
-            if not abspath:
-                dir = os.path.abspath(dir)
-                path = os.path.abspath(path)
             return path.startswith(dir + "/")
 
     @classmethod

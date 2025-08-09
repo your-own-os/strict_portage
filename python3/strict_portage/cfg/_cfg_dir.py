@@ -237,6 +237,7 @@ class PortageConfigDirChecker:
         self._fileSet.add(self._obj.make_profile_link_path)
 
     def check_make_profile_link(self, gentoo_repository_dir_path):
+        assert os.path.isabs(gentoo_repository_dir_path)
         assert Util.isUnderDir(gentoo_repository_dir_path, self._obj._prefix)
 
         if self._basicCheck():
@@ -247,10 +248,7 @@ class PortageConfigDirChecker:
             if not os.path.islink(self._obj.make_profile_link_path):
                 self._errorCallback("%s must be a symlink" % (self._obj.make_profile_link_path))
                 return
-            print(os.readlink(self._obj.make_profile_link_path))
-            print(os.path.abspath(os.readlink(self._obj.make_profile_link_path)))
-            print(gentoo_repository_dir_path)
-            if not Util.isUnderDir(os.readlink(self._obj.make_profile_link_path), gentoo_repository_dir_path):
+            if not Util.isUnderDir(os.path.normpath(os.path.join(self._obj.path, self._obj.make_profile_link_path)), gentoo_repository_dir_path):
                 self._errorCallback("%s points to an invalid location" % (self._obj.make_profile_link_path))
                 return
 
@@ -445,7 +443,7 @@ class PortageConfigDirChecker:
         if self._basicCheck():
             return
 
-        assert Util.isUnderDir(path, self._obj.path, abspath=True)
+        assert Util.isUnderDir(path, self._obj.path)
 
         if not os.path.exists(path):
             if content is not None:
@@ -487,7 +485,7 @@ class PortageConfigDirChecker:
             return
 
         assert target is not None                                           # FIXME
-        assert Util.isUnderDir(path, self._obj.path, abspath=True)
+        assert Util.isUnderDir(path, self._obj.path)
 
         if not os.path.islink(path) or os.readlink(path) != target:
             if self._bAutoFix:
@@ -501,7 +499,7 @@ class PortageConfigDirChecker:
         if self._basicCheck():
             return
 
-        assert Util.isUnderDir(path, self._obj.path, abspath=True)
+        assert Util.isUnderDir(path, self._obj.path)
 
         if not os.path.exists(path):
             if self._bAutoFix:
