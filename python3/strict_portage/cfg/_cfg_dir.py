@@ -250,39 +250,68 @@ class PortageConfigDirChecker:
     def check_self(self):
         self._basicCheck()
 
-    def check_make_profile_link(self, gentoo_repository_dir_path, profile=None):
-        assert os.path.isabs(gentoo_repository_dir_path)
-        assert Util.isUnderDir(gentoo_repository_dir_path, self._obj._prefix)
+    def check_make_profile_link(self, gentoo_repository_dir_path=None, profile=None, fallback_profile=None):
+        if gentoo_repository_dir_path is not None:
+            assert os.path.isabs(gentoo_repository_dir_path)
+            assert Util.isUnderDir(gentoo_repository_dir_path, self._obj._prefix)
+        if profile is not None:
+            assert gentoo_repository_dir_path is not None
+        if fallback_profile is not None:
+            assert gentoo_repository_dir_path is not None
+            assert profile is None
 
         if self._basicCheck():
             return
 
         if profile is not None:
-            tTarget = os.path.join("..", "..", gentoo_repository_dir_path, profile)
+            tTarget = os.path.join("..", "..", gentoo_repository_dir_path[len(self._obj.prefix):], profile)
         else:
             tTarget = None
 
-        if not os.path.islink(self._obj.make_profile_link_path):
-            if self._bAutoFix and profile is not None:
-                Util.forceSymlink(tTarget, self._obj.make_profile_link_path)
-                return
-            else:
-                self._errorCallback("%s must be a symlink" % (self._obj.make_profile_link_path))
-                return
+        if fallback_profile is not None:
+            fallbackTarget = os.path.join("..", "..", gentoo_repository_dir_path[len(self._obj.prefix):], fallback_profile)
+        else:
+            fallbackTarget = None
 
-        while True:
-            dn = os.readlink(self._obj.make_profile_link_path)
-            if tTarget is not None:
-                if dn == tTarget:
-                    break
-                if self._bAutoFix:
+        # not exist, fix: create using profile & fallback_profile
+        if not os.path.islink(self._obj.make_profile_link_path):
+            if self._bAutoFix:
+                if tTarget is not None:
                     Util.forceSymlink(tTarget, self._obj.make_profile_link_path)
                     return
+                if fallbackTarget is not None:
+                    Util.forceSymlink(fallbackTarget, self._obj.make_profile_link_path)
+                    return
+            self._errorCallback("%s must be a symlink" % (self._obj.make_profile_link_path))
+            return
+
+        dn = os.readlink(self._obj.make_profile_link_path)
+
+        # not the same with profile, fix: re-create using profile
+        if tTarget is not None:
+            if dn == tTarget:
+                # check passed, no matter if profile exists or not
+                return
+            if self._bAutoFix:
+                Util.forceSymlink(tTarget, self._obj.make_profile_link_path)
+                return
+            self._errorCallback("%s is invalid" % (self._obj.make_profile_link_path))
+            return
+
+        # target not exist, fix: try to re-create using fallback_profile
+        if not os.path.exists(self._obj.make_profile_link_path):
+            if self._bAutoFix and fallbackTarget is not None:
+                Util.forceSymlink(fallbackTarget, self._obj.make_profile_link_path)
+                return
             else:
-                if Util.isUnderDir(os.path.normpath(os.path.join(self._obj.path, dn)), gentoo_repository_dir_path):
-                    break
+                self._errorCallback("%s points to an non-exist profile" % (self._obj.make_profile_link_path))
+                return
+
+        # does not points into "gentoo_repository_dir_path", fix: try to re-create using the same profile
+        if gentoo_repository_dir_path is not None:
+            if not Util.isUnderDir(os.path.normpath(os.path.join(self._obj.path, dn)), gentoo_repository_dir_path):
                 if self._bAutoFix:
-                    # we can fix it if only repository directory is wrong
+                    # we can fix it if the same profile exists in "gentoo_repository_dir_path"
                     while dn != "":
                         idx = dn.find("/")
                         if idx == -1:
@@ -292,15 +321,9 @@ class PortageConfigDirChecker:
                             continue
                         dn = dn[idx+1:]
                         if os.path.exists(os.path.join(gentoo_repository_dir_path, dn)):        # FIXME: should also check it is a real profile dir
-                            Util.forceSymlink(tTarget, self._obj.make_profile_link_path)
+                            Util.forceSymlink(os.path.join("..", "..", gentoo_repository_dir_path[len(self._obj.prefix):], dn), self._obj.make_profile_link_path)
                             return
-
-            self._errorCallback("%s points to an invalid location" % (self._obj.make_profile_link_path))
-            return
-
-        if tTarget is None:
-            if not os.path.exists(self._obj.make_profile_link_path):
-                self._errorCallback("%s points to an non-exist profile" % (self._obj.make_profile_link_path))
+                self._errorCallback("%s points to an invalid location" % (self._obj.make_profile_link_path))
                 return
 
     def disallow_make_conf_file(self):
