@@ -253,7 +253,7 @@ class PortageConfigDirChecker:
     def check_make_profile_link(self, gentoo_repository_dir_path=None, profile=None, fallback_profile=None):
         if gentoo_repository_dir_path is not None:
             assert os.path.isabs(gentoo_repository_dir_path)
-            assert Util.isUnderDir(gentoo_repository_dir_path, self._obj.path)
+            assert Util.isUnderDir(gentoo_repository_dir_path, self._obj._prefix)
         if profile is not None:
             assert gentoo_repository_dir_path is not None
         if fallback_profile is not None:
@@ -264,12 +264,12 @@ class PortageConfigDirChecker:
             return
 
         if profile is not None:
-            tTarget = os.path.join("..", "..", gentoo_repository_dir_path[len(self._obj.path):], profile)
+            tTarget = os.path.join("..", "..", gentoo_repository_dir_path[len(self._obj._prefix):], profile)
         else:
             tTarget = None
 
         if fallback_profile is not None:
-            fallbackTarget = os.path.join("..", "..", gentoo_repository_dir_path[len(self._obj.path):], fallback_profile)
+            fallbackTarget = os.path.join("..", "..", gentoo_repository_dir_path[len(self._obj._prefix):], fallback_profile)
         else:
             fallbackTarget = None
 
