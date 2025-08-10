@@ -253,7 +253,7 @@ class PortageConfigDirChecker:
     def check_make_profile_link(self, gentoo_repository_dir_path=None, profile=None, fallback_profile=None):
         if gentoo_repository_dir_path is not None:
             assert os.path.isabs(gentoo_repository_dir_path)
-            assert Util.isUnderDir(gentoo_repository_dir_path, self._obj._prefix)
+            assert Util.isUnderDir(gentoo_repository_dir_path, self._obj.path)
         if profile is not None:
             assert gentoo_repository_dir_path is not None
         if fallback_profile is not None:
@@ -264,12 +264,12 @@ class PortageConfigDirChecker:
             return
 
         if profile is not None:
-            tTarget = os.path.join("..", "..", gentoo_repository_dir_path[len(self._obj.prefix):], profile)
+            tTarget = os.path.join("..", "..", gentoo_repository_dir_path[len(self._obj.path):], profile)
         else:
             tTarget = None
 
         if fallback_profile is not None:
-            fallbackTarget = os.path.join("..", "..", gentoo_repository_dir_path[len(self._obj.prefix):], fallback_profile)
+            fallbackTarget = os.path.join("..", "..", gentoo_repository_dir_path[len(self._obj.path):], fallback_profile)
         else:
             fallbackTarget = None
 
@@ -321,7 +321,7 @@ class PortageConfigDirChecker:
                             continue
                         dn = dn[idx+1:]
                         if os.path.exists(os.path.join(gentoo_repository_dir_path, dn)):        # FIXME: should also check it is a real profile dir
-                            Util.forceSymlink(os.path.join("..", "..", gentoo_repository_dir_path[len(self._obj.prefix):], dn), self._obj.make_profile_link_path)
+                            Util.forceSymlink(os.path.join("..", "..", gentoo_repository_dir_path[len(self._obj.path):], dn), self._obj.make_profile_link_path)
                             return
                 self._errorCallback("%s points to an invalid location" % (self._obj.make_profile_link_path))
                 return
