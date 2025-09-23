@@ -64,8 +64,6 @@ class Util:
 
     @staticmethod
     def isUnderDir(path, dir, bAllowSame=False):
-        assert os.path.isabs(path) and os.path.isabs(dir)
-
         if bAllowSame:
             if dir == "/":
                 return path.startswith("/")
@@ -157,26 +155,6 @@ class Util:
         for line in sorted(lines):
             ret += "%s\n" % (line)
         return ret
-
-    @staticmethod
-    def realPathSplit(path):
-        """os.path.split() only split a path into 2 component, I believe there are reasons, but it is really inconvenient.
-           So I write this function to split a unix path into basic components.
-           Reference: http://stackoverflow.com/questions/3167154/how-to-split-a-dos-path-into-its-components-in-python"""
-
-        folders = []
-        while True:
-            path, folder = os.path.split(path)
-            if folder != "":
-                folders.append(folder)
-            else:
-                if path != "":
-                    folders.append(path)
-                break
-        if path.startswith("/"):
-            folders.append("")
-        folders.reverse()
-        return folders
 
     @staticmethod
     def getCpuArch():
