@@ -1,2 +1,2 @@
-# gstage4
-A python module for buildling stage4 of Gentoo Linux
+# strict_portage
+A Python module for strictly manipulating portage config files and data files.
